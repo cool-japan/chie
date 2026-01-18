@@ -1,0 +1,48 @@
+[package]
+name = "chie-p2p"
+description = "P2P networking layer for CHIE Protocol"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+keywords = ["chie", "p2p", "libp2p", "networking", "distributed"]
+categories = ["network-programming", "asynchronous"]
+
+[dependencies]
+libp2p = { workspace = true }
+libp2p-identity = { workspace = true }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+oxicode = { workspace = true }
+tracing = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+async-trait = "0.1"
+futures = "0.3"
+void = { workspace = true }
+chie-shared = { workspace = true }
+chie-crypto = { workspace = true }
+hex = { workspace = true }
+rand = { workspace = true }
+chrono = { workspace = true }
+bs58 = "0.5"
+uuid = { version = "1.19", features = ["v4"] }
+blake3 = "1.8"
+sha2 = "0.10"
+xxhash-rust = { version = "0.8", features = ["xxh3"] }
+reed-solomon-erasure = "6.0"
+parking_lot = "0.12"
+lz4_flex = "0.12"
+zstd = "0.13"
+snap = "1.1"
+
+[dev-dependencies]
+tracing-subscriber = "0.3"
+criterion = "0.7"
+
+[[bench]]
+name = "p2p_benchmarks"
+harness = false

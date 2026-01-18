@@ -1,0 +1,28 @@
+[package]
+name = "chie-shared"
+description = "Shared types, errors, and utilities for CHIE Protocol"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+keywords = ["chie", "protocol", "p2p", "distributed", "types"]
+categories = ["data-structures", "encoding", "network-programming"]
+
+[features]
+default = []
+schema = ["dep:schemars"]
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+thiserror = { workspace = true }
+getrandom = "0.3"
+schemars = { version = "0.8", optional = true, features = ["uuid1", "chrono"] }
+
+[dev-dependencies]
+proptest = "1.9"
+criterion = "0.7"

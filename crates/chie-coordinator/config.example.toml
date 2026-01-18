@@ -1,0 +1,60 @@
+# CHIE Coordinator Configuration Example
+# Copy this file to config.toml and customize for your environment
+
+[server]
+host = "0.0.0.0"
+port = 3000
+request_timeout_secs = 30
+graceful_shutdown = true
+shutdown_timeout_secs = 30
+
+[database]
+url = "postgres://postgres:postgres@localhost/chie"
+max_connections = 10
+min_connections = 1
+connect_timeout_secs = 30
+idle_timeout_secs = 600
+log_queries = false
+slow_query_threshold_ms = 1000
+
+[redis]
+url = "redis://localhost:6379"
+pool_size = 10
+connect_timeout_secs = 5
+enabled = true
+
+[jwt]
+secret = "change-this-secret-in-production"  # IMPORTANT: Change this!
+expiration_hours = 24
+issuer = "chie-coordinator"
+audience = "chie-users"
+
+[verification]
+max_clock_drift_secs = 300
+min_latency_ms = 1
+max_latency_ms = 10000
+check_nonce_replay = true
+verify_signatures = true
+
+[rewards]
+base_points_per_gb = 10
+max_multiplier = 3.0
+latency_penalty_threshold_ms = 500
+latency_penalty_factor = 0.5
+
+[rate_limit]
+enabled = true
+requests_per_minute_per_ip = 60
+requests_per_minute_per_user = 120
+requests_per_minute_per_node = 600
+
+[logging]
+level = "info"  # trace, debug, info, warn, error
+json = false
+correlation_ids = true
+# directory = "/var/log/chie"  # Optional log directory
+
+[cors]
+allowed_origins = ["*"]
+allow_credentials = true
+max_age_secs = 3600

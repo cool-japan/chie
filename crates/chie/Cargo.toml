@@ -1,0 +1,28 @@
+[package]
+name = "chie"
+description = "CHIE Protocol - Decentralized, privacy-preserving file sharing with zero-knowledge proofs"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+rust-version.workspace = true
+readme = "README.md"
+keywords = ["p2p", "privacy", "file-sharing", "decentralized", "zero-knowledge"]
+categories = ["network-programming", "cryptography", "filesystem"]
+
+[dependencies]
+chie-shared = { workspace = true }
+chie-crypto = { workspace = true }
+chie-core = { workspace = true }
+chie-p2p = { workspace = true }
+# Note: chie-coordinator is a binary crate, not included in the meta crate
+
+[features]
+default = []
+full = []
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]

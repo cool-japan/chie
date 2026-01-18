@@ -1,0 +1,11 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc 32a4c5f727dc90c3f5b57df8e5b2019c3be185b185b1022df5143cfb0c5ac010 # shrinks to cid = "bafyaaa00aa0a0a00aaa00aa00a0aaa0000aaaa00aaaa0aaa00aaa", title = "0", size_bytes = 1024
+cc ac2030b8320e11d2eccd5a11fbb8804eb97258fca78f61e9787f20657f00e72a # shrinks to input = "AAA", max_len = 1
+cc 3a9c5231fba9f3be9b37de9885aad826a09fa4bc609a3df558f9b5afa17ca191 # shrinks to tags = ["g", "g"]
+cc 1b2651c334e75d1442686975824394181124a44262284fae61d15fc8052d4825 # shrinks to values = [59.78675462436817, 69.72521597252968, 51.26581792616133, 31.542582351908624, 76.72240307802001], alpha = 0.8640934543327143
+cc 704c45ce0ee181616d0192d90ae08a1f58b70fdf4832b37c2704e5d99bc0c161 # shrinks to bytes_transferred = 10737418, demand = 1, supply = 1, latency_ms = 501

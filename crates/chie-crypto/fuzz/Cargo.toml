@@ -1,0 +1,66 @@
+[package]
+name = "chie-crypto-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2024"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+
+[dependencies.chie-crypto]
+path = ".."
+
+# Prevent this from interfering with workspaces
+[workspace]
+members = ["."]
+
+[[bin]]
+name = "fuzz_encryption"
+path = "fuzz_targets/fuzz_encryption.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "fuzz_signing"
+path = "fuzz_targets/fuzz_signing.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "fuzz_hashing"
+path = "fuzz_targets/fuzz_hashing.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "fuzz_kdf"
+path = "fuzz_targets/fuzz_kdf.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "fuzz_keyexchange"
+path = "fuzz_targets/fuzz_keyexchange.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "fuzz_shamir"
+path = "fuzz_targets/fuzz_shamir.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "fuzz_pedersen"
+path = "fuzz_targets/fuzz_pedersen.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "fuzz_merkle"
+path = "fuzz_targets/fuzz_merkle.rs"
+test = false
+doc = false

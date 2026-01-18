@@ -1,0 +1,155 @@
+[package]
+name = "chie-core"
+description = "Core protocol logic for CHIE Protocol"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+keywords = ["chie", "protocol", "p2p", "distributed", "content-delivery"]
+categories = ["network-programming", "asynchronous", "caching"]
+
+[dependencies]
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+tracing = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+reqwest = { workspace = true }
+rand = { workspace = true }
+hex = { workspace = true }
+oxicode = { workspace = true }
+flate2 = "1.1"
+sysinfo = "0.36"
+chie-shared = { workspace = true }
+chie-crypto = { workspace = true }
+chie-p2p = { workspace = true }
+quinn = "0.11"
+rustls = { version = "0.23", features = ["ring"] }
+rcgen = "0.14"
+
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
+
+[dev-dependencies]
+tempfile = "3.24"
+criterion = { version = "0.7", features = ["html_reports"] }
+
+[[bench]]
+name = "storage_bench"
+harness = false
+
+[[bench]]
+name = "utils_bench"
+harness = false
+
+[[bench]]
+name = "protocol_bench"
+harness = false
+
+[[bench]]
+name = "resilience_bench"
+harness = false
+
+[[bench]]
+name = "integrity_bench"
+harness = false
+
+[[bench]]
+name = "content_bench"
+harness = false
+
+[[bench]]
+name = "cache_bench"
+harness = false
+
+[[bench]]
+name = "profiler_bench"
+harness = false
+
+[[bench]]
+name = "validation_bench"
+harness = false
+
+[[bench]]
+name = "analytics_bench"
+harness = false
+
+[[bench]]
+name = "reputation_bench"
+harness = false
+
+[[bench]]
+name = "peer_selection_bench"
+harness = false
+
+[[bench]]
+name = "compression_bench"
+harness = false
+
+[[bench]]
+name = "streaming_bench"
+harness = false
+
+[[bench]]
+name = "network_diag_bench"
+harness = false
+[[bench]]
+name = "anomaly_bench"
+harness = false
+
+[[bench]]
+name = "dedup_bench"
+harness = false
+
+[[bench]]
+name = "prefetch_bench"
+harness = false
+
+[[bench]]
+name = "orchestrator_bench"
+harness = false
+
+[[bench]]
+name = "content_router_bench"
+harness = false
+
+[[bench]]
+name = "backup_bench"
+harness = false
+
+[[bench]]
+name = "events_bench"
+harness = false
+
+[[bench]]
+name = "gc_bench"
+harness = false
+
+[[bench]]
+name = "ratelimit_bench"
+harness = false
+
+[[bench]]
+name = "pinning_bench"
+harness = false
+
+[[bench]]
+name = "popularity_bench"
+harness = false
+
+[[bench]]
+name = "proof_submit_bench"
+harness = false
+
+[[bench]]
+name = "tiered_storage_bench"
+harness = false
+
+[[bench]]
+name = "quic_transport_bench"
+harness = false
