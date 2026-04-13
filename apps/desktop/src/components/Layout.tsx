@@ -3,8 +3,10 @@ import {
   LayoutDashboard,
   Wallet,
   HardDrive,
+  ArrowLeftRight,
   Users,
   Settings,
+  Trophy,
 } from "lucide-react";
 
 function Layout() {
@@ -49,6 +51,16 @@ function Layout() {
           </NavLink>
 
           <NavLink
+            to="/transfers"
+            className={({ isActive }) =>
+              `nav-link ${isActive ? "active" : ""}`
+            }
+          >
+            <ArrowLeftRight />
+            <span>Transfers</span>
+          </NavLink>
+
+          <NavLink
             to="/peers"
             className={({ isActive }) =>
               `nav-link ${isActive ? "active" : ""}`
@@ -56,6 +68,16 @@ function Layout() {
           >
             <Users />
             <span>Peers</span>
+          </NavLink>
+
+          <NavLink
+            to="/gamification"
+            className={({ isActive }) =>
+              `nav-link ${isActive ? "active" : ""}`
+            }
+          >
+            <Trophy />
+            <span>Rewards</span>
           </NavLink>
 
           <NavLink
@@ -71,7 +93,7 @@ function Layout() {
 
         <div className="sidebar-footer">
           <div className="text-muted" style={{ fontSize: "12px", padding: "8px 16px" }}>
-            v0.1.0 - CHIE Protocol
+            v0.2.0 - CHIE Protocol
           </div>
         </div>
       </aside>

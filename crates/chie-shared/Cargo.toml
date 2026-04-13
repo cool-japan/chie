@@ -1,6 +1,7 @@
 [package]
 name = "chie-shared"
 description = "Shared types, errors, and utilities for CHIE Protocol"
+readme = "README.md"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
@@ -20,9 +21,9 @@ serde_json = { workspace = true }
 uuid = { workspace = true }
 chrono = { workspace = true }
 thiserror = { workspace = true }
-getrandom = "0.3"
-schemars = { version = "0.8", optional = true, features = ["uuid1", "chrono"] }
+getrandom = "0.4"
+schemars = { version = "1.2", optional = true, features = ["uuid1", "chrono04"] }
 
 [dev-dependencies]
-proptest = "1.9"
-criterion = "0.7"
+proptest = "1.11"
+criterion = "0.8"

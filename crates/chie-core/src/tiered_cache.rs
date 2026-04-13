@@ -10,6 +10,7 @@
 //!
 //! ```rust
 //! use chie_core::tiered_cache::{TieredCache, TieredCacheConfig};
+//! use chie_core::compression::CompressionAlgorithm;
 //! use std::path::PathBuf;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
@@ -20,6 +21,7 @@
 //!     l2_path: PathBuf::from("/fast-ssd/cache"),
 //!     l3_path: PathBuf::from("/slow-hdd/cache"),
 //!     promotion_threshold: 3,  // Promote after 3 accesses
+//!     compression: CompressionAlgorithm::None,
 //! };
 //!
 //! let mut cache = TieredCache::new(config).await?;

@@ -179,8 +179,8 @@ impl PropertyChecker {
 
     /// Check all properties with random inputs
     pub fn check_all(&self) -> PropertyCheckResult {
-        use rand::RngCore;
-        let mut rng = rand::thread_rng();
+        use rand::Rng as _;
+        let mut rng = rand::rng();
         let mut results = HashMap::new();
 
         for (name, property) in &self.properties {
@@ -214,9 +214,9 @@ impl PropertyChecker {
 
     /// Check a specific property
     pub fn check_property(&self, name: &str) -> Option<PropertyResult> {
-        use rand::RngCore;
+        use rand::Rng as _;
         let property = self.properties.get(name)?;
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
 
         let mut passed = 0;
         let mut failed = 0;

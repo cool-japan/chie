@@ -152,10 +152,11 @@ impl ProtocolCompressor {
             // Skip compression for small messages
             // Update stats for skipped message
             if self.config.enable_stats {
-                let mut stats = self.stats.write().unwrap();
-                stats.total_messages += 1;
-                stats.total_original_bytes += original_size as u64;
-                stats.total_compressed_bytes += original_size as u64;
+                if let Ok(mut stats) = self.stats.write() {
+                    stats.total_messages += 1;
+                    stats.total_original_bytes += original_size as u64;
+                    stats.total_compressed_bytes += original_size as u64;
+                }
             }
 
             return Ok(CompressionResult {
@@ -187,13 +188,14 @@ impl ProtocolCompressor {
 
         // Update stats
         if self.config.enable_stats {
-            let mut stats = self.stats.write().unwrap();
-            stats.total_messages += 1;
-            stats.total_original_bytes += original_size as u64;
-            stats.total_compressed_bytes += compressed_size as u64;
-            if algorithm != MessageCompressionAlgorithm::None {
-                stats.compressed_messages += 1;
-                *stats.algorithm_usage.entry(algorithm).or_insert(0) += 1;
+            if let Ok(mut stats) = self.stats.write() {
+                stats.total_messages += 1;
+                stats.total_original_bytes += original_size as u64;
+                stats.total_compressed_bytes += compressed_size as u64;
+                if algorithm != MessageCompressionAlgorithm::None {
+                    stats.compressed_messages += 1;
+                    *stats.algorithm_usage.entry(algorithm).or_insert(0) += 1;
+                }
             }
         }
 
@@ -243,78 +245,72 @@ impl ProtocolCompressor {
         }
     }
 
-    /// Compress with LZ4
+    /// Compress with LZ4 (oxiarc-lz4 frame format)
     fn compress_lz4(&self, data: &[u8]) -> Result<Vec<u8>, String> {
-        Ok(lz4_flex::compress_prepend_size(data))
+        oxiarc_lz4::compress(data).map_err(|e| format!("LZ4 compression failed: {e}"))
     }
 
-    /// Decompress with LZ4
+    /// Decompress with LZ4 (oxiarc-lz4 frame format)
     fn decompress_lz4(&self, data: &[u8]) -> Result<Vec<u8>, String> {
-        lz4_flex::decompress_size_prepended(data)
-            .map_err(|e| format!("LZ4 decompression failed: {}", e))
+        let max_output = data.len().saturating_mul(255).min(256 * 1024 * 1024);
+        oxiarc_lz4::decompress(data, max_output)
+            .map_err(|e| format!("LZ4 decompression failed: {e}"))
     }
 
-    /// Compress with Zstd
+    /// Compress with Zstd (oxiarc-zstd)
     fn compress_zstd(&self, data: &[u8]) -> Result<Vec<u8>, String> {
-        zstd::bulk::compress(data, 3).map_err(|e| format!("Zstd compression failed: {}", e))
+        oxiarc_zstd::compress_with_level(data, 3)
+            .map_err(|e| format!("Zstd compression failed: {e}"))
     }
 
-    /// Decompress with Zstd
+    /// Decompress with Zstd (oxiarc-zstd)
     fn decompress_zstd(&self, data: &[u8]) -> Result<Vec<u8>, String> {
-        zstd::bulk::decompress(data, data.len() * 10)
-            .map_err(|e| format!("Zstd decompression failed: {}", e))
+        oxiarc_zstd::decompress(data).map_err(|e| format!("Zstd decompression failed: {e}"))
     }
 
-    /// Compress with Snappy
+    /// Compress with Snappy (oxiarc-snappy block format)
     fn compress_snappy(&self, data: &[u8]) -> Result<Vec<u8>, String> {
-        let mut compressed = vec![0u8; snap::raw::max_compress_len(data.len())];
-        let len = snap::raw::Encoder::new()
-            .compress(data, &mut compressed)
-            .map_err(|e| format!("Snappy compression failed: {}", e))?;
-        compressed.truncate(len);
-        Ok(compressed)
+        Ok(oxiarc_snappy::compress(data))
     }
 
-    /// Decompress with Snappy
+    /// Decompress with Snappy (oxiarc-snappy block format)
     fn decompress_snappy(&self, data: &[u8]) -> Result<Vec<u8>, String> {
-        let decompressed_len = snap::raw::decompress_len(data)
-            .map_err(|e| format!("Snappy decompression failed: {}", e))?;
-        let mut decompressed = vec![0u8; decompressed_len];
-        snap::raw::Decoder::new()
-            .decompress(data, &mut decompressed)
-            .map_err(|e| format!("Snappy decompression failed: {}", e))?;
-        Ok(decompressed)
+        oxiarc_snappy::decompress(data).map_err(|e| format!("Snappy decompression failed: {e}"))
     }
 
     /// Get compression statistics
     pub fn get_stats(&self) -> ProtocolCompressionStats {
-        let stats = self.stats.read().unwrap();
-        let compression_ratio = if stats.total_original_bytes > 0 {
-            stats.total_original_bytes as f64 / stats.total_compressed_bytes as f64
+        // Use a default snapshot if the lock is poisoned
+        let snapshot = self.stats.read().map(|s| s.clone()).unwrap_or_default();
+
+        let compression_ratio = if snapshot.total_original_bytes > 0 {
+            snapshot.total_original_bytes as f64 / snapshot.total_compressed_bytes as f64
         } else {
             1.0
         };
 
-        let compression_rate = if stats.total_messages > 0 {
-            stats.compressed_messages as f64 / stats.total_messages as f64
+        let compression_rate = if snapshot.total_messages > 0 {
+            snapshot.compressed_messages as f64 / snapshot.total_messages as f64
         } else {
             0.0
         };
 
         ProtocolCompressionStats {
-            total_messages: stats.total_messages,
-            compressed_messages: stats.compressed_messages,
-            total_original_bytes: stats.total_original_bytes,
-            total_compressed_bytes: stats.total_compressed_bytes,
+            total_messages: snapshot.total_messages,
+            compressed_messages: snapshot.compressed_messages,
+            total_original_bytes: snapshot.total_original_bytes,
+            total_compressed_bytes: snapshot.total_compressed_bytes,
             compression_ratio,
             compression_rate,
-            algorithm_usage: stats.algorithm_usage.clone(),
+            algorithm_usage: snapshot.algorithm_usage,
         }
     }
 
     /// Reset statistics
     pub fn reset_stats(&self) {
-        *self.stats.write().unwrap() = CompressionStats::default();
+        if let Ok(mut stats) = self.stats.write() {
+            *stats = CompressionStats::default();
+        }
     }
 }
 

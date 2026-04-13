@@ -14,8 +14,7 @@ use axum::{
     middleware::Next,
     response::Response,
 };
-use flate2::{Compression as GzCompression, write::GzEncoder};
-use std::{io::Write, sync::Arc};
+use std::sync::Arc;
 use tracing::{debug, warn};
 
 /// Compression algorithm
@@ -199,25 +198,16 @@ impl CompressionManager {
         }
     }
 
-    /// Compress data using gzip
+    /// Compress data using gzip (oxiarc-deflate)
     pub fn compress_gzip(&self, data: &[u8]) -> Result<Vec<u8>, std::io::Error> {
-        let mut encoder = GzEncoder::new(Vec::new(), GzCompression::new(self.config.gzip_level));
-        encoder.write_all(data)?;
-        encoder.finish()
+        let level = self.config.gzip_level.min(9) as u8;
+        oxiarc_deflate::gzip_compress(data, level).map_err(|e| std::io::Error::other(e.to_string()))
     }
 
-    /// Compress data using brotli
+    /// Compress data using brotli (oxiarc-brotli)
     pub fn compress_brotli(&self, data: &[u8]) -> Result<Vec<u8>, std::io::Error> {
-        let mut output = Vec::new();
-        let mut compressor = brotli::CompressorWriter::new(
-            &mut output,
-            4096, // buffer size
-            self.config.brotli_level,
-            22, // window size
-        );
-        compressor.write_all(data)?;
-        drop(compressor); // Flush
-        Ok(output)
+        let quality = self.config.brotli_level.min(11);
+        oxiarc_brotli::compress(data, quality).map_err(|e| std::io::Error::other(e.to_string()))
     }
 
     /// Compress data using the specified algorithm

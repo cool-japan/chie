@@ -309,7 +309,7 @@ fn create_valid_proof(
     latency_ms: u32,
 ) -> BandwidthProof {
     let mut nonce = [0u8; 32];
-    rand::RngCore::fill_bytes(&mut rand::thread_rng(), &mut nonce);
+    rand::RngCore::fill_bytes(&mut rand::rng(), &mut nonce);
 
     let chunk_data = vec![0xAB; CHUNK_SIZE];
     let chunk_hash = chie_crypto::hash(&chunk_data);

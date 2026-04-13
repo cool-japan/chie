@@ -126,7 +126,7 @@ impl RedisCache {
     pub async fn connect(&self) -> Result<(), RedisCacheError> {
         let mut retries = 0;
         loop {
-            match self.client.get_multiplexed_tokio_connection().await {
+            match self.client.get_multiplexed_async_connection().await {
                 Ok(conn) => {
                     *self.connection.write().await = Some(conn);
                     info!("Redis cache connected successfully");

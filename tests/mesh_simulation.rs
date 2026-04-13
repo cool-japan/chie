@@ -136,7 +136,7 @@ impl MeshNetwork {
 
         // Generate nonce
         let mut nonce = [0u8; 32];
-        rand::RngCore::fill_bytes(&mut rand::thread_rng(), &mut nonce);
+        rand::RngCore::fill_bytes(&mut rand::rng(), &mut nonce);
 
         let now = Utc::now().timestamp_millis();
         let start_time = now - latency_ms as i64;

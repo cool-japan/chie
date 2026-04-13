@@ -113,8 +113,8 @@ pub struct HmacKey {
 impl HmacKey {
     /// Generate a random HMAC key.
     pub fn generate() -> Self {
-        use rand::RngCore;
-        let mut rng = rand::thread_rng();
+        use rand::Rng as _;
+        let mut rng = rand::rng();
         let mut key = vec![0u8; HMAC_KEY_SIZE];
         rng.fill_bytes(&mut key[..]);
         Self { key }
@@ -194,11 +194,12 @@ impl HmacTag {
 
 /// Compute HMAC-SHA256 for a message.
 pub fn compute_hmac_sha256(key: &HmacKey, message: &[u8]) -> HmacTag {
+    use hmac::digest::KeyInit;
     use hmac::{Hmac, Mac};
     type HmacSha256 = Hmac<Sha256>;
 
-    let mut mac =
-        HmacSha256::new_from_slice(key.as_bytes()).expect("HMAC can take key of any size");
+    let mut mac = <HmacSha256 as KeyInit>::new_from_slice(key.as_bytes())
+        .expect("HMAC can take key of any size");
     mac.update(message);
     let result = mac.finalize();
     HmacTag::from_bytes(&result.into_bytes())

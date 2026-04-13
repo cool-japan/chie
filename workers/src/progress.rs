@@ -171,7 +171,7 @@ impl ProgressTracker {
         let key = self.progress_key(&progress.job_id);
         let data = serde_json::to_string(progress).map_err(|e| {
             redis::RedisError::from((
-                redis::ErrorKind::IoError,
+                redis::ErrorKind::Io,
                 "JSON serialization error",
                 e.to_string(),
             ))
@@ -196,7 +196,7 @@ impl ProgressTracker {
             Some(json) => {
                 let progress: JobProgress = serde_json::from_str(&json).map_err(|e| {
                     redis::RedisError::from((
-                        redis::ErrorKind::IoError,
+                        redis::ErrorKind::Io,
                         "JSON deserialization error",
                         e.to_string(),
                     ))

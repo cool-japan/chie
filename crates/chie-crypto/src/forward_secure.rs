@@ -193,10 +193,10 @@ impl ForwardSecureKeypair {
     /// # Parameters
     /// - `max_periods`: Maximum number of time periods supported
     pub fn generate(max_periods: u64) -> Self {
-        use rand::RngCore;
+        use rand::Rng as _;
 
         let mut evolution_seed = [0u8; 32];
-        rand::rngs::OsRng.fill_bytes(&mut evolution_seed);
+        rand::rng().fill_bytes(&mut evolution_seed);
 
         // Generate initial keypair
         let current_key = KeyPair::generate();

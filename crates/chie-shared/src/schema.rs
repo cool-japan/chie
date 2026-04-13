@@ -51,7 +51,7 @@ use crate::{
 /// Generate JSON schema for a type.
 #[cfg(feature = "schema")]
 #[must_use]
-pub fn schema_for_type<T: JsonSchema>() -> schemars::schema::RootSchema {
+pub fn schema_for_type<T: JsonSchema>() -> schemars::Schema {
     schema_for!(T)
 }
 
@@ -74,197 +74,197 @@ pub struct SchemaDefinitions;
 impl SchemaDefinitions {
     /// Generate schema for ContentMetadata.
     #[must_use]
-    pub fn content_metadata() -> schemars::schema::RootSchema {
+    pub fn content_metadata() -> schemars::Schema {
         schema_for!(ContentMetadata)
     }
 
     /// Generate schema for BandwidthProof.
     #[must_use]
-    pub fn bandwidth_proof() -> schemars::schema::RootSchema {
+    pub fn bandwidth_proof() -> schemars::Schema {
         schema_for!(BandwidthProof)
     }
 
     /// Generate schema for ChunkRequest.
     #[must_use]
-    pub fn chunk_request() -> schemars::schema::RootSchema {
+    pub fn chunk_request() -> schemars::Schema {
         schema_for!(ChunkRequest)
     }
 
     /// Generate schema for ChunkResponse.
     #[must_use]
-    pub fn chunk_response() -> schemars::schema::RootSchema {
+    pub fn chunk_response() -> schemars::Schema {
         schema_for!(ChunkResponse)
     }
 
     /// Generate schema for User.
     #[must_use]
-    pub fn user() -> schemars::schema::RootSchema {
+    pub fn user() -> schemars::Schema {
         schema_for!(User)
     }
 
     /// Generate schema for NodeStats.
     #[must_use]
-    pub fn node_stats() -> schemars::schema::RootSchema {
+    pub fn node_stats() -> schemars::Schema {
         schema_for!(NodeStats)
     }
 
     /// Generate schema for RewardDistribution.
     #[must_use]
-    pub fn reward_distribution() -> schemars::schema::RootSchema {
+    pub fn reward_distribution() -> schemars::Schema {
         schema_for!(RewardDistribution)
     }
 
     /// Generate schema for LeaderboardEntry.
     #[must_use]
-    pub fn leaderboard_entry() -> schemars::schema::RootSchema {
+    pub fn leaderboard_entry() -> schemars::Schema {
         schema_for!(LeaderboardEntry)
     }
 
     /// Generate schema for ContentInvestment.
     #[must_use]
-    pub fn content_investment() -> schemars::schema::RootSchema {
+    pub fn content_investment() -> schemars::Schema {
         schema_for!(ContentInvestment)
     }
 
     /// Generate schema for BandwidthStats.
     #[must_use]
-    pub fn bandwidth_stats() -> schemars::schema::RootSchema {
+    pub fn bandwidth_stats() -> schemars::Schema {
         schema_for!(BandwidthStats)
     }
 
     /// Generate schema for ContentStats.
     #[must_use]
-    pub fn content_stats() -> schemars::schema::RootSchema {
+    pub fn content_stats() -> schemars::Schema {
         schema_for!(ContentStats)
     }
 
     /// Generate schema for PlatformStats.
     #[must_use]
-    pub fn platform_stats() -> schemars::schema::RootSchema {
+    pub fn platform_stats() -> schemars::Schema {
         schema_for!(PlatformStats)
     }
 
     /// Generate schema for NetworkHealth.
     #[must_use]
-    pub fn network_health() -> schemars::schema::RootSchema {
+    pub fn network_health() -> schemars::Schema {
         schema_for!(NetworkHealth)
     }
 
     /// Generate schema for TimeSeriesMetric.
     #[must_use]
-    pub fn time_series_metric() -> schemars::schema::RootSchema {
+    pub fn time_series_metric() -> schemars::Schema {
         schema_for!(TimeSeriesMetric)
     }
 
     // Quota types
     /// Generate schema for StorageQuota.
     #[must_use]
-    pub fn storage_quota() -> schemars::schema::RootSchema {
+    pub fn storage_quota() -> schemars::Schema {
         schema_for!(StorageQuota)
     }
 
     /// Generate schema for BandwidthQuota.
     #[must_use]
-    pub fn bandwidth_quota() -> schemars::schema::RootSchema {
+    pub fn bandwidth_quota() -> schemars::Schema {
         schema_for!(BandwidthQuota)
     }
 
     /// Generate schema for RateLimitQuota.
     #[must_use]
-    pub fn rate_limit_quota() -> schemars::schema::RootSchema {
+    pub fn rate_limit_quota() -> schemars::Schema {
         schema_for!(RateLimitQuota)
     }
 
     /// Generate schema for UserQuota.
     #[must_use]
-    pub fn user_quota() -> schemars::schema::RootSchema {
+    pub fn user_quota() -> schemars::Schema {
         schema_for!(UserQuota)
     }
 
     // Batch types
     /// Generate schema for BatchProofSubmission.
     #[must_use]
-    pub fn batch_proof_submission() -> schemars::schema::RootSchema {
+    pub fn batch_proof_submission() -> schemars::Schema {
         schema_for!(BatchProofSubmission)
     }
 
     /// Generate schema for BatchProofResponse.
     #[must_use]
-    pub fn batch_proof_response() -> schemars::schema::RootSchema {
+    pub fn batch_proof_response() -> schemars::Schema {
         schema_for!(BatchProofResponse)
     }
 
     /// Generate schema for ProofResult.
     #[must_use]
-    pub fn proof_result() -> schemars::schema::RootSchema {
+    pub fn proof_result() -> schemars::Schema {
         schema_for!(ProofResult)
     }
 
     /// Generate schema for BatchContentAnnouncement.
     #[must_use]
-    pub fn batch_content_announcement() -> schemars::schema::RootSchema {
+    pub fn batch_content_announcement() -> schemars::Schema {
         schema_for!(BatchContentAnnouncement)
     }
 
     /// Generate schema for BatchStatsUpdate.
     #[must_use]
-    pub fn batch_stats_update() -> schemars::schema::RootSchema {
+    pub fn batch_stats_update() -> schemars::Schema {
         schema_for!(BatchStatsUpdate)
     }
 
     // Cache types
     /// Generate schema for CacheStats.
     #[must_use]
-    pub fn cache_stats() -> schemars::schema::RootSchema {
+    pub fn cache_stats() -> schemars::Schema {
         schema_for!(CacheStats)
     }
 
     /// Generate schema for TieredCacheStats.
     #[must_use]
-    pub fn tiered_cache_stats() -> schemars::schema::RootSchema {
+    pub fn tiered_cache_stats() -> schemars::Schema {
         schema_for!(TieredCacheStats)
     }
 
     /// Generate schema for SizedCacheStats.
     #[must_use]
-    pub fn sized_cache_stats() -> schemars::schema::RootSchema {
+    pub fn sized_cache_stats() -> schemars::Schema {
         schema_for!(SizedCacheStats)
     }
 
     // Profiling types
     /// Generate schema for OperationStats.
     #[must_use]
-    pub fn operation_stats() -> schemars::schema::RootSchema {
+    pub fn operation_stats() -> schemars::Schema {
         schema_for!(OperationStats)
     }
 
     /// Generate schema for BandwidthMetrics.
     #[must_use]
-    pub fn bandwidth_metrics() -> schemars::schema::RootSchema {
+    pub fn bandwidth_metrics() -> schemars::Schema {
         schema_for!(BandwidthMetrics)
     }
 
     /// Generate schema for LatencyStats.
     #[must_use]
-    pub fn latency_stats() -> schemars::schema::RootSchema {
+    pub fn latency_stats() -> schemars::Schema {
         schema_for!(LatencyStats)
     }
 
     /// Generate schema for ThroughputMetrics.
     #[must_use]
-    pub fn throughput_metrics() -> schemars::schema::RootSchema {
+    pub fn throughput_metrics() -> schemars::Schema {
         schema_for!(ThroughputMetrics)
     }
 
     /// Generate schema for ResourceMetrics.
     #[must_use]
-    pub fn resource_metrics() -> schemars::schema::RootSchema {
+    pub fn resource_metrics() -> schemars::Schema {
         schema_for!(ResourceMetrics)
     }
 
     /// Generate all schemas as a map.
     #[must_use]
-    pub fn all() -> std::collections::HashMap<&'static str, schemars::schema::RootSchema> {
+    pub fn all() -> std::collections::HashMap<&'static str, schemars::Schema> {
         let mut schemas = std::collections::HashMap::new();
 
         // Core protocol types

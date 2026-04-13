@@ -16,6 +16,7 @@
 //! - `fixed_arrays`: Const-generic fixed-size array types for cryptographic operations
 //! - `experiments`: A/B testing and feature experiment types
 //! - `state_machine`: Phantom types for compile-time state machine enforcement
+//! - `gamification`: Gamification types (badges, quests, leaderboard, user state)
 
 pub mod api;
 pub mod bandwidth;
@@ -26,6 +27,7 @@ pub mod core;
 pub mod enums;
 pub mod experiments;
 pub mod fixed_arrays;
+pub mod gamification;
 pub mod ids;
 pub mod profiling;
 pub mod quota;
@@ -49,6 +51,11 @@ pub use quota::*;
 pub use state_machine::*;
 pub use stats::*;
 pub use validation::*;
+
+// Re-export key gamification types (submodule kept separate to avoid name clashes)
+pub use gamification::{
+    Badge, LeaderboardEntry, Quest, QuestStatus, QuestType, UserGamificationState,
+};
 
 // Re-export test helpers for use in other crates' tests
 #[cfg(test)]

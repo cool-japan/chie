@@ -4,15 +4,15 @@
 
 **Phase 0 (PoC)**: ✅ **100% COMPLETE** - Core protocol, server infrastructure, mesh simulation, and all success criteria implemented
 
-### Current Metrics (2026-01-18)
-- **Rust Code**: 196,538 SLOC (243,995 total lines)
-- **Total Project**: 208,012 SLOC (277,438 total lines)
-- **Tests**: 2,000+ across all crates
-- **Modules**: 82 crypto + 41 P2P + 50+ coordinator + 40+ core + 30+ workers
+### Current Metrics (2026-04-13)
+- **Rust Code**: 198,922 SLOC (246,410 total lines)
+- **Total Project**: 211,716 SLOC (263,199 total lines)
+- **Tests**: 4,515 passing across all crates (12 skipped)
+- **Modules**: 82 crypto + 110 P2P + 62 coordinator + 70 core + 30+ shared + 12 workers
 
 ---
 
-## Phase 0: Technical PoC (Target: 8,500 SLOC → ✅ Achieved: 196,538 SLOC)
+## Phase 0: Technical PoC (Target: 8,500 SLOC → ✅ Achieved: 198,922 SLOC)
 
 ### Core Protocol (chie-p2p, chie-shared)
 - [x] `BandwidthProofCodec` for libp2p request-response
@@ -105,6 +105,13 @@
 - [x] **Slow Test Performance**: Reduced test times from 60+ seconds to <1 second
 - [x] **Request Coalescing**: Added tokio::test attributes for proper async runtime
 
+### Recent Technical Achievements (2026-04-13)
+- [x] **Security Patches**: aws-lc-sys 0.39.1, quinn-proto 0.11.14, rustls-webpki 0.103.11, time 0.3.47
+- [x] **Module Refactoring**: admin.rs (4,636 lines), alerting.rs (2,842 lines), api/mod.rs (2,661 lines) split into sub-modules
+- [x] **OxiARC Migration**: All compression/decompression now Pure Rust (LZ4, Zstd, Snappy, Deflate, Brotli)
+- [x] **Doc Test Coverage**: 363 doc tests passing (0 failures) across workspace
+- [x] **Dependency Updates**: toml 1.1, uuid 1.23, async-graphql 7.2, aws-sdk-s3 1.129, criterion 0.8
+
 ---
 
 ## Phase 1: MVP (Target: 127,000 SLOC)
@@ -135,10 +142,13 @@
 
 #### Desktop Client Polish
 - [ ] Auto-update mechanism
-- [ ] Onboarding wizard
-  - [ ] Storage allocation slider
-  - [ ] Wallet generation
-  - [ ] Welcome bonus
+- [x] Real P2P integration (ContentNode + NetworkStateMonitor)
+- [x] Onboarding wizard (4-step wizard: welcome, storage setup, identity, ready)
+  - [x] Storage allocation slider
+  - [x] Wallet generation (mock seed phrase display)
+  - [x] Welcome bonus (points reward preview)
+- [x] Transfer history ring buffer (200-entry VecDeque, Transfers UI page)
+- [x] Settings + gamification persistence to disk (JSON, load on startup)
 - [ ] macOS/Windows code signing
 
 #### Creator Acquisition
@@ -150,17 +160,22 @@
 ### Month 3: Node Operator Growth
 
 #### User Acquisition
-- [ ] Creator referral system
+- [x] Creator referral system (referral code generation, `/me/referral`, `/me/referrals` API)
 - [ ] Reddit/Discord community posts
 - [ ] Target: 500 node operators
 
 #### Gamification System
-- [ ] Leaderboard (monthly rankings)
-- [ ] Badges (Founder, TopSeeder, SuperNode)
-- [ ] Quest system
-  - [ ] Daily: 12-hour uptime
-  - [ ] Weekly: Host 5 creators
-  - [ ] Monthly: Transfer 100GB
+- [x] Gamification types (Badge, Quest, LeaderboardEntry, UserGamificationState)
+- [x] GamificationEngine with points, badge eligibility, quest progress
+- [x] Gamification API endpoints (`/api/v1/gamification/...`)
+- [x] Badges (Founder, TopSeeder, SuperNode, EarlyAdopter, BandwidthHero, Reliable)
+- [x] Leaderboard (monthly rankings) — monthly snapshot persistence to disk, `/leaderboard/history` endpoint
+- [x] Quest system — types + engine + scheduler + persistence complete
+  - [x] Daily: 12-hour uptime (type + engine)
+  - [x] Weekly: Host 5 creators (type + engine)
+  - [x] Monthly: Transfer 100GB (type + engine)
+  - [x] Quest scheduler (hourly maintenance, daily checks, monthly points reset)
+- [x] Gamification Desktop UI (Rewards page with badges, quests, leaderboard)
 
 ### Phase 1 Success Metrics
 - [ ] 50 creators
@@ -251,6 +266,10 @@
 | Desktop client prototype | High | ✅ Complete |
 | Post-quantum cryptography migration | Low | ✅ Ready (Kyber, Dilithium, SPHINCS+) |
 | Slow test performance optimization | High | ✅ Complete (60s → <1s) |
+| File size policy compliance (admin, alerting, api splits) | Medium | ✅ Complete |
+| File refactoring (admin.rs, alerting.rs, api/mod.rs) | Medium | ✅ Complete (split into sub-modules) |
+| Security CVE remediation (aws-lc-sys, quinn-proto, rustls-webpki, time) | High | ✅ Complete (cargo update) |
+| PBKDF slow test marked #[ignore] | Low | ✅ Complete |
 
 ---
 
@@ -258,17 +277,17 @@
 
 | Phase | Rust Backend | Frontend | Infra/Config | Total | Status |
 |-------|-------------|----------|--------------|-------|--------|
-| Phase 0 | ~~6,500~~ → **196,538** | 1,500 | 500 | ~~8,500~~ → **208,012** | ✅ COMPLETE |
+| Phase 0 | ~~6,500~~ → **198,922** | 1,699 | 571 | ~~8,500~~ → **211,716** | ✅ COMPLETE |
 | Phase 1 | 85,000 | 35,000 | 7,000 | 127,000 | 🔄 In Progress |
 | Phase 2 | 180,000 | 100,000 | 32,000 | 312,000 | ⏳ Planned |
 | Phase 3 | 350,000 | 250,000 | 85,000 | 685,000 | ⏳ Planned |
 
-### Actual Crate SLOC (2026-01-18)
+### Actual Crate SLOC (2026-04-13)
 | Crate | SLOC | Tests | Status |
 |-------|------|-------|--------|
-| chie-crypto | ~50,000 | 1,034 | ✅ Complete (82 modules) |
-| chie-p2p | ~26,000 | 494+ | ✅ Complete (41 modules) |
-| chie-coordinator | ~30,000 | 251 | ✅ Complete (50+ modules) |
-| chie-shared | ~14,000 | 740 | ✅ Complete |
-| chie-core | ~20,000 | 400+ | ✅ Complete |
-| workers | ~5,000 | 50+ | ✅ Complete |
+| chie-crypto | ~47,500 | 1,034 | ✅ Complete (82 modules) |
+| chie-p2p | ~58,300 | 494+ | ✅ Complete (110 modules) |
+| chie-coordinator | ~34,800 | 251 | ✅ Complete (gamification + referral + admin sub-modules) |
+| chie-shared | ~15,300 | 740 | ✅ Complete (gamification types + scheduler) |
+| chie-core | ~46,200 | 400+ | ✅ Complete (real P2P integration, 70 modules) |
+| workers | ~4,300 | 50+ | ✅ Complete |

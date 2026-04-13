@@ -1,6 +1,7 @@
 [package]
 name = "chie-coordinator"
 description = "Central coordinator server for CHIE Protocol"
+readme = "README.md"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
@@ -43,11 +44,11 @@ utoipa = { workspace = true }
 utoipa-swagger-ui = { workspace = true }
 async-graphql = { workspace = true }
 async-graphql-axum = { workspace = true }
-flate2 = "1.1"
-brotli = "8.0"
+oxiarc-deflate = { workspace = true }
+oxiarc-brotli = { workspace = true }
 blake3 = { workspace = true }
 dashmap = "6.1"
-rand = "0.9"
+rand = { workspace = true }
 lettre = { version = "0.11", default-features = false, features = ["tokio1", "tokio1-native-tls", "smtp-transport", "builder"] }
 urlencoding = "2.1"
 regex = "1"

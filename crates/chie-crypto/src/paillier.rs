@@ -46,7 +46,6 @@
 use num_bigint::{BigUint, RandBigInt};
 use num_prime::RandPrime;
 use num_traits::{One, Zero};
-use rand::thread_rng;
 use serde::{Deserialize, Serialize};
 
 /// Paillier public key
@@ -94,7 +93,7 @@ impl PaillierKeypair {
     ///
     /// Key generation for large bit sizes can be slow. For testing, use 512 or 1024 bits.
     pub fn generate(bits: usize) -> Self {
-        let mut rng = thread_rng();
+        let mut rng = rand_core06::OsRng;
 
         // Generate two large primes p and q
         let p: BigUint = rng.gen_prime(bits / 2, None);
@@ -183,7 +182,7 @@ impl PaillierCiphertext {
 ///
 /// Ciphertext containing the encrypted message
 pub fn encrypt(public_key: &PaillierPublicKey, message: u64) -> PaillierCiphertext {
-    let mut rng = thread_rng();
+    let mut rng = rand_core06::OsRng;
     let m = BigUint::from(message);
 
     // Choose random r in Z*_n

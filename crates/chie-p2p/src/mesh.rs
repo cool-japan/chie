@@ -282,7 +282,10 @@ impl MeshSimulation {
 
         // Create chunk request
         let mut nonce = [0u8; 32];
-        rand::RngCore::fill_bytes(&mut rand::thread_rng(), &mut nonce);
+        {
+            use rand::RngExt as _;
+            rand::rng().fill(&mut nonce);
+        }
 
         let request = ChunkRequest {
             content_cid: content_cid.to_string(),

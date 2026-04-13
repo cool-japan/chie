@@ -17,10 +17,12 @@ use std::sync::{Arc, RwLock};
 /// use chie_p2p::{CompressionAlgorithm, CompressionLevel, CompressionManager};
 ///
 /// // Create a compression manager with LZ4
-/// let manager = CompressionManager::new(CompressionAlgorithm::Lz4, CompressionLevel::Fast);
-/// let data = b"Hello, World!";
-/// let compressed = manager.compress(data).unwrap();
-/// let decompressed = manager.decompress(&compressed).unwrap();
+/// let mut manager = CompressionManager::new(CompressionAlgorithm::Lz4, CompressionLevel::Fast);
+/// // Use data >= 1024 bytes so the manager actually compresses it (small data is passed through)
+/// let data = vec![b'A'; 2048];
+/// manager.set_min_compress_size(0);
+/// let compressed = manager.compress(&data).expect("compress");
+/// let decompressed = manager.decompress(&compressed).expect("decompress");
 /// assert_eq!(data.as_slice(), decompressed.as_slice());
 /// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -200,96 +202,38 @@ impl CompressionManager {
         }
     }
 
-    // LZ4 compression (using lz4_flex crate for pure Rust implementation)
+    // LZ4 compression using oxiarc-lz4 (frame format with content size header)
     fn compress_lz4(&self, data: &[u8]) -> io::Result<Vec<u8>> {
-        // Simplified LZ4 implementation using a basic algorithm
-        // In production, use lz4_flex crate
-        Ok(self.compress_simple(data))
+        oxiarc_lz4::compress(data).map_err(|e| io::Error::other(e.to_string()))
     }
 
     fn decompress_lz4(&self, data: &[u8]) -> io::Result<Vec<u8>> {
-        // Simplified LZ4 decompression
-        // In production, use lz4_flex crate
-        Ok(self.decompress_simple(data))
+        // Provide a generous but bounded output cap (256 MiB)
+        let max_output = data.len().saturating_mul(255).min(256 * 1024 * 1024);
+        oxiarc_lz4::decompress(data, max_output).map_err(|e| io::Error::other(e.to_string()))
     }
 
-    // Zstd compression
+    // Zstd compression using oxiarc-zstd
     fn compress_zstd(&self, data: &[u8]) -> io::Result<Vec<u8>> {
-        // Simplified Zstd implementation
-        // In production, use zstd crate
-        Ok(self.compress_simple(data))
+        let level = match self.level {
+            CompressionLevel::Fast => 1,
+            CompressionLevel::Balanced => 3,
+            CompressionLevel::Best => 9,
+        };
+        oxiarc_zstd::compress_with_level(data, level).map_err(|e| io::Error::other(e.to_string()))
     }
 
     fn decompress_zstd(&self, data: &[u8]) -> io::Result<Vec<u8>> {
-        // Simplified Zstd decompression
-        // In production, use zstd crate
-        Ok(self.decompress_simple(data))
+        oxiarc_zstd::decompress(data).map_err(|e| io::Error::other(e.to_string()))
     }
 
-    // Snappy compression
+    // Snappy compression using oxiarc-snappy (block format)
     fn compress_snappy(&self, data: &[u8]) -> io::Result<Vec<u8>> {
-        // Simplified Snappy implementation
-        // In production, use snap crate
-        Ok(self.compress_simple(data))
+        Ok(oxiarc_snappy::compress(data))
     }
 
     fn decompress_snappy(&self, data: &[u8]) -> io::Result<Vec<u8>> {
-        // Simplified Snappy decompression
-        // In production, use snap crate
-        Ok(self.decompress_simple(data))
-    }
-
-    // Simple compression (placeholder - for demonstration)
-    // In production, replace with actual compression libraries
-    fn compress_simple(&self, data: &[u8]) -> Vec<u8> {
-        // Simple RLE-like compression for demonstration
-        let mut result = Vec::new();
-        let mut i = 0;
-
-        while i < data.len() {
-            let byte = data[i];
-            let mut count = 1;
-
-            while i + count < data.len() && data[i + count] == byte && count < 255 {
-                count += 1;
-            }
-
-            if count > 3 {
-                // Use RLE for repeated bytes
-                result.push(0xFF); // Marker for RLE
-                result.push(byte);
-                result.push(count as u8);
-                i += count;
-            } else {
-                // Copy literal bytes
-                result.push(byte);
-                i += 1;
-            }
-        }
-
-        result
-    }
-
-    // Simple decompression (placeholder)
-    fn decompress_simple(&self, data: &[u8]) -> Vec<u8> {
-        let mut result = Vec::new();
-        let mut i = 0;
-
-        while i < data.len() {
-            if data[i] == 0xFF && i + 2 < data.len() {
-                // RLE sequence
-                let byte = data[i + 1];
-                let count = data[i + 2] as usize;
-                result.extend(std::iter::repeat_n(byte, count));
-                i += 3;
-            } else {
-                // Literal byte
-                result.push(data[i]);
-                i += 1;
-            }
-        }
-
-        result
+        oxiarc_snappy::decompress(data).map_err(|e| io::Error::other(e.to_string()))
     }
 
     /// Detect best compression algorithm for data

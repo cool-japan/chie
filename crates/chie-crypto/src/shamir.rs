@@ -12,7 +12,7 @@
 //! - Each share is the same size as the secret
 //! - Shares are independent random values
 
-use rand::RngCore;
+use rand::Rng as _;
 use thiserror::Error;
 use zeroize::Zeroize;
 
@@ -85,7 +85,7 @@ pub fn split(secret: &[u8], threshold: usize, num_shares: usize) -> ShamirResult
     }
 
     let mut shares = Vec::with_capacity(num_shares);
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
 
     // Split each byte independently using Shamir's scheme over GF(256)
     for (byte_idx, &secret_byte) in secret.iter().enumerate() {

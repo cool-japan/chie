@@ -23,7 +23,7 @@
 //! assert!((noisy_sum - true_sum).abs() < 100.0); // Usually within 100
 //! ```
 
-use rand::Rng;
+use rand::RngExt;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
@@ -244,8 +244,8 @@ impl ExponentialMechanism {
         }
 
         // Sample from categorical distribution
-        let mut rng = rand::thread_rng();
-        let sample: f64 = rng.gen_range(0.0..1.0);
+        let mut rng = rand::rng();
+        let sample: f64 = rng.random_range(0.0..1.0);
 
         let mut cumulative = 0.0;
         for (i, &prob) in probabilities.iter().enumerate() {
@@ -347,21 +347,21 @@ impl PrivacyBudget {
 
 /// Sample from Laplace distribution with given scale parameter
 fn sample_laplace(scale: f64) -> f64 {
-    let mut rng = rand::thread_rng();
-    let u: f64 = rng.gen_range(-0.5..0.5);
+    let mut rng = rand::rng();
+    let u: f64 = rng.random_range(-0.5..0.5);
 
-    -scale * u.signum() * (1.0 - 2.0 * u.abs()).ln()
+    -scale * u.signum() * (1.0_f64 - 2.0_f64 * u.abs()).ln()
 }
 
 /// Sample from Gaussian distribution with given standard deviation
 fn sample_gaussian(sigma: f64) -> f64 {
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
 
     // Box-Muller transform
-    let u1: f64 = rng.gen_range(0.0..1.0);
-    let u2: f64 = rng.gen_range(0.0..1.0);
+    let u1: f64 = rng.random_range(0.0..1.0);
+    let u2: f64 = rng.random_range(0.0..1.0);
 
-    let r = (-2.0 * u1.ln()).sqrt();
+    let r = (-2.0_f64 * u1.ln()).sqrt();
     let theta = 2.0 * std::f64::consts::PI * u2;
 
     sigma * r * theta.cos()

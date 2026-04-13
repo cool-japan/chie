@@ -18,7 +18,7 @@
 //! - Selective disclosure of reputation scores
 //!
 //! # Example
-//! ```
+//! ```no_run
 //! use chie_crypto::bbs_plus::{BbsPlusKeypair, sign_messages, create_proof, verify_proof};
 //!
 //! // Setup

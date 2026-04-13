@@ -192,9 +192,9 @@ impl SecureKeyStore {
     /// ```
     pub fn new(password: &[u8]) -> KeyStoreResult<Self> {
         // Generate random salt
-        use rand::RngCore;
+        use rand::Rng as _;
         let mut salt = [0u8; 32];
-        rand::thread_rng().fill_bytes(&mut salt);
+        rand::rng().fill_bytes(&mut salt);
 
         Self::with_salt(password, salt)
     }

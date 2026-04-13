@@ -6,7 +6,7 @@
 //! - Graceful degradation mechanisms
 //! - Chaos engineering test utilities
 
-use rand::Rng;
+use rand::RngExt as _;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -83,7 +83,7 @@ impl RetryStrategy {
             } => {
                 let base_delay_ms =
                     initial_delay.as_millis() as f64 * multiplier.powi(attempt as i32);
-                let jitter_factor = 1.0 + (rand::thread_rng().r#gen::<f64>() - 0.5) * 2.0 * jitter;
+                let jitter_factor = 1.0 + (rand::rng().random::<f64>() - 0.5) * 2.0 * jitter;
                 let delay_ms = base_delay_ms * jitter_factor;
                 let delay = Duration::from_millis(delay_ms as u64);
                 delay.min(*max_delay)
@@ -553,12 +553,12 @@ impl ChaosEngineer {
         stats.total_operations += 1;
         drop(stats);
 
-        let mut rng = rand::thread_rng();
-        if rng.r#gen::<f64>() < self.config.fault_probability {
+        let mut rng = rand::rng();
+        if rng.random::<f64>() < self.config.fault_probability {
             if let Some(fault) = self
                 .config
                 .faults
-                .get(rng.r#gen_range(0..self.config.faults.len()))
+                .get(rng.random_range(0..self.config.faults.len()))
             {
                 let mut stats = self.stats.lock().await;
                 stats.faults_injected += 1;

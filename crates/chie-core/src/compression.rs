@@ -29,7 +29,7 @@
 //! ```
 
 use serde::{Deserialize, Serialize};
-use std::io::{self, Read, Write};
+use std::io;
 use thiserror::Error;
 
 /// Compression algorithm options.
@@ -301,24 +301,16 @@ fn decompress_rle(data: &[u8]) -> Result<Vec<u8>, CompressionError> {
     Ok(result)
 }
 
-/// Compress data using DEFLATE algorithm.
+/// Compress data using DEFLATE algorithm (oxiarc-deflate).
 fn compress_deflate(data: &[u8], level: i32) -> io::Result<Vec<u8>> {
-    use flate2::Compression;
-    use flate2::write::DeflateEncoder;
-
-    let mut encoder = DeflateEncoder::new(Vec::new(), Compression::new(level as u32));
-    encoder.write_all(data)?;
-    encoder.finish()
+    // oxiarc-deflate levels 0-9: clamp to valid range
+    let clamped = level.clamp(0, 9) as u8;
+    oxiarc_deflate::deflate(data, clamped).map_err(|e| io::Error::other(e.to_string()))
 }
 
-/// Decompress DEFLATE-compressed data.
+/// Decompress DEFLATE-compressed data (oxiarc-deflate).
 fn decompress_deflate(data: &[u8]) -> io::Result<Vec<u8>> {
-    use flate2::read::DeflateDecoder;
-
-    let mut decoder = DeflateDecoder::new(data);
-    let mut result = Vec::new();
-    decoder.read_to_end(&mut result)?;
-    Ok(result)
+    oxiarc_deflate::inflate(data).map_err(|e| io::Error::other(e.to_string()))
 }
 
 /// Determine optimal compression algorithm for content type.

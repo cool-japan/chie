@@ -95,8 +95,8 @@ impl EntropySource {
 
     /// Get random bytes from the entropy source
     pub fn get_bytes(&mut self, count: usize) -> Vec<u8> {
-        use rand::RngCore;
-        let mut rng = rand::thread_rng();
+        use rand::Rng as _;
+        let mut rng = rand::rng();
         let mut bytes = vec![0u8; count];
         rng.fill_bytes(&mut bytes);
         bytes

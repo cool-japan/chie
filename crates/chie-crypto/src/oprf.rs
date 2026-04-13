@@ -38,7 +38,7 @@ use curve25519_dalek::{
     ristretto::{CompressedRistretto, RistrettoPoint},
     scalar::Scalar,
 };
-use rand::Rng;
+use rand::RngExt;
 use serde::{Deserialize, Serialize};
 use sha2::Sha512;
 
@@ -103,7 +103,7 @@ pub struct OprfClient {
 impl OprfServer {
     /// Create a new OPRF server with random secret key.
     pub fn new() -> Self {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let mut bytes = [0u8; 32];
         rng.fill(&mut bytes);
         let secret_key = Scalar::from_bytes_mod_order(bytes);
@@ -175,7 +175,7 @@ impl OprfClient {
     ///
     /// Returns (client state, blinded input to send to server).
     pub fn blind(input: &[u8]) -> (Self, BlindedInput) {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let mut bytes = [0u8; 32];
         rng.fill(&mut bytes);
         let blind = Scalar::from_bytes_mod_order(bytes);

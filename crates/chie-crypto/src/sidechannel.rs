@@ -193,8 +193,8 @@ impl TimingTest {
             name: name.to_string(),
             num_samples,
             input_generator: Box::new(|| {
-                use rand::RngCore;
-                let mut rng = rand::thread_rng();
+                use rand::Rng as _;
+                let mut rng = rand::rng();
                 let mut data = vec![0u8; 32];
                 rng.fill_bytes(&mut data);
                 data

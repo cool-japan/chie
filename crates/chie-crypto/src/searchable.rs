@@ -47,7 +47,7 @@
 //! ```
 
 use blake3::Hasher;
-use rand::RngCore;
+use rand::Rng as _;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use thiserror::Error;
@@ -73,7 +73,7 @@ impl SearchableEncryption {
     /// Create a new searchable encryption instance with random key
     pub fn new() -> Self {
         let mut master_key = [0u8; 32];
-        rand::rngs::OsRng.fill_bytes(&mut master_key);
+        rand::rng().fill_bytes(&mut master_key);
         Self { master_key }
     }
 

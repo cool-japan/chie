@@ -46,7 +46,7 @@
 
 use crate::hash::hash;
 use blake3::Hasher;
-use rand::RngCore;
+use rand::Rng as _;
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use thiserror::Error;
@@ -81,7 +81,7 @@ impl PsiServer {
     /// Create a new PSI server with random secret key
     pub fn new() -> Self {
         let mut secret_key = [0u8; 32];
-        rand::rngs::OsRng.fill_bytes(&mut secret_key);
+        rand::rng().fill_bytes(&mut secret_key);
         Self { secret_key }
     }
 
@@ -136,7 +136,7 @@ impl PsiClient {
     /// Create a new PSI client with random secret key
     pub fn new() -> Self {
         let mut secret_key = [0u8; 32];
-        rand::rngs::OsRng.fill_bytes(&mut secret_key);
+        rand::rng().fill_bytes(&mut secret_key);
         Self { secret_key }
     }
 

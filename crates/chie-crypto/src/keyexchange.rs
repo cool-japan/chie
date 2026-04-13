@@ -115,8 +115,7 @@ impl KeyExchangeKeypair {
     /// let keypair = KeyExchangeKeypair::generate();
     /// ```
     pub fn generate() -> Self {
-        let mut rng = rand::thread_rng();
-        let secret = StaticSecret::random_from_rng(&mut rng);
+        let secret = StaticSecret::random_from_rng(rand_core06::OsRng);
         let public = X25519PublicKey::from(&secret);
 
         Self { secret, public }

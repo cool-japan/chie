@@ -172,10 +172,12 @@ impl Tls13KeySchedule {
 
 /// HKDF-Extract operation
 fn hkdf_extract(salt: &[u8], ikm: &[u8]) -> [u8; 32] {
+    use hmac::digest::KeyInit;
     use hmac::{Hmac, Mac};
     type HmacSha256 = Hmac<Sha256>;
 
-    let mut mac = HmacSha256::new_from_slice(salt).expect("HMAC can take key of any size");
+    let mut mac =
+        <HmacSha256 as KeyInit>::new_from_slice(salt).expect("HMAC can take key of any size");
     mac.update(ikm);
     let result = mac.finalize();
     let bytes = result.into_bytes();
@@ -214,6 +216,7 @@ fn hkdf_expand_label(secret: &[u8], label: &[u8], context: &[u8], length: u16) -
 
 /// HKDF-Expand operation
 fn hkdf_expand(prk: &[u8], info: &[u8], length: usize) -> Vec<u8> {
+    use hmac::digest::KeyInit;
     use hmac::{Hmac, Mac};
     type HmacSha256 = Hmac<Sha256>;
 
@@ -222,7 +225,8 @@ fn hkdf_expand(prk: &[u8], info: &[u8], length: usize) -> Vec<u8> {
     let mut counter = 1u8;
 
     while output.len() < length {
-        let mut mac = HmacSha256::new_from_slice(prk).expect("HMAC can take key of any size");
+        let mut mac =
+            <HmacSha256 as KeyInit>::new_from_slice(prk).expect("HMAC can take key of any size");
         mac.update(&t);
         mac.update(info);
         mac.update(&[counter]);

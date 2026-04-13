@@ -1,7 +1,7 @@
 //! Bandwidth proof protocol implementation.
 
 use chie_shared::{BandwidthProof, ChunkRequest, ChunkResponse};
-use rand::RngCore;
+use rand::Rng as _;
 use thiserror::Error;
 use uuid::Uuid;
 
@@ -43,7 +43,7 @@ pub enum ValidationError {
 #[must_use]
 pub fn generate_challenge_nonce() -> [u8; 32] {
     let mut nonce = [0u8; 32];
-    rand::thread_rng().fill_bytes(&mut nonce);
+    rand::rng().fill_bytes(&mut nonce);
     nonce
 }
 

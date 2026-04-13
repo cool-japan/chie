@@ -37,7 +37,7 @@
 
 use crate::merkle::{MerkleProof, MerkleTree};
 use blake3;
-use rand::RngCore;
+use rand::Rng as _;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
@@ -277,7 +277,7 @@ impl StorageVerifier {
     /// Create a challenge for a specific number of chunks.
     pub fn create_challenge_for_chunks(&self, total_chunks: usize) -> Challenge {
         let mut nonce = [0u8; 32];
-        rand::thread_rng().fill_bytes(&mut nonce);
+        rand::rng().fill_bytes(&mut nonce);
 
         // Select random chunk indices
         let mut chunk_indices = Vec::new();
@@ -401,7 +401,7 @@ mod tests {
     #[test]
     fn test_challenge_serialization() {
         let mut nonce = [0u8; 32];
-        rand::thread_rng().fill_bytes(&mut nonce);
+        rand::rng().fill_bytes(&mut nonce);
 
         let challenge = Challenge::new(nonce, vec![0, 5, 10, 15]);
 

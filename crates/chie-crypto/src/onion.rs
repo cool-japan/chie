@@ -37,7 +37,7 @@
 use crate::encryption::{decrypt, encrypt};
 use crate::signing::{KeyPair, PublicKey};
 use blake3;
-use rand::RngCore;
+use rand::Rng as _;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
@@ -203,7 +203,7 @@ impl OnionBuilder {
 
             // Generate ephemeral hint for key derivation
             let mut ephemeral_hint = [0u8; 32];
-            rand::thread_rng().fill_bytes(&mut ephemeral_hint);
+            rand::rng().fill_bytes(&mut ephemeral_hint);
 
             // Derive encryption key for current layer
             let mut hasher = blake3::Hasher::new();
@@ -214,7 +214,7 @@ impl OnionBuilder {
 
             // Generate nonce
             let mut nonce = [0u8; 12];
-            rand::thread_rng().fill_bytes(&mut nonce);
+            rand::rng().fill_bytes(&mut nonce);
 
             // Encrypt the payload
             let ciphertext = encrypt(&payload_bytes, &encryption_key, &nonce)

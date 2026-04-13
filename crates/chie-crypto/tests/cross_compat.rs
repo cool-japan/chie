@@ -75,11 +75,11 @@ fn test_ed25519_compat_with_dalek() {
 /// Test X25519 key exchange compatibility with x25519-dalek
 #[test]
 fn test_x25519_compat_with_dalek() {
-    use rand::RngCore;
+    use rand::Rng;
     use x25519_dalek::{PublicKey, StaticSecret};
 
     // Generate random secret bytes
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     let mut secret_bytes_a = [0u8; 32];
     let mut secret_bytes_b = [0u8; 32];
     rng.fill_bytes(&mut secret_bytes_a);
@@ -291,10 +291,10 @@ fn test_encryption_compat_various_sizes() {
 /// Test key exchange with multiple key pairs
 #[test]
 fn test_x25519_compat_multiple_exchanges() {
-    use rand::RngCore;
+    use rand::Rng;
     use x25519_dalek::{PublicKey, StaticSecret};
 
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
 
     // Generate multiple keypairs with known secrets
     let secrets: Vec<[u8; 32]> = (0..5)

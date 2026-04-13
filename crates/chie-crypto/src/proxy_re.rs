@@ -23,24 +23,25 @@
 //!
 //! // Alice encrypts data
 //! let plaintext = b"Secret content";
-//! let ciphertext = alice_keypair.encrypt(plaintext).unwrap();
+//! let ciphertext = alice_keypair.encrypt(plaintext).expect("encrypt");
 //!
 //! // Alice can decrypt
-//! let decrypted = alice_keypair.decrypt(&ciphertext).unwrap();
+//! let decrypted = alice_keypair.decrypt(&ciphertext).expect("decrypt");
 //! assert_eq!(decrypted, plaintext);
 //!
 //! // Alice generates a re-encryption key for Bob
 //! let re_key = alice_keypair.generate_re_key(&bob_keypair.public_key());
 //!
 //! // Proxy re-encrypts the ciphertext for Bob (without learning plaintext)
-//! let re_encrypted = re_encrypt(&ciphertext, &re_key).unwrap();
+//! let re_encrypted = re_encrypt(&ciphertext, &re_key).expect("re_encrypt");
 //!
-//! // Bob decrypts the outer layer to recover the original ciphertext
-//! let outer_decrypted = bob_keypair.decrypt(&re_encrypted).unwrap();
-//! let inner_ciphertext: ProxyReCiphertext = crate::codec::decode(&outer_decrypted).unwrap();
+//! // Bob decrypts the outer layer to recover the serialized inner ciphertext
+//! let outer_decrypted = bob_keypair.decrypt(&re_encrypted).expect("outer decrypt");
+//! let inner_ciphertext = ProxyReCiphertext::from_bytes(&outer_decrypted)
+//!     .expect("deserialize inner ciphertext");
 //!
 //! // Alice can decrypt the inner ciphertext to get the plaintext
-//! let final_plaintext = alice_keypair.decrypt(&inner_ciphertext).unwrap();
+//! let final_plaintext = alice_keypair.decrypt(&inner_ciphertext).expect("inner decrypt");
 //! assert_eq!(final_plaintext, plaintext);
 //! ```
 
@@ -54,7 +55,7 @@ use curve25519_dalek::{
     ristretto::{CompressedRistretto, RistrettoPoint},
     scalar::Scalar,
 };
-use rand::Rng;
+use rand::RngExt;
 use serde::{Deserialize, Serialize};
 
 /// Errors that can occur during proxy re-encryption operations.
@@ -99,7 +100,7 @@ pub struct ProxyReSecretKey(Scalar);
 impl ProxyReSecretKey {
     /// Generate a random secret key.
     pub fn generate() -> Self {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let mut bytes = [0u8; 32];
         rng.fill(&mut bytes);
         Self(Scalar::from_bytes_mod_order(bytes))
@@ -203,9 +204,21 @@ pub struct ProxyReCiphertext {
     nonce: [u8; 12],
 }
 
+impl ProxyReCiphertext {
+    /// Serialize this ciphertext to bytes.
+    pub fn to_bytes(&self) -> ProxyReResult<Vec<u8>> {
+        crate::codec::encode(self).map_err(|_| ProxyReError::SerializationError)
+    }
+
+    /// Deserialize a ciphertext from bytes.
+    pub fn from_bytes(bytes: &[u8]) -> ProxyReResult<Self> {
+        crate::codec::decode(bytes).map_err(|_| ProxyReError::SerializationError)
+    }
+}
+
 /// Encrypt data under a public key.
 pub fn encrypt(pk: &ProxyRePublicKey, plaintext: &[u8]) -> ProxyReResult<ProxyReCiphertext> {
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
 
     // Generate ephemeral keypair
     let ephemeral_sk = ProxyReSecretKey::generate();
@@ -295,7 +308,7 @@ pub fn re_encrypt(
     // For this implementation, we'll use a simplified version:
     // Re-encrypt by creating a new layer that Bob can remove
 
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
 
     // Generate new ephemeral keypair for re-encryption
     let re_ephemeral_sk = ProxyReSecretKey::generate();

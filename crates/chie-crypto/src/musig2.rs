@@ -63,7 +63,7 @@ use blake3::Hasher;
 use curve25519_dalek::constants::RISTRETTO_BASEPOINT_POINT;
 use curve25519_dalek::ristretto::RistrettoPoint;
 use curve25519_dalek::scalar::Scalar;
-use rand::RngCore;
+use rand::Rng as _;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
@@ -88,7 +88,7 @@ pub type MuSig2Result<T> = Result<T, MuSig2Error>;
 /// Generate a random scalar
 fn random_scalar() -> Scalar {
     let mut bytes = [0u8; 32];
-    rand::thread_rng().fill_bytes(&mut bytes);
+    rand::rng().fill_bytes(&mut bytes);
     Scalar::from_bytes_mod_order(bytes)
 }
 

@@ -53,6 +53,7 @@
 
 use crate::encryption::{EncryptionKey, decrypt, encrypt, generate_nonce};
 use blake3::Hasher;
+use rand::RngExt as _;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use thiserror::Error;
@@ -185,7 +186,7 @@ impl MasterSecretKey {
     /// Generate a new random master secret key.
     fn new() -> Self {
         let mut seed = [0u8; 32];
-        rand::Rng::fill(&mut rand::thread_rng(), &mut seed);
+        rand::rng().fill(&mut seed);
         Self { seed }
     }
 
@@ -306,7 +307,7 @@ impl AbeAuthority {
     pub fn encrypt(&self, policy: &AccessPolicy, plaintext: &[u8]) -> AbeResult<AbeCiphertext> {
         // Generate random data encryption key
         let mut dek = [0u8; 32];
-        rand::Rng::fill(&mut rand::thread_rng(), &mut dek);
+        rand::rng().fill(&mut dek);
 
         // Generate nonce
         let nonce = generate_nonce();

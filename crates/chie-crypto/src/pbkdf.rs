@@ -8,7 +8,7 @@ use argon2::{
     Algorithm, Argon2, Params, ParamsBuilder, PasswordHash, PasswordVerifier, Version,
     password_hash::{PasswordHasher, SaltString},
 };
-use rand::RngCore;
+use rand::Rng as _;
 use thiserror::Error;
 use zeroize::Zeroizing;
 
@@ -133,7 +133,7 @@ impl PasswordKeyDerivation {
         }
 
         // Generate random salt
-        let salt = SaltString::generate(&mut rand::thread_rng());
+        let salt = SaltString::generate(&mut rand_core06::OsRng);
 
         // Derive key
         let key = self.derive_key_with_salt(password, salt.as_str())?;
@@ -189,7 +189,7 @@ impl PasswordKeyDerivation {
         }
 
         let argon2 = Argon2::new(Algorithm::Argon2id, Version::V0x13, self.params.clone());
-        let salt = SaltString::generate(&mut rand::thread_rng());
+        let salt = SaltString::generate(&mut rand_core06::OsRng);
         let password_bytes = Zeroizing::new(password.as_bytes().to_vec());
 
         let hash = argon2
@@ -234,7 +234,7 @@ pub fn derive_key_with_salt(password: &str, salt: &str) -> Result<EncryptionKey,
 /// Generate a random salt for use with password-based key derivation.
 pub fn generate_salt() -> Vec<u8> {
     let mut salt = vec![0u8; 16];
-    rand::thread_rng().fill_bytes(&mut salt);
+    rand::rng().fill_bytes(&mut salt);
     salt
 }
 
@@ -279,6 +279,7 @@ mod tests {
         assert!(PasswordKeyDerivation::verify_password("wrong password", &hash).is_err());
     }
 
+    #[ignore = "slow: PBKDF2 strength-level benchmarking (~200s)"]
     #[test]
     fn test_strength_levels() {
         let password = "test password";

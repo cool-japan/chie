@@ -32,7 +32,7 @@
 //! ```
 
 use blake3::Hasher;
-use rand::RngCore;
+use rand::Rng as _;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use zeroize::{Zeroize, ZeroizeOnDrop};
@@ -98,7 +98,7 @@ impl AggregateMacKey {
     /// Generate a new random key.
     pub fn generate() -> Self {
         let mut key = [0u8; 32];
-        rand::thread_rng().fill_bytes(&mut key);
+        rand::rng().fill_bytes(&mut key);
         Self { key }
     }
 

@@ -111,10 +111,13 @@ chie/
 │   │   └── src/
 │   │       ├── main.rs           # Server entry point
 │   │       ├── api/              # REST API endpoints
-│   │       ├── verification/     # Proof verification
+│   │       ├── admin/            # Admin management sub-module
+│   │       ├── alerting/         # Alerting & notifications sub-module
+│   │       ├── gamification/     # Badges, quests, leaderboard, points engine
+│   │       ├── referral/         # Creator referral API (/me/referral, /me/referrals)
 │   │       ├── rewards/          # Reward calculation
-│   │       ├── db/               # Database models (SQLx)
-│   │       └── observability/    # Metrics & tracing
+│   │       ├── verification/     # Proof verification
+│   │       └── db/               # Database models (SQLx)
 │   │
 │   ├── chie-crypto/              # Cryptographic primitives
 │   │   └── src/
@@ -158,14 +161,14 @@ chie/
 
 | Crate | Description | SLOC | Tests | Status |
 |-------|-------------|------|-------|--------|
-| `chie-crypto` | Cryptographic primitives (82 modules) | ~50K | 1,034 | ✅ Complete |
-| `chie-p2p` | P2P networking with libp2p (41 modules) | ~26K | 494+ | ✅ Complete |
-| `chie-coordinator` | Central coordinator server (50+ modules) | ~30K | 251 | ✅ Complete |
-| `chie-core` | Core protocol logic (40+ modules) | ~20K | 400+ | ✅ Complete |
-| `chie-shared` | Shared types and utilities (30+ modules) | ~14K | 740 | ✅ Complete |
-| `chie-workers` | Background workers (10+ modules) | ~5K | 50+ | ✅ Complete |
+| `chie-crypto` | Cryptographic primitives (82 modules) | ~47,569 | 1,034 passing | ✅ Stable |
+| `chie-p2p` | P2P networking with libp2p (110 modules) | ~58,324 | 494+ passing | ✅ Stable |
+| `chie-coordinator` | Central coordinator server (62 modules) | ~34,788 | 251 passing | ✅ Stable |
+| `chie-core` | Core protocol logic (70 modules) | ~46,178 | 400+ passing | ✅ Stable |
+| `chie-shared` | Shared types and utilities (30+ modules) | ~15,301 | 740 passing | ✅ Stable |
+| `chie-workers` | Background workers (12 modules) | ~4,344 | 50+ passing | ✅ Stable |
 
-**Total**: 196,538 code lines, 2,000+ tests across all crates
+**Total**: 198,922 Rust SLOC (211,716 total), 4,515 tests passing (12 skipped) — v0.2.0 (2026-04-13)
 
 ## Technology Stack
 
@@ -242,6 +245,19 @@ chie/
 - **UI**: Content shop, node control, earnings dashboard
 - **Backend**: Rust IPC commands, node lifecycle management
 
+## What's New in v0.2.0 (2026-04-13)
+
+- **Gamification system**: badges, quests, leaderboard, points engine — full `GamificationEngine` with persistence
+- **Creator referral API**: `/me/referral` and `/me/referrals` endpoints with cascade rewards
+- **Monthly leaderboard snapshots**: persistent leaderboard history with `/leaderboard/history` endpoint
+- **Transfer history ring buffer**: 200-entry `VecDeque` powering the Transfers UI page
+- **Settings + gamification persistence**: JSON serialization to disk, loaded on startup
+- **Desktop onboarding wizard**: 4-step wizard (welcome, storage setup, identity, ready)
+- **OxiARC compression throughout**: all compression/decompression via Pure Rust `oxiarc-*` crates (no C/Fortran)
+- **Security patches**: aws-lc-sys 0.39.1, quinn-proto 0.11.14, rustls-webpki 0.103.11, time 0.3.47
+- **File size policy**: all source files ≤ 2,000 lines — coordinator `admin.rs`, `alerting.rs`, `api/mod.rs` split into sub-modules
+- **Dependency updates**: toml 1.1, uuid 1.23, async-graphql 7.2, aws-sdk-s3 1.129, criterion 0.8
+
 ## Bandwidth Proof Protocol
 
 The core innovation is the cryptographically verifiable bandwidth proof:
@@ -282,7 +298,7 @@ reward = base_reward_per_gb
 
 | Phase | Focus | SLOC Target | Actual | Status |
 |-------|-------|-------------|--------|--------|
-| Phase 0 (PoC) | Core P2P protocol, bandwidth proof | 8,500 | **196,538** | ✅ Complete |
+| Phase 0 (PoC) | Core P2P protocol, bandwidth proof | 8,500 | **198,922** | ✅ Complete |
 | Phase 1 (MVP) | Production infra, creator onboarding | 127,000 | - | In Progress |
 | Phase 2 (Scale) | Multi-region, AI marketplace, mobile | 312,000 | - | Planned |
 | Phase 3 (Global) | Global expansion, enterprise, DAO | 685,000 | - | Planned |
@@ -337,6 +353,21 @@ npm run tauri dev
 - **No Warnings Policy**: All code must compile without warnings
 - **Testing**: `cargo nextest run` must pass
 - **File Limits**: Keep single files under 2000 lines
+
+## Sponsorship
+
+Chie is developed and maintained by **COOLJAPAN OU (Team Kitasan)**.
+
+If you find Chie useful, please consider sponsoring the project to support continued development of the Pure Rust ecosystem.
+
+[![Sponsor](https://img.shields.io/badge/Sponsor-%E2%9D%A4-red?logo=github)](https://github.com/sponsors/cool-japan)
+
+**[https://github.com/sponsors/cool-japan](https://github.com/sponsors/cool-japan)**
+
+Your sponsorship helps us:
+- Maintain and improve the COOLJAPAN ecosystem
+- Keep the entire ecosystem (OxiBLAS, OxiFFT, SciRS2, etc.) 100% Pure Rust
+- Provide long-term support and security updates
 
 ## License
 

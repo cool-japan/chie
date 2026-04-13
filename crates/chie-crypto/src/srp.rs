@@ -43,7 +43,7 @@ use curve25519_dalek::{
     ristretto::{CompressedRistretto, RistrettoPoint},
     scalar::Scalar,
 };
-use rand::Rng as _;
+use rand::RngExt as _;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use zeroize::{Zeroize, ZeroizeOnDrop};
@@ -78,7 +78,7 @@ impl SrpVerifier {
     /// The server stores this instead of the password.
     pub fn generate(username: &[u8], password: &[u8]) -> Self {
         // Generate random salt
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let salt: [u8; 32] = {
             let mut arr = [0u8; 32];
             rng.fill(&mut arr);
@@ -220,7 +220,7 @@ impl SrpClient {
         let x = Scalar::from_bytes_mod_order(x_hash);
 
         // Generate random a
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let a_bytes: [u8; 32] = {
             let mut arr = [0u8; 32];
             rng.fill(&mut arr);
@@ -292,7 +292,7 @@ impl SrpServer {
         let v = verifier.verifier_point().expect("Invalid verifier");
 
         // Generate random b
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let b_bytes: [u8; 32] = {
             let mut arr = [0u8; 32];
             rng.fill(&mut arr);

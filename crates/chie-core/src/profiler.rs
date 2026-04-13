@@ -23,6 +23,7 @@
 //! println!("{}", report);
 //! ```
 
+use rand::RngExt as _;
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
 
@@ -56,7 +57,7 @@ impl LatencyHistogram {
             self.samples.push(duration);
         } else if self.total_count > 0 {
             // Reservoir sampling: replace random element with probability
-            let idx = (rand::random::<usize>() % (self.total_count as usize))
+            let idx = (rand::rng().random::<u64>() as usize % (self.total_count as usize))
                 .min(MAX_HISTOGRAM_SAMPLES - 1);
             if idx < MAX_HISTOGRAM_SAMPLES {
                 self.samples[idx] = duration;

@@ -37,6 +37,7 @@ mod failover;
 mod feature_flags;
 mod federation;
 mod fraud;
+mod gamification;
 mod gdpr;
 mod graphql;
 mod health;
@@ -53,6 +54,7 @@ mod popularity;
 mod rate_limit_quotas;
 mod read_replicas;
 mod redis_cache;
+mod referral;
 mod request_coalescing;
 mod request_queue;
 mod request_signature;
@@ -99,6 +101,7 @@ pub use feature_flags::{
     FlagType,
 };
 pub use fraud::*;
+pub use gamification::{GamificationEngine, GamificationError};
 pub use gdpr::{
     AuditLogData, ContentData, DataExportRequest, ExportMetadata, ExportStatus, GdprConfig,
     GdprError, GdprManager, NodeData, ProofData, RtbfRequest, RtbfStatus, TransactionData,
@@ -228,6 +231,8 @@ pub struct AppState {
     pub tos_manager: Arc<TosManager>,
     /// Jurisdiction filtering manager.
     pub jurisdiction_manager: Arc<JurisdictionManager>,
+    /// Gamification engine (badges, quests, leaderboard).
+    pub gamification: Arc<GamificationEngine>,
 }
 
 #[tokio::main]
@@ -586,6 +591,15 @@ async fn main() -> anyhow::Result<()> {
     ));
     tracing::info!("Jurisdiction filtering manager initialized");
 
+    // Initialize gamification engine
+    let gamification_engine = Arc::new(GamificationEngine::new());
+    tracing::info!("Gamification engine initialized");
+
+    // Spawn gamification scheduler background task
+    let _gamification_scheduler =
+        crate::gamification::spawn_scheduler(Arc::clone(&gamification_engine));
+    tracing::info!("Gamification scheduler spawned");
+
     // Create application state
     let state = AppState {
         db: db_pool,
@@ -624,6 +638,7 @@ async fn main() -> anyhow::Result<()> {
         gdpr_manager: gdpr_manager.clone(),
         tos_manager: tos_manager.clone(),
         jurisdiction_manager: jurisdiction_manager.clone(),
+        gamification: gamification_engine,
     };
 
     // Create GraphQL schema

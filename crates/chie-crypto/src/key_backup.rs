@@ -40,7 +40,7 @@ use crate::hash::hash;
 use crate::kdf::hkdf_extract_expand;
 use crate::shamir::{Share, reconstruct, split};
 use crate::signing::KeyPair;
-use rand::RngCore;
+use rand::Rng as _;
 use serde::{Deserialize, Serialize};
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -414,7 +414,7 @@ pub fn backup_key_encrypted(
 
     // Generate random salt
     let mut salt = [0u8; 32];
-    rand::thread_rng().fill_bytes(&mut salt);
+    rand::rng().fill_bytes(&mut salt);
 
     // Derive encryption key from password
     let key_bytes = hkdf_extract_expand(password.as_bytes(), &salt, b"chie-backup-encryption-v1");
@@ -483,7 +483,7 @@ pub fn backup_secret_encrypted(
 
     // Generate random salt
     let mut salt = [0u8; 32];
-    rand::thread_rng().fill_bytes(&mut salt);
+    rand::rng().fill_bytes(&mut salt);
 
     // Derive encryption key from password
     let key_bytes = hkdf_extract_expand(password.as_bytes(), &salt, b"chie-backup-encryption-v1");

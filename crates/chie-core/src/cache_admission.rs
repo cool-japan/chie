@@ -18,12 +18,12 @@
 //! let mut policy = TinyLFU::new(1000, 4);
 //!
 //! // Record accesses
-//! policy.record_access("item1");
-//! policy.record_access("item1");
-//! policy.record_access("item2");
+//! policy.record_access(&"item1".to_string());
+//! policy.record_access(&"item1".to_string());
+//! policy.record_access(&"item2".to_string());
 //!
 //! // Check if item should be admitted (comparing with victim)
-//! if policy.should_admit("new_item", "victim_item") {
+//! if policy.should_admit(&"new_item".to_string(), &"victim_item".to_string()) {
 //!     println!("Admit new_item to cache");
 //! } else {
 //!     println!("Keep victim_item in cache");

@@ -431,11 +431,11 @@ fn compute_transaction_hash(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use rand::Rng;
+    use rand::RngExt;
 
     fn random_scalar() -> Scalar {
         let mut bytes = [0u8; 32];
-        rand::thread_rng().fill(&mut bytes);
+        rand::rng().fill(&mut bytes);
         Scalar::from_bytes_mod_order(bytes)
     }
 

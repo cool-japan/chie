@@ -77,7 +77,7 @@ impl MockRequester {
 
     fn create_request(&self, content_cid: &str, chunk_index: u64) -> ChunkRequest {
         let mut nonce = [0u8; 32];
-        rand::RngCore::fill_bytes(&mut rand::thread_rng(), &mut nonce);
+        rand::RngCore::fill_bytes(&mut rand::rng(), &mut nonce);
 
         ChunkRequest {
             content_cid: content_cid.to_string(),

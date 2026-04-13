@@ -1,14 +1,22 @@
 # chie-core
 
-Core protocol logic for the CHIE Protocol.
+Core protocol logic for the CHIE Protocol (v0.2.0).
 
 ## Overview
 
-This crate provides the main business logic for CHIE nodes, including:
-- Content node management
-- Bandwidth proof protocol implementation
-- Content management and storage
-- Coordinator communication
+This crate provides the main business logic for CHIE nodes.
+It contains **70 modules** with **431 public items** and **400+ passing tests**.
+
+Capabilities include:
+- **Content node management** with real P2P integration (ContentNode + NetworkStateMonitor)
+- **Bandwidth proof protocol** implementation
+- **Content management and storage** (tiered, deduplication, pinning)
+- **Coordinator communication** and proof submission
+- **Caching**: tiered cache, cache admission, warming, invalidation, content-aware cache
+- **Networking**: QUIC transport, HTTP connection pooling, connection multiplexing
+- **Resilience**: circuit breaker, adaptive retry, degradation, auto-repair
+- **Observability**: metrics, tracing, logging, dashboards, custom exporters
+- **Compression**: OxiARC deflate (replaces flate2)
 
 ## Architecture
 
@@ -162,22 +170,93 @@ PinnedContent {
 }
 ```
 
-## Modules
+## Full Module List (70 modules)
 
+### Sub-crates
 | Module | Purpose |
 |--------|---------|
-| `node/mod.rs` | Content node management |
-| `protocol/mod.rs` | Bandwidth proof protocol helpers |
 | `content/mod.rs` | Content management and metadata |
+| `node/mod.rs` | Content node + NetworkStateMonitor (real P2P) |
+| `protocol/mod.rs` | Bandwidth proof protocol helpers |
 | `storage/mod.rs` | Chunk storage and retrieval |
+
+### Flat modules
+| Module | Purpose |
+|--------|---------|
+| `adaptive_ratelimit.rs` | Adaptive bandwidth rate limiting |
+| `adaptive_retry.rs` | Adaptive retry with backoff |
+| `alerting.rs` | Alerting and notification system |
+| `analytics.rs` | Usage analytics |
+| `anomaly.rs` | Anomaly detection |
+| `auto_repair.rs` | Automatic self-repair |
+| `backup.rs` | Data backup and restore |
+| `bandwidth_estimation.rs` | Real-time bandwidth estimation |
+| `batch.rs` | Batch request processing |
+| `cache.rs` | Core cache implementation |
+| `cache_admission.rs` | Cache admission policies |
+| `cache_invalidation.rs` | Cache invalidation strategies |
+| `cache_warming.rs` | Proactive cache warming |
+| `checkpoint.rs` | State checkpointing |
 | `chunk_encryption.rs` | Per-chunk encryption with nonces |
+| `circuit_breaker.rs` | Circuit breaker pattern |
+| `compression.rs` | OxiARC deflate compression |
+| `config.rs` | Configuration management |
+| `connection_multiplexing.rs` | HTTP/QUIC connection multiplexing |
+| `content_aware_cache.rs` | Content-type-aware caching |
+| `content_router.rs` | Content routing and CDN selection |
+| `custom_exporters.rs` | Custom metrics exporters |
+| `dashboard.rs` | Observability dashboard |
+| `dedup.rs` | Content deduplication |
+| `degradation.rs` | Graceful degradation |
+| `events.rs` | Event bus |
+| `expiration.rs` | TTL expiration management |
+| `forecasting.rs` | Demand forecasting |
+| `gc.rs` | Garbage collection |
+| `geo_selection.rs` | Geographic peer selection |
+| `health.rs` | Health check endpoints |
+| `http_pool.rs` | HTTP connection pooling |
 | `integrity.rs` | Content integrity verification |
+| `lifecycle.rs` | Component lifecycle management |
+| `logging.rs` | Structured logging |
+| `metrics.rs` | Prometheus-compatible metrics |
+| `metrics_exporter.rs` | Metrics export pipeline |
+| `network_diag.rs` | Network diagnostics |
+| `orchestrator.rs` | System orchestration |
+| `partial_chunk.rs` | Partial chunk handling |
+| `peer_selection.rs` | Peer selection algorithms |
 | `pinning.rs` | Selective pinning optimizer |
 | `popularity.rs` | Content popularity tracking |
 | `prefetch.rs` | Chunk prefetching |
-| `dedup.rs` | Content deduplication |
-| `ratelimit.rs` | Bandwidth rate limiting |
+| `priority_eviction.rs` | Priority-based cache eviction |
+| `profiler.rs` | Performance profiling |
 | `proof_submit.rs` | Proof submission with retry |
+| `qos.rs` | Quality of service policies |
+| `quic_transport.rs` | QUIC transport layer |
+| `ratelimit.rs` | Bandwidth rate limiting |
+| `reputation.rs` | Peer reputation tracking |
+| `request_pipeline.rs` | Request processing pipeline |
+| `resource_mgmt.rs` | Resource management |
+| `serde_helpers.rs` | Serialization helpers |
+| `storage_health.rs` | Storage health monitoring |
+| `streaming.rs` | Streaming data transfer |
+| `streaming_verification.rs` | Streaming content verification |
+| `system_coordinator.rs` | System-level coordination |
+| `test_utils.rs` | Test utilities |
+| `tier_migration.rs` | Tiered storage migration |
+| `tiered_cache.rs` | Multi-tier cache (TieredCacheConfig with CompressionAlgorithm) |
+| `tiered_storage.rs` | Multi-tier storage |
+| `tracing.rs` | Distributed tracing |
+| `transaction.rs` | Transactional operations |
+| `utils.rs` | Shared utilities |
+| `validation.rs` | Input validation |
+| `wal.rs` | Write-ahead log |
+
+## v0.2.0 Changes
+
+- **Real P2P integration**: `ContentNode` and `NetworkStateMonitor` now perform live peer discovery and communication
+- **OxiARC deflate**: `compression.rs` migrated from flate2 to OxiARC (pure Rust, COOLJAPAN policy)
+- **TieredCacheConfig**: new `CompressionAlgorithm` field for per-tier compression selection
+- All 70 modules stable, 0 stubs
 
 ## Configuration
 

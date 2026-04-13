@@ -173,10 +173,10 @@ impl NonceManager {
     /// Generate a new nonce.
     pub fn generate_nonce(&self) -> String {
         // Generate random bytes
-        use rand::Rng;
-        let mut rng = rand::thread_rng();
+        use rand::RngExt as _;
+        let mut rng = rand::rng();
         let bytes: Vec<u8> = (0..self.config.nonce_length)
-            .map(|_| rng.r#gen::<u8>())
+            .map(|_| rng.random::<u8>())
             .collect();
 
         // Convert to hex string

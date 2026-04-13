@@ -35,7 +35,7 @@
 
 use blake3::Hasher;
 use curve25519_dalek::{RistrettoPoint, Scalar, constants::RISTRETTO_BASEPOINT_POINT};
-use rand::RngCore;
+use rand::Rng as _;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use zeroize::{Zeroize, ZeroizeOnDrop};
@@ -118,7 +118,7 @@ impl TrapdoorCommitment {
     ///
     /// Returns (commitment scheme, trapdoor).
     pub fn setup() -> (Self, Trapdoor) {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let mut alpha_bytes = [0u8; 32];
         rng.fill_bytes(&mut alpha_bytes);
         let alpha = Scalar::from_bytes_mod_order(alpha_bytes);
@@ -148,7 +148,7 @@ impl TrapdoorCommitment {
 
     /// Commit to a value.
     pub fn commit(&self, value: &[u8]) -> (TrapdoorCom, TrapdoorOpening) {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let mut r_bytes = [0u8; 32];
         rng.fill_bytes(&mut r_bytes);
         let r = Scalar::from_bytes_mod_order(r_bytes);
@@ -318,7 +318,7 @@ impl ExtractableCommitment {
 
     /// Commit to a value with proof of knowledge.
     pub fn commit(&self, value: &[u8]) -> (ExtractableCom, ExtractableOpening) {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let mut r_bytes = [0u8; 32];
         rng.fill_bytes(&mut r_bytes);
         let r = Scalar::from_bytes_mod_order(r_bytes);

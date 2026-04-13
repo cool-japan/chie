@@ -51,7 +51,7 @@
 use crate::encryption::{EncryptionNonce, decrypt as aead_decrypt, encrypt as aead_encrypt};
 use crate::hash::hash;
 use blake3::Hasher;
-use rand::RngCore;
+use rand::Rng as _;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use thiserror::Error;
@@ -82,9 +82,9 @@ struct Witness {
 
 impl Witness {
     fn new() -> Self {
-        use rand::RngCore;
+        use rand::Rng as _;
         let mut value = [0u8; 32];
-        rand::rngs::OsRng.fill_bytes(&mut value);
+        rand::rng().fill_bytes(&mut value);
         Self { value }
     }
 
@@ -194,7 +194,7 @@ impl CertifiedDeletion {
 
         // Generate nonce
         let mut nonce = [0u8; 12];
-        rand::rngs::OsRng.fill_bytes(&mut nonce);
+        rand::rng().fill_bytes(&mut nonce);
 
         // Encrypt data
         let ciphertext = aead_encrypt(plaintext, &key, &nonce)

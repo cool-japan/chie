@@ -251,7 +251,7 @@ impl PeerSelector {
 
     /// Select a peer using weighted random selection.
     fn select_weighted_random(&mut self) -> Option<PeerCandidate> {
-        use rand::Rng;
+        use rand::RngExt as _;
 
         let scores: Vec<_> = self
             .candidates
@@ -264,8 +264,8 @@ impl PeerSelector {
             return self.candidates.first().cloned();
         }
 
-        let mut rng = rand::thread_rng();
-        let mut random_value = rng.gen_range(0.0..total_score);
+        let mut rng = rand::rng();
+        let mut random_value = rng.random_range(0.0..total_score);
 
         for (i, score) in scores.iter().enumerate() {
             random_value -= score;

@@ -229,12 +229,15 @@ impl<R: AsyncRead + Unpin> ContentStream<R> {
     #[inline]
     #[must_use]
     pub fn bandwidth_bps(&self) -> f64 {
-        let elapsed = self.start_time.elapsed().as_secs_f64();
-        if elapsed > 0.0 {
-            self.bytes_read as f64 / elapsed
-        } else {
-            0.0
-        }
+        // Clamp to at least 1 ns so that in-memory reads (which can complete
+        // within a single clock tick) still produce a finite, positive result
+        // rather than returning 0 due to elapsed == Duration::ZERO.
+        let elapsed_secs = self
+            .start_time
+            .elapsed()
+            .max(std::time::Duration::from_nanos(1))
+            .as_secs_f64();
+        self.bytes_read as f64 / elapsed_secs
     }
 
     /// Calculate current bandwidth in megabits per second.
@@ -343,12 +346,12 @@ impl<W: tokio::io::AsyncWrite + Unpin> ChunkWriter<W> {
     /// Calculate current bandwidth in bytes per second.
     #[inline]
     pub fn bandwidth_bps(&self) -> f64 {
-        let elapsed = self.start_time.elapsed().as_secs_f64();
-        if elapsed > 0.0 {
-            self.bytes_written as f64 / elapsed
-        } else {
-            0.0
-        }
+        let elapsed_secs = self
+            .start_time
+            .elapsed()
+            .max(std::time::Duration::from_nanos(1))
+            .as_secs_f64();
+        self.bytes_written as f64 / elapsed_secs
     }
 }
 

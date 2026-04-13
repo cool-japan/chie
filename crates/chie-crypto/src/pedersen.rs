@@ -30,7 +30,7 @@ use curve25519_dalek::{
     ristretto::{CompressedRistretto, RistrettoPoint},
     scalar::Scalar,
 };
-use rand::Rng;
+use rand::RngExt;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use zeroize::{Zeroize, ZeroizeOnDrop};
@@ -232,7 +232,7 @@ impl PedersenOpening {
 /// let (commitment, opening) = commit(1024);
 /// ```
 pub fn commit(value: u64) -> (PedersenCommitment, PedersenOpening) {
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     let mut blinding_bytes = [0u8; 32];
     rng.fill(&mut blinding_bytes);
     let blinding = Scalar::from_bytes_mod_order(blinding_bytes);

@@ -214,6 +214,12 @@ impl ContentNode {
         self.pinned_contents.len()
     }
 
+    /// Get all pinned content metadata.
+    #[inline]
+    pub fn pinned_contents(&self) -> &HashMap<ContentCid, PinnedContent> {
+        &self.pinned_contents
+    }
+
     /// Handle a chunk request and generate a response.
     ///
     /// This method reads the requested chunk from storage, signs it, and returns

@@ -32,7 +32,7 @@ use curve25519_dalek::{
     ristretto::{CompressedRistretto, RistrettoPoint},
     scalar::Scalar,
 };
-use rand::Rng;
+use rand::RngExt;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use zeroize::Zeroize;
@@ -64,7 +64,7 @@ pub struct ElGamalSecretKey {
 impl ElGamalSecretKey {
     /// Generate a random ElGamal secret key
     pub fn generate() -> Self {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let mut bytes = [0u8; 32];
         rng.fill(&mut bytes);
         let scalar = Scalar::from_bytes_mod_order(bytes);
@@ -174,7 +174,7 @@ impl ElGamalCiphertext {
     /// Re-randomize the ciphertext for unlinkability
     /// Returns a new ciphertext encrypting the same message but unlinkable to the original
     pub fn rerandomize(&self, public_key: &ElGamalPublicKey) -> ElGamalCiphertext {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let mut r_bytes = [0u8; 32];
         rng.fill(&mut r_bytes);
         let r = Scalar::from_bytes_mod_order(r_bytes);
@@ -246,7 +246,7 @@ impl ElGamalKeypair {
 /// Encrypt a message using ElGamal encryption
 pub fn encrypt(public_key: &ElGamalPublicKey, message: u64) -> ElGamalCiphertext {
     // Generate random ephemeral key
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     let mut r_bytes = [0u8; 32];
     rng.fill(&mut r_bytes);
     let r = Scalar::from_bytes_mod_order(r_bytes);

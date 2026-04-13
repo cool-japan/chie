@@ -14,7 +14,7 @@
 
 use blake3;
 use ed25519_dalek::{Signature, Signer, SigningKey, Verifier, VerifyingKey};
-use rand::Rng;
+use rand::RngExt;
 use thiserror::Error;
 use zeroize::Zeroize;
 
@@ -77,7 +77,7 @@ pub struct RedeemableToken {
 impl UnlinkableToken {
     /// Create a new token with random serial number.
     pub fn new(value: u64, expiry: u64) -> Self {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let mut serial = [0u8; 32];
         rng.fill(&mut serial);
         Self {
@@ -109,7 +109,7 @@ impl UnlinkableToken {
 impl BlindingFactor {
     /// Generate random blinding factor.
     pub fn generate() -> Self {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let mut factor = [0u8; 32];
         rng.fill(&mut factor);
         Self { factor }
@@ -163,9 +163,9 @@ pub struct BlindSigner {
 impl BlindSigner {
     /// Create new issuer with random key.
     pub fn generate() -> Self {
-        let mut rng = rand::thread_rng();
+        use rand_core06::OsRng;
         Self {
-            signing_key: SigningKey::generate(&mut rng),
+            signing_key: SigningKey::generate(&mut OsRng),
         }
     }
 

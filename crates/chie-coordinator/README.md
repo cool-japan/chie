@@ -1,15 +1,29 @@
-# chie-coordinator
+# chie-coordinator v0.2.0
 
 Central Coordinator Server for the CHIE Protocol.
+
+**Stats**: 62+ modules · 251 tests · ~34,788 SLoC · 82 source files · 11 SQL migrations
 
 ## Overview
 
 The coordinator is the central trust authority that:
 - Verifies bandwidth proofs submitted by nodes
-- Calculates and distributes rewards
+- Calculates and distributes rewards (including gamification badges, quests, and leaderboards)
 - Detects fraud and anomalies
 - Maintains the content registry
 - Tracks node reputation
+- Manages creator referral chains with multi-tier reward distribution
+- Exposes 54+ REST API endpoints under `/api/v1`
+
+## What's New in v0.2.0
+
+- **Gamification engine**: Full `GamificationEngine` with badge unlocks, quest tracking, and leaderboards. Includes a dedicated scheduler for periodic jobs and monthly leaderboard snapshot archiving.
+- **Creator referral API**: `GET /api/v1/me/referral` and `GET /api/v1/me/referrals` — real-time referral link generation and chain inspection.
+- **Admin module split**: `admin/` directory with 6 sub-modules — `system`, `moderation`, `management`, `operations`, `email`, and routes.
+- **Alerting module split**: `alerting/` directory with 7 files — `channels`, `email`, `rules`, `types`, `utils`, and dispatcher.
+- **API module split**: `api/` directory with 5 sub-modules — `core`, `proofs`, `stats`, `webhooks`, `developer`.
+- **Monthly leaderboard snapshots**: Scheduler-driven archival of top-ranked users per period.
+- **0 stubs**: All 62+ modules are fully implemented and stable.
 
 ## Architecture
 
@@ -17,9 +31,12 @@ The coordinator is the central trust authority that:
 ┌─────────────────────────────────────────────────────────────┐
 │                    Coordinator Server                       │
 │  ┌───────────────────────────────────────────────────────┐ │
-│  │                    Axum Router                         │ │
-│  │  POST /api/proofs      → submit_proof()               │ │
-│  │  POST /api/content     → register_content()           │ │
+│  │                    Axum Router (54+ endpoints)         │ │
+│  │  /api/v1/*             → api/ (core, proofs, stats,   │ │
+│  │                            webhooks, developer)        │ │
+│  │  /api/v1/me/referral*  → referral routes              │ │
+│  │  /api/v1/gamification* → gamification sub-router      │ │
+│  │  /admin/*              → admin sub-router             │ │
 │  │  GET  /health          → health_check()               │ │
 │  └───────────────────────────────────────────────────────┘ │
 │                           │                                 │
@@ -154,19 +171,72 @@ RewardConfig {
 
 ## Modules
 
+The crate contains 62+ modules organized as follows:
+
+### Entry Point & Infrastructure
 | Module | Purpose |
 |--------|---------|
-| `main.rs` | Server entry point |
-| `api/mod.rs` | REST API endpoints |
-| `verification/mod.rs` | Proof verification pipeline |
-| `rewards/mod.rs` | Reward calculation engine |
-| `db/mod.rs` | Database models and repositories |
-| `nonce_cache.rs` | Redis nonce caching |
-| `batch.rs` | Batch proof processing |
-| `auth.rs` | JWT authentication |
-| `validation.rs` | Request validation middleware |
-| `fraud.rs` | Fraud detection and alerting |
+| `main.rs` | Server entry point, Axum router assembly |
+| `config.rs` | Configuration loading and validation |
+| `health.rs` | Health check endpoints |
 | `metrics.rs` | Prometheus metrics export |
+| `openapi.rs` | OpenAPI / Swagger spec generation |
+
+### API Layer (`api/` — 5 sub-modules)
+| Module | Purpose |
+|--------|---------|
+| `api/core.rs` | Core REST handler glue |
+| `api/proofs.rs` | Proof submission and retrieval endpoints |
+| `api/stats.rs` | Network and node statistics endpoints |
+| `api/webhooks.rs` | Outbound webhook delivery |
+| `api/developer.rs` | Developer API keys and sandbox tools |
+
+### Verification & Rewards
+| Module | Purpose |
+|--------|---------|
+| `verification/mod.rs` | Multi-step proof verification pipeline |
+| `rewards/mod.rs` | Dynamic reward calculation engine |
+| `referral/` | Creator referral chain tracking and payouts |
+
+### Gamification (`gamification/` — 3 modules)
+| Module | Purpose |
+|--------|---------|
+| `gamification/mod.rs` | GamificationEngine: badges, quests, leaderboards |
+| `gamification/routes.rs` | REST routes for gamification sub-router |
+| `gamification/scheduler.rs` | Periodic jobs and monthly leaderboard snapshots |
+
+### Admin (`admin/` — 6 sub-modules)
+`system`, `moderation`, `management`, `operations`, `email`, `routes`
+
+### Alerting (`alerting/` — 7 files)
+`channels`, `email`, `rules`, `types`, `utils`, `dispatcher`, `mod`
+
+### Database Layer (`db/` — 2 modules)
+| Module | Purpose |
+|--------|---------|
+| `db/models.rs` | ORM structs: User, Content, Node, BandwidthProofRecord, etc. |
+| `db/repository.rs` | Repository traits: User, Content, Node, Proof, Analytics |
+
+### Cross-Cutting Concerns (50+ top-level modules)
+| Module | Purpose |
+|--------|---------|
+| `auth.rs` | JWT authentication and session management |
+| `validation.rs` | Request validation middleware |
+| `fraud.rs` | Fraud detection and anomaly scoring |
+| `nonce_cache.rs` | Redis-backed nonce replay prevention |
+| `redis_cache.rs` | General-purpose Redis caching layer |
+| `rate_limit_quotas.rs` | Per-user and per-IP rate limiting |
+| `request_coalescing.rs` | Deduplication of concurrent identical requests |
+| `batch.rs` | Batch proof processing pipeline |
+| `cache.rs` · `compression.rs` | Response caching; OxiARC compression middleware |
+| `read_replicas.rs` | Read replica routing for PostgreSQL |
+| `analytics.rs` | Demand metrics and hourly aggregation |
+| `graphql.rs` | GraphQL API layer |
+| `payment.rs` | Off-chain payment channel integration |
+| `gdpr.rs` | GDPR data subject request handling |
+| `migrations.rs` | Migration management helpers |
+| `webhooks.rs` | Webhook fanout and retry logic |
+| `websocket.rs` | Real-time WebSocket event stream |
 
 ## Database Schema
 

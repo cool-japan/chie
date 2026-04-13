@@ -36,7 +36,7 @@ use crate::zeroizing::SecureBuffer;
 use blake3::Hasher;
 use chacha20poly1305::{ChaCha20Poly1305, KeyInit, aead::Aead};
 use curve25519_dalek::{RistrettoPoint, Scalar, constants::RISTRETTO_BASEPOINT_POINT};
-use rand::RngCore;
+use rand::Rng as _;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use zeroize::{Zeroize, ZeroizeOnDrop};
@@ -133,7 +133,7 @@ pub struct IbeCiphertext {
 impl IbeMaster {
     /// Generate a new IBE master authority.
     pub fn generate() -> Self {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let mut master_secret_bytes = [0u8; 32];
         rng.fill_bytes(&mut master_secret_bytes);
         let master_secret = Scalar::from_bytes_mod_order(master_secret_bytes);
@@ -176,7 +176,7 @@ impl IbeMaster {
 impl IbeParams {
     /// Encrypt a message to a specific identity.
     pub fn encrypt(&self, identity: &str, plaintext: &[u8]) -> IbeResult<IbeCiphertext> {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
 
         // Generate ephemeral key pair
         let mut ephemeral_secret_bytes = [0u8; 32];

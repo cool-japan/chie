@@ -62,8 +62,8 @@ pub struct PoWChallenge {
 impl PoWChallenge {
     /// Create a new challenge
     pub fn new(difficulty: DifficultyLevel, ttl: Duration) -> Self {
-        use rand::Rng;
-        let mut rng = rand::thread_rng();
+        use rand::RngExt as _;
+        let mut rng = rand::rng();
 
         let mut server_nonce = [0u8; 32];
         rng.fill(&mut server_nonce);

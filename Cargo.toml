@@ -12,10 +12,10 @@ members = [
 ]
 
 [workspace.package]
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 authors = ["COOLJAPAN OU"]
-license = "MIT OR Apache-2.0"
+license = "Apache-2.0"
 repository = "https://github.com/cool-japan/chie"
 homepage = "https://github.com/cool-japan/chie"
 documentation = "https://docs.rs/chie-core"
@@ -23,13 +23,13 @@ rust-version = "1.85"
 
 [workspace.dependencies]
 # Async runtime
-tokio = { version = "1.49", features = ["full"] }
+tokio = { version = "1.51", features = ["full"] }
 
 # Serialization
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-oxicode = { version = "0.1.1", features = ["serde", "derive"] }
-toml = "0.9"
+oxicode = { version = "0.2", features = ["serde", "derive"] }
+toml = "1.1"
 
 # P2P networking
 libp2p = { version = "0.56", features = ["tcp", "noise", "yamux", "gossipsub", "kad", "request-response", "tokio", "macros", "cbor", "identify", "quic"] }
@@ -42,7 +42,7 @@ tower-http = { version = "0.6", features = ["cors", "trace"] }
 
 # Database
 sqlx = { version = "0.8", features = ["runtime-tokio", "postgres", "uuid", "chrono"] }
-redis = { version = "0.32", features = ["tokio-comp", "connection-manager"] }
+redis = { version = "1.2", features = ["tokio-comp", "connection-manager"] }
 
 # Cryptography
 chacha20poly1305 = "0.10"
@@ -50,16 +50,19 @@ blake3 = "1.8"
 ed25519-dalek = { version = "2.2", features = ["rand_core", "batch"] }
 x25519-dalek = { version = "2.0", features = ["static_secrets"] }
 curve25519-dalek = { version = "4.1", features = ["serde"] }
-rand = "0.8"
+rand = "0.10"
+rand_core = "0.10"
+rand_core06 = { version = "0.6", package = "rand_core" }
 hkdf = "0.12"
 sha2 = "0.10"
+hmac = "0.12"
 subtle = "2.6"
 zeroize = { version = "1.8", features = ["derive"] }
-jsonwebtoken = "9.3"
+jsonwebtoken = "10.3"
 argon2 = { version = "0.5", features = ["std"] }
 
 # Utilities
-uuid = { version = "1.19", features = ["v4", "serde"] }
+uuid = { version = "1.23", features = ["v4", "serde"] }
 chrono = { version = "0.4", features = ["serde"] }
 thiserror = "2.0"
 anyhow = "1.0"
@@ -78,24 +81,31 @@ utoipa = { version = "5", features = ["axum_extras", "uuid", "chrono"] }
 utoipa-swagger-ui = { version = "9", features = ["axum"] }
 
 # GraphQL
-async-graphql = { version = "7.0", features = ["uuid", "chrono"] }
+async-graphql = { version = "7.2", features = ["uuid", "chrono"] }
 async-graphql-axum = "7.2"
+
+# Compression (COOLJAPAN Pure Rust Policy)
+oxiarc-deflate = "0.2.6"
+oxiarc-lz4 = "0.2.6"
+oxiarc-zstd = "0.2.6"
+oxiarc-brotli = "0.2.6"
+oxiarc-snappy = "0.2.6"
 
 # HTTP client
 reqwest = { version = "0.13", features = ["json", "multipart"] }
 
 # AWS SDK
 aws-config = "1.8"
-aws-sdk-s3 = "1.91"
+aws-sdk-s3 = "1.129"
 aws-credential-types = "1.2"
 
 # Internal crates
-chie = { path = "crates/chie", version = "0.1.0" }
-chie-core = { path = "crates/chie-core", version = "0.1.0" }
-chie-p2p = { path = "crates/chie-p2p", version = "0.1.0" }
-chie-coordinator = { path = "crates/chie-coordinator", version = "0.1.0" }
-chie-crypto = { path = "crates/chie-crypto", version = "0.1.0" }
-chie-shared = { path = "crates/chie-shared", version = "0.1.0" }
+chie = { path = "crates/chie", version = "0.2.0" }
+chie-core = { path = "crates/chie-core", version = "0.2.0" }
+chie-p2p = { path = "crates/chie-p2p", version = "0.2.0" }
+chie-coordinator = { path = "crates/chie-coordinator", version = "0.2.0" }
+chie-crypto = { path = "crates/chie-crypto", version = "0.2.0" }
+chie-shared = { path = "crates/chie-shared", version = "0.2.0" }
 
 [profile.release]
 lto = true
@@ -107,3 +117,9 @@ strip = true
 inherits = "release"
 lto = false  # Disable LTO for benchmarks to avoid rustc bug
 strip = false
+
+[workspace.metadata.cargo-audit.ignore]
+# RUSTSEC-2023-0071: Marvin Attack timing side-channel in `rsa` crate.
+# No upstream fix available as of 2026-04. Transitive via sqlx-mysql → sqlx.
+# Impact is limited to RSA operations not used in CHIE's critical auth paths.
+RUSTSEC-2023-0071 = { reason = "No fix available; transitive via sqlx-mysql; not in auth critical path" }

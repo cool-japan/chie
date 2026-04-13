@@ -389,9 +389,9 @@ pub fn exponential_backoff(
 
     if jitter {
         // Add random jitter between 0-100% of the calculated delay
-        use rand::Rng;
+        use rand::RngExt as _;
         let jitter_range = delay;
-        let jitter_amount = rand::thread_rng().gen_range(0..=jitter_range);
+        let jitter_amount = rand::rng().random_range(0..=jitter_range);
         Duration::from_millis(jitter_amount)
     } else {
         Duration::from_millis(delay)

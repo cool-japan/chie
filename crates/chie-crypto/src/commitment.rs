@@ -7,7 +7,7 @@
 
 use crate::hash::{Hash, hash, keyed_hash};
 use crate::{PublicKey, SecretKey, SignatureBytes};
-use rand::RngCore;
+use rand::Rng as _;
 use thiserror::Error;
 
 /// Commitment value (256 bits).
@@ -40,7 +40,7 @@ pub enum CommitmentError {
 /// Uses a hash-based commitment scheme: C = H(value || blinding)
 pub fn commit(value: &[u8]) -> (Commitment, CommitmentOpening) {
     let mut blinding = [0u8; 32];
-    rand::thread_rng().fill_bytes(&mut blinding);
+    rand::rng().fill_bytes(&mut blinding);
 
     let mut data = Vec::with_capacity(value.len() + 32);
     data.extend_from_slice(value);
@@ -132,7 +132,7 @@ impl ChunkChallenge {
     /// Create a new chunk challenge.
     pub fn new(chunk_index: u64, expected_hash: Hash) -> Self {
         let mut nonce = [0u8; 32];
-        rand::thread_rng().fill_bytes(&mut nonce);
+        rand::rng().fill_bytes(&mut nonce);
 
         Self {
             nonce,
@@ -250,7 +250,7 @@ impl KeyPossessionProof {
 /// Generate a random challenge nonce.
 pub fn generate_challenge() -> [u8; 32] {
     let mut challenge = [0u8; 32];
-    rand::thread_rng().fill_bytes(&mut challenge);
+    rand::rng().fill_bytes(&mut challenge);
     challenge
 }
 

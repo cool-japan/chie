@@ -10,6 +10,7 @@
 
 #![allow(dead_code)]
 
+use rand::RngExt;
 use serde::{Deserialize, Serialize};
 use sqlx::postgres::{PgConnectOptions, PgPoolOptions};
 use sqlx::{PgPool, Postgres};
@@ -372,10 +373,8 @@ impl ReadReplicaManager {
         }
 
         // Random selection based on weight
-        #[allow(deprecated)]
-        let mut rng = rand::thread_rng();
-        #[allow(deprecated)]
-        let random_weight = rand::Rng::gen_range(&mut rng, 0..total_weight);
+        let mut rng = rand::rng();
+        let random_weight = rng.random_range(0..total_weight);
 
         let mut cumulative_weight = 0;
         for (name, replica) in replicas {
@@ -397,10 +396,8 @@ impl ReadReplicaManager {
             return None;
         }
 
-        #[allow(deprecated)]
-        let mut rng = rand::thread_rng();
-        #[allow(deprecated)]
-        let index = rand::Rng::gen_range(&mut rng, 0..replicas.len());
+        let mut rng = rand::rng();
+        let index = rng.random_range(0..replicas.len());
         Some(replicas[index].clone())
     }
 

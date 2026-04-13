@@ -37,7 +37,7 @@ use crate::encryption::{
     EncryptionError, EncryptionKey, EncryptionNonce, decrypt, encrypt, generate_nonce,
 };
 use crate::hash::hash;
-use rand::{RngCore, thread_rng};
+use rand::Rng as _;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use thiserror::Error;
@@ -73,7 +73,7 @@ pub struct WireLabel {
 impl WireLabel {
     /// Generate a random wire label
     pub fn random() -> Self {
-        let mut rng = thread_rng();
+        let mut rng = rand::rng();
         let mut data = [0u8; 16];
         rng.fill_bytes(&mut data);
         let mut random_byte = [0u8; 1];
@@ -213,7 +213,7 @@ impl Circuit {
 
     /// Garble the circuit
     pub fn garble(&self) -> GarbledCircuit {
-        let mut rng = thread_rng();
+        let mut rng = rand::rng();
 
         // Generate global offset for Free XOR
         let mut global_offset = [0u8; 16];

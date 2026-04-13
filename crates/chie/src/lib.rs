@@ -82,10 +82,12 @@
 //! ```
 //! use chie::p2p::{CompressionManager, CompressionAlgorithm, CompressionLevel};
 //!
+//! // Use at least 1024 bytes so the manager's minimum-size threshold is met
+//! // and actual LZ4 compression/decompression is exercised.
 //! let manager = CompressionManager::new(CompressionAlgorithm::Lz4, CompressionLevel::Fast);
-//! let data = b"Data to compress";
-//! let compressed = manager.compress(data).unwrap();
-//! let decompressed = manager.decompress(&compressed).unwrap();
+//! let data = vec![0u8; 2048]; // 2 KiB of zeros — highly compressible
+//! let compressed = manager.compress(&data).expect("compression failed");
+//! let decompressed = manager.decompress(&compressed).expect("decompression failed");
 //! assert_eq!(data.as_slice(), decompressed.as_slice());
 //! ```
 //!
@@ -133,8 +135,8 @@ pub mod prelude {
     pub use chie_shared::{ChieError, ChieResult};
 
     // Utilities
-    pub use chie_shared::{calculate_demand_multiplier, format_bytes, format_points, now_ms};
     pub use chie_shared::generate_nonce as shared_generate_nonce;
+    pub use chie_shared::{calculate_demand_multiplier, format_bytes, format_points, now_ms};
 
     // Config
     pub use chie_shared::{NetworkConfig, StorageConfig};
@@ -153,13 +155,13 @@ pub mod prelude {
     pub use chie_crypto::{KeyPair, PublicKey, SecretKey};
 
     // Encryption
-    pub use chie_crypto::{decrypt, encrypt, generate_key, generate_nonce, EncryptionError};
+    pub use chie_crypto::{EncryptionError, decrypt, encrypt, generate_key, generate_nonce};
 
     // Hashing
-    pub use chie_crypto::{hash, Hash};
+    pub use chie_crypto::{Hash, hash};
 
     // Signing
-    pub use chie_crypto::signing::{verify, SignatureBytes, SigningError};
+    pub use chie_crypto::signing::{SignatureBytes, SigningError, verify};
 
     // Key exchange
     pub use chie_crypto::{KeyExchange, SharedSecret};

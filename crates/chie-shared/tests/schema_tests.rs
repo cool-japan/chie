@@ -28,15 +28,18 @@ fn test_json_schema_generation() {
 
 #[test]
 fn test_individual_schema_generation() {
-    // Test individual schema generation
+    // Test individual schema generation (schemars 1.x: Schema is a JSON value wrapper)
     let content_schema = SchemaDefinitions::content_metadata();
-    assert!(content_schema.schema.object.is_some());
+    let content_json = serde_json::to_value(&content_schema).unwrap();
+    assert!(content_json.get("properties").is_some() || content_json.get("type").is_some());
 
     let bandwidth_schema = SchemaDefinitions::bandwidth_proof();
-    assert!(bandwidth_schema.schema.object.is_some());
+    let bandwidth_json = serde_json::to_value(&bandwidth_schema).unwrap();
+    assert!(bandwidth_json.get("properties").is_some() || bandwidth_json.get("type").is_some());
 
     let user_schema = SchemaDefinitions::user();
-    assert!(user_schema.schema.object.is_some());
+    let user_json = serde_json::to_value(&user_schema).unwrap();
+    assert!(user_json.get("properties").is_some() || user_json.get("type").is_some());
 }
 
 #[test]

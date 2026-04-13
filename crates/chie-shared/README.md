@@ -6,9 +6,12 @@ Shared types, errors, and utilities for the CHIE Protocol.
 
 This crate provides common types and utilities used across all CHIE Protocol components including the coordinator server, P2P nodes, desktop client, and web applications.
 
+**Version**: 0.2.0 | **Status**: Stable | **Tests**: 740 passing | **Public items**: 280
+
 ## Features
 
-- **Core Protocol Types**: ContentMetadata, BandwidthProof, ChunkRequest/Response
+- **Core Protocol Types**: ContentMetadata, BandwidthProof, ChunkRequest/Response, ContentId, ChunkId, PeerId, ProofId, UserId
+- **Gamification Types**: Badge, Quest, QuestType, QuestStatus, LeaderboardEntry, UserGamificationState (new in 0.2.0)
 - **Error Types**: Comprehensive error handling with ProtocolError, VerificationError, RewardError
 - **Database Conversions**: Traits for converting between domain types and database models
 - **Utility Functions**: Formatting, validation, calculations, and more
@@ -101,16 +104,18 @@ assert_eq!(multiplier, 3.0); // High demand = 3x multiplier
 
 ## Module Structure
 
-- **types**: Core protocol types (ContentMetadata, BandwidthProof, etc.)
+- **types**: Core protocol types — 17 files covering content, bandwidth, peers, gamification, storage quotas, batch submissions, and more
+  - Includes gamification sub-module: Badge, Quest, QuestType, QuestStatus, LeaderboardEntry, UserGamificationState (added in 0.2.0)
+- **config**: Configuration types — 9 files
+- **utils**: Utility functions — 11 files covering formatting, validation, calculations, and more
 - **errors**: Error types for all protocol operations
 - **conversions**: Database conversion traits and helpers
-- **utils**: Utility functions for formatting, validation, calculations
 - **constants**: Protocol-wide constants
-- **schema**: JSON schema generation (feature-gated)
+- **schema**: JSON schema generation (feature-gated via `schema` feature)
 
 ## Testing
 
-Run tests:
+Run tests (740 passing):
 
 ```bash
 cargo test
@@ -131,6 +136,12 @@ cargo bench
 ## Performance
 
 All core types are optimized for fast serialization/deserialization, minimal allocations, and efficient validation. See `benches/` for detailed performance metrics.
+
+## Statistics
+
+- **SLoC**: 15,301 code lines across 53 Rust files
+- **Public items**: 280
+- **Test suite**: 740 passing tests
 
 ## License
 

@@ -42,6 +42,7 @@ export interface AppSettings {
   tcp_port: number;
   quic_port: number;
   theme: string;
+  onboarding_complete: boolean;
 }
 
 export interface PinnedContent {
@@ -96,6 +97,33 @@ export interface ContentEarning {
   transfers: number;
 }
 
+export interface LocalQuest {
+  id: string;
+  title: string;
+  description: string;
+  quest_type: string;
+  current_progress: number;
+  target_progress: number;
+  reward_points: number;
+  status: string; // "active" | "completed" | "expired"
+  expires_at: string;
+}
+
+export interface LocalGamificationState {
+  badges: string[];
+  total_points: number;
+  monthly_points: number;
+  streak_days: number;
+  quests: LocalQuest[];
+}
+
+export interface CompleteOnboardingParams {
+  storagePath: string;
+  maxStorageGb: number;
+  maxBandwidthGb: number;
+  autoStart: boolean;
+}
+
 // Node Control API
 export const nodeApi = {
   start: () => invoke<NodeState>("start_node"),
@@ -123,6 +151,26 @@ export const contentApi = {
     invoke<TransferEntry[]>("get_transfer_history", { limit }),
 };
 
+// Transfers API
+export const transfersApi = {
+  getHistory: (limit: number) =>
+    invoke<TransferEntry[]>("get_transfer_history", { limit }),
+  record: (params: {
+    contentId: string;
+    peerId: string;
+    direction: "upload" | "download";
+    size: number;
+    reward: number;
+  }) =>
+    invoke<void>("record_transfer", {
+      contentId: params.contentId,
+      peerId: params.peerId,
+      direction: params.direction,
+      size: params.size,
+      reward: params.reward,
+    }),
+};
+
 // Settings API
 export const settingsApi = {
   get: () => invoke<AppSettings>("get_settings"),
@@ -136,6 +184,26 @@ export const systemApi = {
   getInfo: () => invoke<SystemInfo>("get_system_info"),
   openUrl: (url: string) => invoke<void>("open_external_url", { url }),
   getDataDir: () => invoke<string>("get_app_data_dir"),
+};
+
+// Gamification API
+export const gamificationApi = {
+  getState: () => invoke<LocalGamificationState>("get_gamification_state"),
+  updateQuestProgress: (questId: string, increment: number) =>
+    invoke<boolean>("update_quest_progress", { questId, increment }),
+};
+
+// Onboarding API
+export const onboardingApi = {
+  isComplete: () => invoke<boolean>("is_onboarding_complete"),
+  complete: (params: CompleteOnboardingParams) =>
+    invoke<void>("complete_onboarding", {
+      storagePath: params.storagePath,
+      maxStorageGb: params.maxStorageGb,
+      maxBandwidthGb: params.maxBandwidthGb,
+      autoStart: params.autoStart,
+    }),
+  loadPersistedSettings: () => invoke<AppSettings>("load_persisted_settings"),
 };
 
 // Utility functions

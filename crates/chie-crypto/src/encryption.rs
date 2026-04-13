@@ -4,7 +4,7 @@ use chacha20poly1305::{
     ChaCha20Poly1305, Nonce,
     aead::{Aead, KeyInit},
 };
-use rand::RngCore;
+use rand::Rng as _;
 use thiserror::Error;
 
 /// Encryption key (256 bits).
@@ -25,14 +25,14 @@ pub enum EncryptionError {
 /// Generate a random encryption key.
 pub fn generate_key() -> EncryptionKey {
     let mut key = [0u8; 32];
-    rand::thread_rng().fill_bytes(&mut key);
+    rand::rng().fill_bytes(&mut key);
     key
 }
 
 /// Generate a random nonce.
 pub fn generate_nonce() -> EncryptionNonce {
     let mut nonce = [0u8; 12];
-    rand::thread_rng().fill_bytes(&mut nonce);
+    rand::rng().fill_bytes(&mut nonce);
     nonce
 }
 

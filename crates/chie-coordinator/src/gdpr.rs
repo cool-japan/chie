@@ -298,7 +298,10 @@ impl GdprManager {
         let _personal_data = self.gather_user_data(export.user_id).await?;
 
         // Generate export file (placeholder - actual file generation would happen here)
-        let file_path = format!("/tmp/gdpr_export_{}.json", export_id);
+        let file_path = std::env::temp_dir()
+            .join(format!("gdpr_export_{}.json", export_id))
+            .to_string_lossy()
+            .into_owned();
         let file_size = 1024; // Placeholder size
 
         // Update export as completed

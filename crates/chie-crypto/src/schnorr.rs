@@ -33,7 +33,7 @@ use curve25519_dalek::{
     ristretto::{CompressedRistretto, RistrettoPoint},
     scalar::Scalar,
 };
-use rand::Rng;
+use rand::RngExt;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use zeroize::Zeroize;
@@ -67,7 +67,7 @@ pub struct SchnorrSecretKey {
 impl SchnorrSecretKey {
     /// Generate a random Schnorr secret key
     pub fn generate() -> Self {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let mut bytes = [0u8; 32];
         rng.fill(&mut bytes);
         let scalar = Scalar::from_bytes_mod_order(bytes);
@@ -201,7 +201,7 @@ impl SchnorrKeypair {
     /// 4. Compute response s = k - c*x
     /// 5. Return signature σ = (c, s)
     pub fn sign(&self, message: &[u8]) -> SchnorrSignature {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let mut nonce_bytes = [0u8; 32];
         rng.fill(&mut nonce_bytes);
         let nonce = Scalar::from_bytes_mod_order(nonce_bytes);
@@ -287,7 +287,7 @@ pub fn batch_verify(items: &[(SchnorrPublicKey, &[u8], SchnorrSignature)]) -> Sc
         return verify(&items[0].0, items[0].1, &items[0].2);
     }
 
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
 
     // Step 1: Reconstruct commitments and verify challenges
     let mut reconstructed_commitments = Vec::with_capacity(items.len());

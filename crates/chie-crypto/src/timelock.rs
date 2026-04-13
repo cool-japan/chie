@@ -23,7 +23,7 @@
 
 use crate::encryption::{decrypt, encrypt};
 use blake3;
-use rand::RngCore;
+use rand::Rng as _;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use zeroize::ZeroizeOnDrop;
@@ -135,14 +135,14 @@ pub fn timelock_encrypt(data: &[u8], params: &TimeParams) -> TimeLockResult<Time
 
     // Generate random puzzle start value
     let mut puzzle_start = [0u8; 32];
-    rand::thread_rng().fill_bytes(&mut puzzle_start);
+    rand::rng().fill_bytes(&mut puzzle_start);
 
     // Solve the puzzle to get the encryption key
     let key = solve_time_lock_puzzle(&puzzle_start, params.iterations);
 
     // Generate random nonce
     let mut nonce = [0u8; 12];
-    rand::thread_rng().fill_bytes(&mut nonce);
+    rand::rng().fill_bytes(&mut nonce);
 
     // Encrypt the data
     let ciphertext = encrypt(data, &key, &nonce).map_err(|_| TimeLockError::DecryptionFailed)?;
@@ -205,7 +205,7 @@ impl TimeLockPuzzle {
         }
 
         let mut start = [0u8; 32];
-        rand::thread_rng().fill_bytes(&mut start);
+        rand::rng().fill_bytes(&mut start);
 
         Ok(Self {
             start,
@@ -269,7 +269,7 @@ pub fn timelock_encrypt_with_puzzle(
 
     // Generate random nonce
     let mut nonce = [0u8; 12];
-    rand::thread_rng().fill_bytes(&mut nonce);
+    rand::rng().fill_bytes(&mut nonce);
 
     // Encrypt the data
     let ciphertext = encrypt(data, &key, &nonce).map_err(|_| TimeLockError::DecryptionFailed)?;

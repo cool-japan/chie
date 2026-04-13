@@ -52,7 +52,7 @@ use curve25519_dalek::{
     ristretto::{CompressedRistretto, RistrettoPoint},
     scalar::Scalar,
 };
-use rand::Rng;
+use rand::RngExt;
 use serde::{Deserialize, Serialize};
 
 /// Errors that can occur during oblivious transfer operations.
@@ -147,7 +147,7 @@ impl OTReceiver {
             return Err(OTError::InvalidChoice);
         }
 
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let mut pub_keys = Vec::with_capacity(n_items);
 
         // Generate secret key for chosen item
@@ -248,7 +248,7 @@ impl OTSender {
             return Err(OTError::InvalidItemCount);
         }
 
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let mut encrypted_items = Vec::with_capacity(items.len());
 
         // Encrypt each item with corresponding public key

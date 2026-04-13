@@ -267,9 +267,9 @@ impl TrafficObfuscator {
             PaddingStrategy::None => 0,
             PaddingStrategy::Fixed(size) => size,
             PaddingStrategy::Random { min, max } => {
-                use rand::Rng;
-                let mut rng = rand::thread_rng();
-                rng.gen_range(min..=max)
+                use rand::RngExt as _;
+                let mut rng = rand::rng();
+                rng.random_range(min..=max)
             }
             PaddingStrategy::PowerOfTwo => {
                 let next_power = (message_size as f64).log2().ceil();
@@ -288,9 +288,9 @@ impl TrafficObfuscator {
         }
 
         // Generate random padding
-        use rand::Rng;
-        let mut rng = rand::thread_rng();
-        let padding: Vec<u8> = (0..padding_size).map(|_| rng.r#gen()).collect();
+        use rand::RngExt as _;
+        let mut rng = rand::rng();
+        let padding: Vec<u8> = (0..padding_size).map(|_| rng.random()).collect();
 
         Ok(padding)
     }
@@ -301,15 +301,15 @@ impl TrafficObfuscator {
             TimingStrategy::None => return,
             TimingStrategy::Fixed(duration) => duration,
             TimingStrategy::Random { min, max } => {
-                use rand::Rng;
-                let mut rng = rand::thread_rng();
-                let millis = rng.gen_range(min.as_millis() as u64..=max.as_millis() as u64);
+                use rand::RngExt as _;
+                let mut rng = rand::rng();
+                let millis = rng.random_range(min.as_millis() as u64..=max.as_millis() as u64);
                 Duration::from_millis(millis)
             }
             TimingStrategy::Exponential { mean } => {
-                use rand::Rng;
-                let mut rng = rand::thread_rng();
-                let u: f64 = rng.r#gen();
+                use rand::RngExt as _;
+                let mut rng = rand::rng();
+                let u: f64 = rng.random();
                 let mean_millis = mean.as_millis() as f64;
                 let millis = (-mean_millis * u.ln()) as u64;
                 Duration::from_millis(millis)
@@ -327,13 +327,13 @@ impl TrafficObfuscator {
 
     /// Generate a dummy message
     pub fn generate_dummy_message(&self) -> ObfuscatedMessage {
-        use rand::Rng;
-        let mut rng = rand::thread_rng();
-        let size = rng.gen_range(
+        use rand::RngExt as _;
+        let mut rng = rand::rng();
+        let size = rng.random_range(
             self.config.dummy_traffic.size_range.0..=self.config.dummy_traffic.size_range.1,
         );
 
-        let data: Vec<u8> = (0..size).map(|_| rng.r#gen()).collect();
+        let data: Vec<u8> = (0..size).map(|_| rng.random()).collect();
 
         let mut stats = self.stats.lock().unwrap();
         stats.dummy_messages_sent += 1;

@@ -1,6 +1,7 @@
 [package]
 name = "chie-core"
 description = "Core protocol logic for CHIE Protocol"
+readme = "README.md"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
@@ -23,8 +24,8 @@ reqwest = { workspace = true }
 rand = { workspace = true }
 hex = { workspace = true }
 oxicode = { workspace = true }
-flate2 = "1.1"
-sysinfo = "0.36"
+oxiarc-deflate = { workspace = true }
+sysinfo = "0.38"
 chie-shared = { workspace = true }
 chie-crypto = { workspace = true }
 chie-p2p = { workspace = true }
@@ -36,8 +37,8 @@ rcgen = "0.14"
 libc = "0.2"
 
 [dev-dependencies]
-tempfile = "3.24"
-criterion = { version = "0.7", features = ["html_reports"] }
+tempfile = "3.27"
+criterion = { version = "0.8", features = ["html_reports"] }
 
 [[bench]]
 name = "storage_bench"

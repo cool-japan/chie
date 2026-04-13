@@ -40,7 +40,7 @@ use curve25519_dalek::{
     ristretto::{CompressedRistretto, RistrettoPoint},
     scalar::Scalar,
 };
-use rand::Rng;
+use rand::RngExt;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use zeroize::Zeroize;
@@ -76,7 +76,7 @@ pub struct BlsSecretKey {
 impl BlsSecretKey {
     /// Generate a random BLS secret key
     pub fn generate() -> Self {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let mut bytes = [0u8; 32];
         rng.fill(&mut bytes);
         let scalar = Scalar::from_bytes_mod_order(bytes);

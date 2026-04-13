@@ -21,18 +21,18 @@
 //!     PriorityQueue, Priority,
 //! };
 //!
-//! // Compression example
+//! // Compression example — use repetitive data large enough for LZ4 to compress effectively
 //! let manager = CompressionManager::new(CompressionAlgorithm::Lz4, CompressionLevel::Fast);
-//! let data = b"Hello, CHIE Protocol! This is a test message.";
-//! let compressed = manager.compress(data).unwrap();
-//! let decompressed = manager.decompress(&compressed).unwrap();
+//! let data = b"Hello, CHIE Protocol! ".repeat(100); // ~2200 bytes, highly compressible
+//! let compressed = manager.compress(&data).expect("compress");
+//! let decompressed = manager.decompress(&compressed).expect("decompress");
 //! assert_eq!(data.as_slice(), decompressed.as_slice());
 //!
 //! // Priority queue example
 //! let queue = PriorityQueue::new();
-//! queue.enqueue("critical-task", Priority::Critical).unwrap();
-//! queue.enqueue("normal-task", Priority::Normal).unwrap();
-//! let task = queue.dequeue().unwrap();
+//! queue.enqueue("critical-task", Priority::Critical).expect("enqueue critical");
+//! queue.enqueue("normal-task", Priority::Normal).expect("enqueue normal");
+//! let task = queue.dequeue().expect("dequeue");
 //! assert_eq!(task.payload, "critical-task"); // Critical tasks come first
 //! ```
 //!

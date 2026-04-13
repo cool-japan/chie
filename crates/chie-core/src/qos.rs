@@ -20,6 +20,7 @@
 //!         cid: "QmCritical".to_string(),
 //!         size_bytes: 1024 * 1024,
 //!         priority: Priority::Critical,
+//!         deadline_ms: None,
 //!     };
 //!     qos.enqueue(req1).await;
 //!
