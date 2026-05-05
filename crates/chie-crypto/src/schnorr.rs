@@ -342,15 +342,47 @@ pub fn batch_verify(items: &[(SchnorrPublicKey, &[u8], SchnorrSignature)]) -> Sc
     }
 }
 
-/// Aggregate multiple Schnorr signatures for the same message
+/// Aggregates multiple Schnorr partial signatures into a single signature.
 ///
-/// Note: This is different from BLS aggregation - Schnorr aggregation
-/// requires interactive protocols or more complex schemes
+/// All input signatures must have been produced using the same aggregate nonce commitment
+/// and the same message, i.e. their `challenge` scalars must be identical. This is the
+/// final aggregation step in a multi-signature protocol where each participant provides a
+/// partial signature `s_i = k_i + c * x_i`.
+///
+/// The aggregated response is `s_agg = Σ s_i = (Σ k_i) + c * (Σ x_i)`, which is valid
+/// under the aggregate public key `X_agg = Σ x_i * G` with aggregate nonce `R_agg = Σ k_i * G`.
+///
+/// For full multi-signature support with rogue-key protection, use the [`MuSig2`] protocol
+/// in [`crate::musig2`].
+///
+/// # Errors
+/// Returns [`SchnorrError::EmptyBatch`] if the slice is empty.
+/// Returns [`SchnorrError::InvalidSignature`] if challenges differ across partial signatures.
+///
+/// [`MuSig2`]: crate::musig2
 #[allow(dead_code)]
-pub fn aggregate_signatures(_signatures: &[SchnorrSignature]) -> SchnorrResult<SchnorrSignature> {
-    // Schnorr signature aggregation requires MuSig or similar protocols
-    // This is a placeholder for future implementation
-    unimplemented!("Schnorr aggregation requires MuSig protocol")
+pub fn aggregate_signatures(signatures: &[SchnorrSignature]) -> SchnorrResult<SchnorrSignature> {
+    if signatures.is_empty() {
+        return Err(SchnorrError::EmptyBatch);
+    }
+
+    // All partial signatures must share the same challenge (same message + aggregate nonce)
+    let common_challenge = signatures[0].challenge;
+    for sig in signatures.iter().skip(1) {
+        if sig.challenge != common_challenge {
+            return Err(SchnorrError::InvalidSignature);
+        }
+    }
+
+    // Sum the response scalars: s_agg = Σ s_i
+    let aggregate_response = signatures
+        .iter()
+        .fold(Scalar::ZERO, |acc, sig| acc + sig.response);
+
+    Ok(SchnorrSignature {
+        challenge: common_challenge,
+        response: aggregate_response,
+    })
 }
 
 #[cfg(test)]
@@ -490,5 +522,74 @@ mod tests {
         assert_ne!(sig1, sig2);
         assert!(keypair.verify(message, &sig1).is_ok());
         assert!(keypair.verify(message, &sig2).is_ok());
+    }
+
+    #[test]
+    fn test_aggregate_signatures_empty_returns_error() {
+        let result = aggregate_signatures(&[]);
+        assert!(result.is_err());
+        matches!(result.unwrap_err(), SchnorrError::EmptyBatch);
+    }
+
+    #[test]
+    fn test_aggregate_signatures_single_is_identity() {
+        let sig = SchnorrSignature {
+            challenge: Scalar::from(42u64),
+            response: Scalar::from(100u64),
+        };
+        let result = aggregate_signatures(&[sig]).expect("single sig should aggregate");
+        assert_eq!(result.response, sig.response);
+        assert_eq!(result.challenge, sig.challenge);
+    }
+
+    #[test]
+    fn test_aggregate_signatures_mismatched_challenges_returns_error() {
+        let sig1 = SchnorrSignature {
+            challenge: Scalar::from(1u64),
+            response: Scalar::from(10u64),
+        };
+        let sig2 = SchnorrSignature {
+            challenge: Scalar::from(2u64),
+            response: Scalar::from(20u64),
+        };
+        let result = aggregate_signatures(&[sig1, sig2]);
+        assert!(result.is_err());
+        matches!(result.unwrap_err(), SchnorrError::InvalidSignature);
+    }
+
+    #[test]
+    fn test_aggregate_signatures_sums_responses() {
+        let common_c = Scalar::from(42u64);
+        let sig1 = SchnorrSignature {
+            challenge: common_c,
+            response: Scalar::from(100u64),
+        };
+        let sig2 = SchnorrSignature {
+            challenge: common_c,
+            response: Scalar::from(200u64),
+        };
+        let result = aggregate_signatures(&[sig1, sig2]).expect("should aggregate");
+        assert_eq!(result.challenge, common_c);
+        assert_eq!(result.response, Scalar::from(300u64));
+    }
+
+    #[test]
+    fn test_aggregate_signatures_three_partial() {
+        let common_c = Scalar::from(7u64);
+        let sig1 = SchnorrSignature {
+            challenge: common_c,
+            response: Scalar::from(10u64),
+        };
+        let sig2 = SchnorrSignature {
+            challenge: common_c,
+            response: Scalar::from(20u64),
+        };
+        let sig3 = SchnorrSignature {
+            challenge: common_c,
+            response: Scalar::from(30u64),
+        };
+        let result = aggregate_signatures(&[sig1, sig2, sig3]).expect("should aggregate three");
+        assert_eq!(result.challenge, common_c);
+        assert_eq!(result.response, Scalar::from(60u64));
     }
 }
