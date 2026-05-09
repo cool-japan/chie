@@ -437,7 +437,7 @@ static GLOBAL_PROFILER: std::sync::Mutex<Option<Profiler>> = std::sync::Mutex::n
 
 /// Initialize the global profiler.
 pub fn init_global_profiler() {
-    let mut guard = GLOBAL_PROFILER.lock().unwrap();
+    let mut guard = GLOBAL_PROFILER.lock().unwrap_or_else(|e| e.into_inner());
     *guard = Some(Profiler::new());
 }
 
@@ -446,7 +446,7 @@ pub fn global_profiler<F, R>(f: F) -> R
 where
     F: FnOnce(&mut Profiler) -> R,
 {
-    let mut guard = GLOBAL_PROFILER.lock().unwrap();
+    let mut guard = GLOBAL_PROFILER.lock().unwrap_or_else(|e| e.into_inner());
     if guard.is_none() {
         *guard = Some(Profiler::new());
     }

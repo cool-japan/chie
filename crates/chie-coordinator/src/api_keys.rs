@@ -218,13 +218,13 @@ impl ApiKeyManager {
 
         // Store the key
         {
-            let mut keys = self.keys.write().unwrap();
+            let mut keys = self.keys.write().unwrap_or_else(|e| e.into_inner());
             keys.insert(id.clone(), api_key.clone());
         }
 
         // Store hash-to-id mapping
         {
-            let mut mapping = self.key_hash_to_id.write().unwrap();
+            let mut mapping = self.key_hash_to_id.write().unwrap_or_else(|e| e.into_inner());
             mapping.insert(key_hash, id);
         }
 
@@ -241,7 +241,7 @@ impl ApiKeyManager {
 
         // Find the key ID from hash
         let key_id = {
-            let mapping = self.key_hash_to_id.read().unwrap();
+            let mapping = self.key_hash_to_id.read().unwrap_or_else(|e| e.into_inner());
             mapping
                 .get(&key_hash)
                 .cloned()
@@ -250,7 +250,7 @@ impl ApiKeyManager {
 
         // Get the key
         let mut key = {
-            let keys = self.keys.read().unwrap();
+            let keys = self.keys.read().unwrap_or_else(|e| e.into_inner());
             keys.get(&key_id).cloned().ok_or(ApiKeyError::NotFound)?
         };
 
@@ -276,7 +276,7 @@ impl ApiKeyManager {
 
         // Check rate limit
         {
-            let mut tracking = self.usage_tracking.write().unwrap();
+            let mut tracking = self.usage_tracking.write().unwrap_or_else(|e| e.into_inner());
             let usage = tracking.entry(key_id.clone()).or_default();
 
             // Clean up old entries (older than 1 minute)
@@ -294,7 +294,7 @@ impl ApiKeyManager {
 
         // Update usage statistics
         {
-            let mut keys = self.keys.write().unwrap();
+            let mut keys = self.keys.write().unwrap_or_else(|e| e.into_inner());
             if let Some(k) = keys.get_mut(&key_id) {
                 k.usage_count += 1;
                 k.last_used_at = Some(Utc::now());
@@ -308,7 +308,7 @@ impl ApiKeyManager {
 
     /// Revoke an API key
     pub fn revoke_key(&self, key_id: &str) -> bool {
-        let mut keys = self.keys.write().unwrap();
+        let mut keys = self.keys.write().unwrap_or_else(|e| e.into_inner());
         if let Some(key) = keys.get_mut(key_id) {
             key.active = false;
             true
@@ -320,12 +320,12 @@ impl ApiKeyManager {
     /// Delete an API key
     pub fn delete_key(&self, key_id: &str) -> bool {
         let removed = {
-            let mut keys = self.keys.write().unwrap();
+            let mut keys = self.keys.write().unwrap_or_else(|e| e.into_inner());
             keys.remove(key_id)
         };
 
         if let Some(key) = removed {
-            let mut mapping = self.key_hash_to_id.write().unwrap();
+            let mut mapping = self.key_hash_to_id.write().unwrap_or_else(|e| e.into_inner());
             mapping.remove(&key.key_hash);
             true
         } else {
@@ -335,7 +335,7 @@ impl ApiKeyManager {
 
     /// Get all keys for a specific owner
     pub fn get_keys_for_owner(&self, owner_id: &str) -> Vec<ApiKey> {
-        let keys = self.keys.read().unwrap();
+        let keys = self.keys.read().unwrap_or_else(|e| e.into_inner());
         keys.values()
             .filter(|k| k.owner_id == owner_id)
             .cloned()
@@ -344,7 +344,7 @@ impl ApiKeyManager {
 
     /// Get a specific key by ID
     pub fn get_key(&self, key_id: &str) -> Option<ApiKey> {
-        let keys = self.keys.read().unwrap();
+        let keys = self.keys.read().unwrap_or_else(|e| e.into_inner());
         keys.get(key_id).cloned()
     }
 

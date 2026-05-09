@@ -642,7 +642,9 @@ impl ChieClient {{
             let mut headers = reqwest::header::HeaderMap::new();
             headers.insert(
                 reqwest::header::AUTHORIZATION,
-                format!("Bearer {{}}", api_key).parse().unwrap(),
+                format!("Bearer {{}}", api_key)
+                    .parse()
+                    .map_err(|_| ChieError::AuthError)?,
             );
             builder = builder.default_headers(headers);
         }}

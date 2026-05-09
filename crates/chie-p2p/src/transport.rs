@@ -50,12 +50,20 @@ impl Default for TransportConfig {
         Self {
             transport_type: TransportType::Both,
             tcp_listen_addrs: vec![
-                "/ip4/0.0.0.0/tcp/0".parse().unwrap(),
-                "/ip6/::/tcp/0".parse().unwrap(),
+                "/ip4/0.0.0.0/tcp/0"
+                    .parse()
+                    .expect("static multiaddr must parse"),
+                "/ip6/::/tcp/0"
+                    .parse()
+                    .expect("static multiaddr must parse"),
             ],
             quic_listen_addrs: vec![
-                "/ip4/0.0.0.0/udp/0/quic-v1".parse().unwrap(),
-                "/ip6/::/udp/0/quic-v1".parse().unwrap(),
+                "/ip4/0.0.0.0/udp/0/quic-v1"
+                    .parse()
+                    .expect("static multiaddr must parse"),
+                "/ip6/::/udp/0/quic-v1"
+                    .parse()
+                    .expect("static multiaddr must parse"),
             ],
             webrtc_listen_addrs: vec![], // Disabled by default
             idle_timeout: Duration::from_secs(30),
@@ -215,7 +223,9 @@ pub fn parse_transport_type(addr: &Multiaddr) -> Option<TransportType> {
 
 /// Create TCP listen address from port.
 pub fn tcp_listen_addr(port: u16) -> Multiaddr {
-    format!("/ip4/0.0.0.0/tcp/{}", port).parse().unwrap()
+    format!("/ip4/0.0.0.0/tcp/{}", port)
+        .parse()
+        .expect("formatted multiaddr must parse")
 }
 
 /// Create QUIC listen address from port.
@@ -227,12 +237,16 @@ pub fn quic_listen_addr(port: u16) -> Multiaddr {
 
 /// Create TCP listen address for IPv6 from port.
 pub fn tcp_listen_addr_v6(port: u16) -> Multiaddr {
-    format!("/ip6/::/tcp/{}", port).parse().unwrap()
+    format!("/ip6/::/tcp/{}", port)
+        .parse()
+        .expect("formatted multiaddr must parse")
 }
 
 /// Create QUIC listen address for IPv6 from port.
 pub fn quic_listen_addr_v6(port: u16) -> Multiaddr {
-    format!("/ip6/::/udp/{}/quic-v1", port).parse().unwrap()
+    format!("/ip6/::/udp/{}/quic-v1", port)
+        .parse()
+        .expect("formatted multiaddr must parse")
 }
 
 /// Create WebRTC listen address from port.

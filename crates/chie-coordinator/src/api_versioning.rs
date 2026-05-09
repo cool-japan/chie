@@ -207,20 +207,20 @@ impl VersioningManager {
 
     /// Register a new API version
     pub fn register_version(&self, info: VersionInfo) {
-        let mut versions = self.versions.write().unwrap();
+        let mut versions = self.versions.write().unwrap_or_else(|e| e.into_inner());
         info!("Registering API version: {}", info.version);
         versions.insert(info.version, info);
     }
 
     /// Get version info
     pub fn get_version_info(&self, version: ApiVersion) -> Option<VersionInfo> {
-        let versions = self.versions.read().unwrap();
+        let versions = self.versions.read().unwrap_or_else(|e| e.into_inner());
         versions.get(&version).cloned()
     }
 
     /// List all registered versions
     pub fn list_versions(&self) -> Vec<VersionInfo> {
-        let versions = self.versions.read().unwrap();
+        let versions = self.versions.read().unwrap_or_else(|e| e.into_inner());
         let mut result: Vec<_> = versions.values().cloned().collect();
         result.sort_by_key(|v| v.version.number());
         result
@@ -282,7 +282,7 @@ impl VersioningManager {
 
     /// Check if version is valid and not sunset
     pub fn validate_version(&self, version: ApiVersion) -> Result<(), String> {
-        let versions = self.versions.read().unwrap();
+        let versions = self.versions.read().unwrap_or_else(|e| e.into_inner());
 
         match versions.get(&version) {
             Some(info) => {

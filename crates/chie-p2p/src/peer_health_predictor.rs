@@ -126,7 +126,7 @@ impl PeerHealthPredictor {
         latency: Option<f64>,
         bandwidth: Option<f64>,
     ) {
-        let mut history = self.peer_history.lock().unwrap();
+        let mut history = self.peer_history.lock().unwrap_or_else(|e| e.into_inner());
         let peer_history = history.entry(peer_id.to_string()).or_default();
 
         peer_history.push_back(HealthDataPoint {
@@ -151,12 +151,12 @@ impl PeerHealthPredictor {
             let pattern = self.detect_pattern(peer_history);
             self.peer_patterns
                 .lock()
-                .unwrap()
+                .unwrap_or_else(|e| e.into_inner())
                 .insert(peer_id.to_string(), pattern);
         }
 
         // Update stats
-        let mut stats = self.stats.lock().unwrap();
+        let mut stats = self.stats.lock().unwrap_or_else(|e| e.into_inner());
         stats.peers_tracked = history.len();
     }
 
@@ -166,7 +166,7 @@ impl PeerHealthPredictor {
         peer_id: &str,
         horizon: Option<Duration>,
     ) -> Option<HealthPrediction> {
-        let history = self.peer_history.lock().unwrap();
+        let history = self.peer_history.lock().unwrap_or_else(|e| e.into_inner());
         let peer_history = history.get(peer_id)?;
 
         if peer_history.len() < self.config.min_data_points {
@@ -177,7 +177,7 @@ impl PeerHealthPredictor {
         let pattern = self
             .peer_patterns
             .lock()
-            .unwrap()
+            .unwrap_or_else(|e| e.into_inner())
             .get(peer_id)
             .copied()
             .unwrap_or(BehaviorPattern::Unknown);
@@ -196,7 +196,7 @@ impl PeerHealthPredictor {
         let confidence = self.calculate_confidence(peer_history, pattern);
 
         // Update stats
-        let mut stats = self.stats.lock().unwrap();
+        let mut stats = self.stats.lock().unwrap_or_else(|e| e.into_inner());
         stats.predictions_made += 1;
 
         let total_predictions = stats.predictions_made as f64;
@@ -386,14 +386,14 @@ impl PeerHealthPredictor {
 
     /// Gets the detected pattern for a peer.
     pub fn get_pattern(&self, peer_id: &str) -> Option<BehaviorPattern> {
-        self.peer_patterns.lock().unwrap().get(peer_id).copied()
+        self.peer_patterns.lock().unwrap_or_else(|e| e.into_inner()).get(peer_id).copied()
     }
 
     /// Gets peers matching a specific pattern.
     pub fn get_peers_by_pattern(&self, pattern: BehaviorPattern) -> Vec<String> {
         self.peer_patterns
             .lock()
-            .unwrap()
+            .unwrap_or_else(|e| e.into_inner())
             .iter()
             .filter(|&(_, &p)| p == pattern)
             .map(|(id, _)| id.clone())
@@ -402,15 +402,15 @@ impl PeerHealthPredictor {
 
     /// Gets current statistics.
     pub fn stats(&self) -> PredictorStats {
-        self.stats.lock().unwrap().clone()
+        self.stats.lock().unwrap_or_else(|e| e.into_inner()).clone()
     }
 
     /// Clears all history and resets statistics.
     pub fn clear(&self) {
-        self.peer_history.lock().unwrap().clear();
-        self.peer_patterns.lock().unwrap().clear();
+        self.peer_history.lock().unwrap_or_else(|e| e.into_inner()).clear();
+        self.peer_patterns.lock().unwrap_or_else(|e| e.into_inner()).clear();
 
-        let mut stats = self.stats.lock().unwrap();
+        let mut stats = self.stats.lock().unwrap_or_else(|e| e.into_inner());
         *stats = PredictorStats {
             peers_tracked: 0,
             predictions_made: 0,
@@ -425,9 +425,9 @@ impl Clone for PeerHealthPredictor {
     fn clone(&self) -> Self {
         Self {
             config: self.config.clone(),
-            peer_history: Arc::new(Mutex::new(self.peer_history.lock().unwrap().clone())),
-            peer_patterns: Arc::new(Mutex::new(self.peer_patterns.lock().unwrap().clone())),
-            stats: Arc::new(Mutex::new(self.stats.lock().unwrap().clone())),
+            peer_history: Arc::new(Mutex::new(self.peer_history.lock().unwrap_or_else(|e| e.into_inner()).clone())),
+            peer_patterns: Arc::new(Mutex::new(self.peer_patterns.lock().unwrap_or_else(|e| e.into_inner()).clone())),
+            stats: Arc::new(Mutex::new(self.stats.lock().unwrap_or_else(|e| e.into_inner()).clone())),
         }
     }
 }

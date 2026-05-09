@@ -275,7 +275,7 @@ impl ResourceMonitor {
     #[must_use]
     #[inline]
     pub fn can_allocate(&self, resource_type: ResourceType, amount: u64) -> bool {
-        let stats = self.stats.lock().unwrap();
+        let stats = self.stats.lock().unwrap_or_else(|e| e.into_inner());
         if let Some(stat) = stats.get(&resource_type) {
             stat.used + amount <= stat.limit
         } else {
@@ -286,7 +286,7 @@ impl ResourceMonitor {
     /// Record a resource allocation.
     pub fn record_allocation(&mut self, resource_type: ResourceType, amount: u64) {
         {
-            let mut stats = self.stats.lock().unwrap();
+            let mut stats = self.stats.lock().unwrap_or_else(|e| e.into_inner());
             if let Some(stat) = stats.get_mut(&resource_type) {
                 stat.used += amount;
                 stat.allocations += 1;
@@ -303,7 +303,7 @@ impl ResourceMonitor {
 
         // Record for rate tracking
         {
-            let mut recent = self.recent_allocations.lock().unwrap();
+            let mut recent = self.recent_allocations.lock().unwrap_or_else(|e| e.into_inner());
             recent
                 .entry(resource_type)
                 .or_default()
@@ -320,7 +320,7 @@ impl ResourceMonitor {
     /// Record a resource deallocation.
     pub fn record_deallocation(&mut self, resource_type: ResourceType, amount: u64) {
         {
-            let mut stats = self.stats.lock().unwrap();
+            let mut stats = self.stats.lock().unwrap_or_else(|e| e.into_inner());
             if let Some(stat) = stats.get_mut(&resource_type) {
                 stat.used = stat.used.saturating_sub(amount);
                 stat.deallocations += 1;
@@ -334,7 +334,7 @@ impl ResourceMonitor {
     /// Update current usage (for absolute measurements like CPU).
     pub fn update_usage(&mut self, resource_type: ResourceType, current: u64) {
         {
-            let mut stats = self.stats.lock().unwrap();
+            let mut stats = self.stats.lock().unwrap_or_else(|e| e.into_inner());
             if let Some(stat) = stats.get_mut(&resource_type) {
                 stat.used = current;
 
@@ -359,10 +359,10 @@ impl ResourceMonitor {
             return;
         }
 
-        let stats = self.stats.lock().unwrap();
+        let stats = self.stats.lock().unwrap_or_else(|e| e.into_inner());
         if let Some(stat) = stats.get(&resource_type) {
             let should_throttle = stat.exceeds_threshold(self.limits.throttle_threshold);
-            let mut throttled = self.throttled.lock().unwrap();
+            let mut throttled = self.throttled.lock().unwrap_or_else(|e| e.into_inner());
             throttled.insert(resource_type, should_throttle);
         }
     }
@@ -373,7 +373,7 @@ impl ResourceMonitor {
     pub fn is_throttled(&self, resource_type: ResourceType) -> bool {
         self.throttled
             .lock()
-            .unwrap()
+            .unwrap_or_else(|e| e.into_inner())
             .get(&resource_type)
             .copied()
             .unwrap_or(false)
@@ -383,21 +383,21 @@ impl ResourceMonitor {
     #[must_use]
     #[inline]
     pub fn get_stats(&self, resource_type: ResourceType) -> Option<ResourceStats> {
-        self.stats.lock().unwrap().get(&resource_type).cloned()
+        self.stats.lock().unwrap_or_else(|e| e.into_inner()).get(&resource_type).cloned()
     }
 
     /// Get all resource statistics.
     #[must_use]
     #[inline]
     pub fn get_all_stats(&self) -> HashMap<ResourceType, ResourceStats> {
-        self.stats.lock().unwrap().clone()
+        self.stats.lock().unwrap_or_else(|e| e.into_inner()).clone()
     }
 
     /// Calculate recent allocation rate (bytes/sec or percent/sec).
     #[must_use]
     #[inline]
     pub fn get_allocation_rate(&self, resource_type: ResourceType, window: Duration) -> u64 {
-        let recent = self.recent_allocations.lock().unwrap();
+        let recent = self.recent_allocations.lock().unwrap_or_else(|e| e.into_inner());
         if let Some(records) = recent.get(&resource_type) {
             let cutoff = Instant::now() - window;
             let total: u64 = records
@@ -415,7 +415,7 @@ impl ResourceMonitor {
 
     /// Clean old allocation records (older than specified duration).
     pub fn cleanup_old_records(&mut self, older_than: Duration) {
-        let mut recent = self.recent_allocations.lock().unwrap();
+        let mut recent = self.recent_allocations.lock().unwrap_or_else(|e| e.into_inner());
         let cutoff = Instant::now() - older_than;
 
         for records in recent.values_mut() {
@@ -425,7 +425,7 @@ impl ResourceMonitor {
 
     /// Reset all statistics.
     pub fn reset_stats(&mut self) {
-        let mut stats = self.stats.lock().unwrap();
+        let mut stats = self.stats.lock().unwrap_or_else(|e| e.into_inner());
         for stat in stats.values_mut() {
             stat.used = 0;
             stat.peak = 0;
@@ -439,7 +439,7 @@ impl ResourceMonitor {
     #[must_use]
     #[inline]
     pub fn health_score(&self) -> f64 {
-        let stats = self.stats.lock().unwrap();
+        let stats = self.stats.lock().unwrap_or_else(|e| e.into_inner());
         let mut total_utilization = 0.0;
         let mut count = 0;
 
@@ -460,7 +460,7 @@ impl ResourceMonitor {
     #[must_use]
     #[inline]
     pub fn is_over_limit(&self) -> bool {
-        let stats = self.stats.lock().unwrap();
+        let stats = self.stats.lock().unwrap_or_else(|e| e.into_inner());
         stats.values().any(|s| s.is_at_limit())
     }
 
@@ -471,7 +471,7 @@ impl ResourceMonitor {
     #[must_use]
     #[inline]
     pub fn calculate_degradation_level(&self) -> DegradationLevel {
-        let stats = self.stats.lock().unwrap();
+        let stats = self.stats.lock().unwrap_or_else(|e| e.into_inner());
 
         // Find the maximum utilization across all resources
         let max_utilization = stats
@@ -499,7 +499,7 @@ impl ResourceMonitor {
     /// based on resource pressure.
     pub fn update_degradation_level(&mut self) {
         let new_level = self.calculate_degradation_level();
-        let mut current_level = self.degradation_level.lock().unwrap();
+        let mut current_level = self.degradation_level.lock().unwrap_or_else(|e| e.into_inner());
 
         if new_level != *current_level {
             *current_level = new_level;
@@ -516,7 +516,7 @@ impl ResourceMonitor {
     #[must_use]
     #[inline]
     pub fn degradation_level(&self) -> DegradationLevel {
-        *self.degradation_level.lock().unwrap()
+        *self.degradation_level.lock().unwrap_or_else(|e| e.into_inner())
     }
 
     /// Check if the system should accept new requests based on degradation level.
@@ -559,7 +559,7 @@ impl ResourceMonitor {
     /// Also updates degradation level based on new resource usage.
     #[must_use]
     pub fn sample_cpu_usage(&mut self) -> f32 {
-        let mut sys = self.system.lock().unwrap();
+        let mut sys = self.system.lock().unwrap_or_else(|e| e.into_inner());
         sys.refresh_cpu_usage();
 
         // Calculate average CPU usage across all cores
@@ -587,7 +587,7 @@ impl ResourceMonitor {
     /// Also updates degradation level based on new resource usage.
     #[must_use]
     pub fn sample_memory_usage(&mut self) -> u64 {
-        let mut sys = self.system.lock().unwrap();
+        let mut sys = self.system.lock().unwrap_or_else(|e| e.into_inner());
         sys.refresh_memory();
 
         // Get used memory in bytes
@@ -610,7 +610,7 @@ impl ResourceMonitor {
     /// Also updates degradation level based on new resource usage.
     #[must_use]
     pub fn sample_all_system_resources(&mut self) -> (f32, u64) {
-        let mut sys = self.system.lock().unwrap();
+        let mut sys = self.system.lock().unwrap_or_else(|e| e.into_inner());
         sys.refresh_cpu_usage();
         sys.refresh_memory();
 
@@ -639,14 +639,14 @@ impl ResourceMonitor {
     #[must_use]
     #[inline]
     pub fn total_system_memory(&self) -> u64 {
-        self.system.lock().unwrap().total_memory()
+        self.system.lock().unwrap_or_else(|e| e.into_inner()).total_memory()
     }
 
     /// Get number of CPU cores.
     #[must_use]
     #[inline]
     pub fn cpu_count(&self) -> usize {
-        self.system.lock().unwrap().cpus().len()
+        self.system.lock().unwrap_or_else(|e| e.into_inner()).cpus().len()
     }
 
     /// Predict future resource usage based on recent trends.
@@ -670,7 +670,7 @@ impl ResourceMonitor {
         window: Duration,
         forecast_duration: Duration,
     ) -> Option<u64> {
-        let recent = self.recent_allocations.lock().unwrap();
+        let recent = self.recent_allocations.lock().unwrap_or_else(|e| e.into_inner());
         let records = recent.get(&resource_type)?;
 
         if records.is_empty() {
@@ -751,7 +751,7 @@ impl ResourceMonitor {
             };
 
         // Get the limit for this resource
-        let stats = self.stats.lock().unwrap();
+        let stats = self.stats.lock().unwrap_or_else(|e| e.into_inner());
         let limit = match stats.get(&resource_type) {
             Some(stat) => stat.limit,
             None => return false,
@@ -797,7 +797,7 @@ impl ResourceMonitor {
                 None => return 0.0, // No data, no throttling
             };
 
-        let stats = self.stats.lock().unwrap();
+        let stats = self.stats.lock().unwrap_or_else(|e| e.into_inner());
         let limit = match stats.get(&resource_type) {
             Some(stat) => stat.limit,
             None => return 0.0,
@@ -843,7 +843,7 @@ impl MonitoringHandle {
     /// Returns an error if the task has already panicked.
     pub async fn stop(self) -> Result<(), tokio::task::JoinError> {
         // Signal the task to stop
-        *self.stop_signal.lock().unwrap() = true;
+        *self.stop_signal.lock().unwrap_or_else(|e| e.into_inner()) = true;
 
         // Wait for the task to complete
         self.task_handle.await
@@ -926,7 +926,7 @@ impl ResourceMonitor {
 
             loop {
                 // Check if we should stop
-                if *stop_signal_clone.lock().unwrap() {
+                if *stop_signal_clone.lock().unwrap_or_else(|e| e.into_inner()) {
                     break;
                 }
 
@@ -934,7 +934,7 @@ impl ResourceMonitor {
                 interval.tick().await;
 
                 // Sample system resources
-                let mut sys = system.lock().unwrap();
+                let mut sys = system.lock().unwrap_or_else(|e| e.into_inner());
                 sys.refresh_cpu_usage();
                 sys.refresh_memory();
 
@@ -951,7 +951,7 @@ impl ResourceMonitor {
 
                 // Update statistics
                 {
-                    let mut stats_map = stats.lock().unwrap();
+                    let mut stats_map = stats.lock().unwrap_or_else(|e| e.into_inner());
 
                     // Update CPU stats
                     if let Some(cpu_stats) = stats_map.get_mut(&ResourceType::Cpu) {
@@ -979,7 +979,7 @@ impl ResourceMonitor {
 
                 // Update degradation level if enabled
                 if config.auto_update_degradation {
-                    let stats_map = stats.lock().unwrap();
+                    let stats_map = stats.lock().unwrap_or_else(|e| e.into_inner());
 
                     // Calculate max utilization across resources
                     let mut max_utilization = 0.0;
@@ -1003,7 +1003,7 @@ impl ResourceMonitor {
                         DegradationLevel::Critical
                     };
 
-                    *degradation_level.lock().unwrap() = new_level;
+                    *degradation_level.lock().unwrap_or_else(|e| e.into_inner()) = new_level;
                 }
 
                 // Log if enabled

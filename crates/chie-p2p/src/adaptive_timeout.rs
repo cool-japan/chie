@@ -163,7 +163,7 @@ impl AdaptiveTimeoutManager {
 
     /// Records a latency observation for a peer
     pub fn record_latency(&self, peer_id: &str, latency: Duration) {
-        let mut peers = self.peers.write().unwrap();
+        let mut peers = self.peers.write().unwrap_or_else(|e| e.into_inner());
         let peer = peers.entry(peer_id.to_string()).or_insert_with(|| {
             PeerSamples::new(self.config.initial_timeout, self.config.sample_size)
         });
@@ -171,13 +171,13 @@ impl AdaptiveTimeoutManager {
         peer.add_sample(latency, self.config.sample_size);
 
         // Update stats
-        let mut stats = self.stats.write().unwrap();
+        let mut stats = self.stats.write().unwrap_or_else(|e| e.into_inner());
         stats.total_recordings += 1;
     }
 
     /// Gets the current adaptive timeout for a peer
     pub fn get_timeout(&self, peer_id: &str) -> Duration {
-        let peers = self.peers.read().unwrap();
+        let peers = self.peers.read().unwrap_or_else(|e| e.into_inner());
 
         if let Some(peer) = peers.get(peer_id) {
             peer.current_timeout
@@ -188,8 +188,8 @@ impl AdaptiveTimeoutManager {
 
     /// Recalculates timeouts for all peers based on current samples
     pub fn recalculate_timeouts(&self) {
-        let mut peers = self.peers.write().unwrap();
-        let mut stats = self.stats.write().unwrap();
+        let mut peers = self.peers.write().unwrap_or_else(|e| e.into_inner());
+        let mut stats = self.stats.write().unwrap_or_else(|e| e.into_inner());
 
         let mut total_timeout_ms = 0u64;
         let mut min = u64::MAX;
@@ -241,7 +241,7 @@ impl AdaptiveTimeoutManager {
 
     /// Recalculates timeout for a specific peer
     pub fn recalculate_peer_timeout(&self, peer_id: &str) -> Option<Duration> {
-        let mut peers = self.peers.write().unwrap();
+        let mut peers = self.peers.write().unwrap_or_else(|e| e.into_inner());
 
         if let Some(peer) = peers.get_mut(peer_id) {
             peer.last_timeout = peer.current_timeout;
@@ -258,7 +258,7 @@ impl AdaptiveTimeoutManager {
                     .min(self.config.max_timeout);
 
                 // Update stats
-                let mut stats = self.stats.write().unwrap();
+                let mut stats = self.stats.write().unwrap_or_else(|e| e.into_inner());
                 stats.calculations += 1;
 
                 if peer.current_timeout > peer.last_timeout {
@@ -276,38 +276,38 @@ impl AdaptiveTimeoutManager {
 
     /// Gets the average latency for a peer
     pub fn get_average_latency(&self, peer_id: &str) -> Option<Duration> {
-        let peers = self.peers.read().unwrap();
+        let peers = self.peers.read().unwrap_or_else(|e| e.into_inner());
         peers.get(peer_id).and_then(|p| p.average())
     }
 
     /// Gets the number of samples collected for a peer
     pub fn get_sample_count(&self, peer_id: &str) -> usize {
-        let peers = self.peers.read().unwrap();
+        let peers = self.peers.read().unwrap_or_else(|e| e.into_inner());
         peers.get(peer_id).map(|p| p.samples.len()).unwrap_or(0)
     }
 
     /// Removes a peer from tracking
     pub fn remove_peer(&self, peer_id: &str) {
-        let mut peers = self.peers.write().unwrap();
+        let mut peers = self.peers.write().unwrap_or_else(|e| e.into_inner());
         peers.remove(peer_id);
 
         // Update tracked_peers stat
-        let mut stats = self.stats.write().unwrap();
+        let mut stats = self.stats.write().unwrap_or_else(|e| e.into_inner());
         stats.tracked_peers = peers.len();
     }
 
     /// Clears all peer data
     pub fn clear(&self) {
-        let mut peers = self.peers.write().unwrap();
+        let mut peers = self.peers.write().unwrap_or_else(|e| e.into_inner());
         peers.clear();
 
-        let mut stats = self.stats.write().unwrap();
+        let mut stats = self.stats.write().unwrap_or_else(|e| e.into_inner());
         stats.tracked_peers = 0;
     }
 
     /// Gets current statistics
     pub fn stats(&self) -> TimeoutStats {
-        self.stats.read().unwrap().clone()
+        self.stats.read().unwrap_or_else(|e| e.into_inner()).clone()
     }
 
     /// Gets the configuration
@@ -317,7 +317,7 @@ impl AdaptiveTimeoutManager {
 
     /// Gets all peer IDs currently being tracked
     pub fn tracked_peer_ids(&self) -> Vec<String> {
-        let peers = self.peers.read().unwrap();
+        let peers = self.peers.read().unwrap_or_else(|e| e.into_inner());
         peers.keys().cloned().collect()
     }
 }

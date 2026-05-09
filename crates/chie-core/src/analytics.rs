@@ -323,7 +323,7 @@ impl AnalyticsCollector {
     /// Record an upload.
     #[inline]
     pub fn record_upload(&self, bytes: u64, success: bool) {
-        let mut transfers = self.transfers.write().unwrap();
+        let mut transfers = self.transfers.write().unwrap_or_else(|e| e.into_inner());
         if success {
             transfers.total_uploaded += bytes;
         }
@@ -350,7 +350,7 @@ impl AnalyticsCollector {
     /// Record a download.
     #[inline]
     pub fn record_download(&self, bytes: u64, success: bool) {
-        let mut transfers = self.transfers.write().unwrap();
+        let mut transfers = self.transfers.write().unwrap_or_else(|e| e.into_inner());
         if success {
             transfers.total_downloaded += bytes;
         }
@@ -377,7 +377,7 @@ impl AnalyticsCollector {
     /// Record earnings from a proof.
     #[inline]
     pub fn record_earning(&self, amount: u64, content_cid: Option<&str>) {
-        let mut earnings = self.earnings.write().unwrap();
+        let mut earnings = self.earnings.write().unwrap_or_else(|e| e.into_inner());
         earnings.total_earned += amount;
         earnings.proofs.push((current_timestamp(), amount));
 
@@ -389,7 +389,7 @@ impl AnalyticsCollector {
     /// Record latency sample.
     #[inline]
     pub fn record_latency(&self, latency_ms: f64) {
-        let mut samples = self.latency_samples.write().unwrap();
+        let mut samples = self.latency_samples.write().unwrap_or_else(|e| e.into_inner());
         samples.push(latency_ms);
 
         // Limit samples
@@ -401,7 +401,7 @@ impl AnalyticsCollector {
     /// Get storage analytics.
     #[must_use]
     pub fn storage_analytics(&self) -> StorageAnalytics {
-        let storage = self.storage.read().unwrap();
+        let storage = self.storage.read().unwrap_or_else(|e| e.into_inner());
         let stats = storage.stats();
 
         let used = stats.used_bytes;
@@ -423,7 +423,7 @@ impl AnalyticsCollector {
     /// Get transfer analytics.
     #[must_use]
     pub fn transfer_analytics(&self) -> TransferAnalytics {
-        let transfers = self.transfers.read().unwrap();
+        let transfers = self.transfers.read().unwrap_or_else(|e| e.into_inner());
         let now = Instant::now();
         let day_ago = now - Duration::from_secs(86400);
         let week_ago = now - Duration::from_secs(7 * 86400);
@@ -490,7 +490,7 @@ impl AnalyticsCollector {
     /// Get earning analytics.
     #[must_use]
     pub fn earning_analytics(&self) -> EarningAnalytics {
-        let earnings = self.earnings.read().unwrap();
+        let earnings = self.earnings.read().unwrap_or_else(|e| e.into_inner());
         let now = current_timestamp();
         let day_start = now - (now % 86400);
         let week_start = now - 7 * 86400;
@@ -563,7 +563,7 @@ impl AnalyticsCollector {
     /// Get performance analytics.
     #[must_use]
     pub fn performance_analytics(&self) -> PerformanceAnalytics {
-        let samples = self.latency_samples.read().unwrap();
+        let samples = self.latency_samples.read().unwrap_or_else(|e| e.into_inner());
 
         let (avg, p50, p95, p99) = if !samples.is_empty() {
             let mut sorted: Vec<f64> = samples.clone();
@@ -610,8 +610,8 @@ impl AnalyticsCollector {
     /// Get historical data for charts.
     #[must_use]
     pub fn historical_data(&self) -> HistoricalData {
-        let transfers = self.transfers.read().unwrap();
-        let earnings = self.earnings.read().unwrap();
+        let transfers = self.transfers.read().unwrap_or_else(|e| e.into_inner());
+        let earnings = self.earnings.read().unwrap_or_else(|e| e.into_inner());
 
         // Generate hourly upload/download data
         let now = current_timestamp();

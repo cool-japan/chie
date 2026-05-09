@@ -244,7 +244,7 @@ impl PeerLoadPredictor {
     ) {
         let sample = LoadSample::new(cpu_load, memory_load, bandwidth_load, connection_count);
 
-        let mut peers = self.peers.write().unwrap();
+        let mut peers = self.peers.write().unwrap_or_else(|e| e.into_inner());
         let peer = peers
             .entry(peer_id.to_string())
             .or_insert_with(|| PeerLoad::new(self.config.history_size));
@@ -252,14 +252,14 @@ impl PeerLoadPredictor {
         peer.add_sample(sample, self.config.history_size);
 
         // Update stats
-        let mut stats = self.stats.write().unwrap();
+        let mut stats = self.stats.write().unwrap_or_else(|e| e.into_inner());
         stats.total_samples += 1;
         stats.tracked_peers = peers.len();
     }
 
     /// Predicts load for a peer at a future time
     pub fn predict_load(&self, peer_id: &str, time_ahead: Duration) -> Option<LoadPrediction> {
-        let mut peers = self.peers.write().unwrap();
+        let mut peers = self.peers.write().unwrap_or_else(|e| e.into_inner());
 
         if let Some(peer) = peers.get_mut(peer_id) {
             if peer.samples.len() < 3 {
@@ -279,7 +279,7 @@ impl PeerLoadPredictor {
             peer.last_prediction = Some(prediction.clone());
 
             // Update stats
-            let mut stats = self.stats.write().unwrap();
+            let mut stats = self.stats.write().unwrap_or_else(|e| e.into_inner());
             stats.total_predictions += 1;
 
             let n = stats.total_predictions as f64;
@@ -478,32 +478,32 @@ impl PeerLoadPredictor {
 
     /// Gets the last prediction for a peer
     pub fn get_last_prediction(&self, peer_id: &str) -> Option<LoadPrediction> {
-        let peers = self.peers.read().unwrap();
+        let peers = self.peers.read().unwrap_or_else(|e| e.into_inner());
         peers.get(peer_id).and_then(|p| p.last_prediction.clone())
     }
 
     /// Removes a peer from tracking
     pub fn remove_peer(&self, peer_id: &str) {
-        let mut peers = self.peers.write().unwrap();
+        let mut peers = self.peers.write().unwrap_or_else(|e| e.into_inner());
         peers.remove(peer_id);
 
-        let mut stats = self.stats.write().unwrap();
+        let mut stats = self.stats.write().unwrap_or_else(|e| e.into_inner());
         stats.tracked_peers = peers.len();
     }
 
     /// Clears all peer data
     pub fn clear(&self) {
-        let mut peers = self.peers.write().unwrap();
+        let mut peers = self.peers.write().unwrap_or_else(|e| e.into_inner());
         peers.clear();
 
-        let mut stats = self.stats.write().unwrap();
+        let mut stats = self.stats.write().unwrap_or_else(|e| e.into_inner());
         stats.tracked_peers = 0;
     }
 
     /// Updates trend statistics
     pub fn update_trend_stats(&self) {
-        let peers = self.peers.read().unwrap();
-        let mut stats = self.stats.write().unwrap();
+        let peers = self.peers.read().unwrap_or_else(|e| e.into_inner());
+        let mut stats = self.stats.write().unwrap_or_else(|e| e.into_inner());
 
         let mut increasing = 0;
         let mut decreasing = 0;
@@ -524,7 +524,7 @@ impl PeerLoadPredictor {
 
     /// Gets current statistics
     pub fn stats(&self) -> LoadPredictorStats {
-        self.stats.read().unwrap().clone()
+        self.stats.read().unwrap_or_else(|e| e.into_inner()).clone()
     }
 
     /// Gets the configuration
@@ -534,7 +534,7 @@ impl PeerLoadPredictor {
 
     /// Gets all tracked peer IDs
     pub fn tracked_peer_ids(&self) -> Vec<String> {
-        let peers = self.peers.read().unwrap();
+        let peers = self.peers.read().unwrap_or_else(|e| e.into_inner());
         peers.keys().cloned().collect()
     }
 }

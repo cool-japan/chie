@@ -196,12 +196,12 @@ impl TieredStorageManager {
         };
 
         {
-            let mut locations = self.locations.write().unwrap();
+            let mut locations = self.locations.write().unwrap_or_else(|e| e.into_inner());
             locations.insert(cid.to_string(), location);
         }
 
         {
-            let mut usage = self.tier_usage.write().unwrap();
+            let mut usage = self.tier_usage.write().unwrap_or_else(|e| e.into_inner());
             *usage.entry(initial_tier).or_insert(0) += size;
         }
 
@@ -214,14 +214,14 @@ impl TieredStorageManager {
 
     /// Record content access.
     pub fn record_access(&self, cid: &str) {
-        let mut locations = self.locations.write().unwrap();
+        let mut locations = self.locations.write().unwrap_or_else(|e| e.into_inner());
         if let Some(location) = locations.get_mut(cid) {
             location.access_count += 1;
             location.last_accessed = current_timestamp();
         }
 
         // Record in history
-        let mut history = self.access_history.write().unwrap();
+        let mut history = self.access_history.write().unwrap_or_else(|e| e.into_inner());
         history.push_back(AccessRecord {
             timestamp: Instant::now(),
             cid: cid.to_string(),
@@ -237,7 +237,7 @@ impl TieredStorageManager {
     #[must_use]
     #[inline]
     pub fn get_location(&self, cid: &str) -> Option<ContentLocation> {
-        let locations = self.locations.read().unwrap();
+        let locations = self.locations.read().unwrap_or_else(|e| e.into_inner());
         locations.get(cid).cloned()
     }
 
@@ -245,7 +245,7 @@ impl TieredStorageManager {
     #[must_use]
     #[inline]
     pub fn get_content_path(&self, cid: &str) -> Option<PathBuf> {
-        let locations = self.locations.read().unwrap();
+        let locations = self.locations.read().unwrap_or_else(|e| e.into_inner());
         let location = locations.get(cid)?;
 
         let tier_config = match location.tier {
@@ -294,7 +294,7 @@ impl TieredStorageManager {
             StorageTier::Cold => self.config.cold.as_ref().map(|c| c.capacity).unwrap_or(0),
         };
 
-        let usage = self.tier_usage.read().unwrap();
+        let usage = self.tier_usage.read().unwrap_or_else(|e| e.into_inner());
         let used = *usage.get(&tier).unwrap_or(&0);
 
         used + size <= capacity
@@ -306,7 +306,7 @@ impl TieredStorageManager {
     pub fn analyze_tier_changes(&self) -> Vec<PendingMove> {
         let mut moves = Vec::new();
         let now = current_timestamp();
-        let locations = self.locations.read().unwrap();
+        let locations = self.locations.read().unwrap_or_else(|e| e.into_inner());
 
         for location in locations.values() {
             // Check for promotion to hot
@@ -365,8 +365,8 @@ impl TieredStorageManager {
 
     /// Execute a tier move (call after actually moving the data).
     pub fn execute_move(&self, cid: &str, new_tier: StorageTier) {
-        let mut locations = self.locations.write().unwrap();
-        let mut usage = self.tier_usage.write().unwrap();
+        let mut locations = self.locations.write().unwrap_or_else(|e| e.into_inner());
+        let mut usage = self.tier_usage.write().unwrap_or_else(|e| e.into_inner());
 
         if let Some(location) = locations.get_mut(cid) {
             let old_tier = location.tier;
@@ -388,8 +388,8 @@ impl TieredStorageManager {
 
     /// Remove content from tracking.
     pub fn remove_content(&self, cid: &str) {
-        let mut locations = self.locations.write().unwrap();
-        let mut usage = self.tier_usage.write().unwrap();
+        let mut locations = self.locations.write().unwrap_or_else(|e| e.into_inner());
+        let mut usage = self.tier_usage.write().unwrap_or_else(|e| e.into_inner());
 
         if let Some(location) = locations.remove(cid) {
             if let Some(tier_usage) = usage.get_mut(&location.tier) {
@@ -401,8 +401,8 @@ impl TieredStorageManager {
     /// Get tier statistics.
     #[must_use]
     pub fn tier_stats(&self) -> TierStats {
-        let usage = self.tier_usage.read().unwrap();
-        let locations = self.locations.read().unwrap();
+        let usage = self.tier_usage.read().unwrap_or_else(|e| e.into_inner());
+        let locations = self.locations.read().unwrap_or_else(|e| e.into_inner());
 
         let hot_used = *usage.get(&StorageTier::Hot).unwrap_or(&0);
         let warm_used = *usage.get(&StorageTier::Warm).unwrap_or(&0);
@@ -435,7 +435,7 @@ impl TieredStorageManager {
     #[must_use]
     #[inline]
     pub fn get_pending_moves(&self) -> Vec<PendingMove> {
-        self.pending_moves.read().unwrap().clone()
+        self.pending_moves.read().unwrap_or_else(|e| e.into_inner()).clone()
     }
 
     /// Get the storage path for a specific tier.
@@ -467,7 +467,7 @@ impl TieredStorageManager {
         let mut bytes_moved = 0u64;
         let mut moves_executed = 0;
 
-        let mut pending = self.pending_moves.write().unwrap();
+        let mut pending = self.pending_moves.write().unwrap_or_else(|e| e.into_inner());
         pending.clear();
 
         for m in moves {

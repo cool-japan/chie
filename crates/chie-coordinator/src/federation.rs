@@ -461,19 +461,22 @@ impl FederationManager {
 
         // Get leader to forward to
         let leader_id = self.leader_id.read().await;
-        if leader_id.is_none() {
-            return Err(FederationError::NoLeader);
-        }
+        let leader_id_value = match *leader_id {
+            Some(id) => id,
+            None => return Err(FederationError::NoLeader),
+        };
+        drop(leader_id);
 
-        let leader = self.get_peer(&leader_id.unwrap()).await;
-        if leader.is_none() {
-            return Err(FederationError::PeerNotFound);
-        }
+        let leader = self.get_peer(&leader_id_value).await;
+        let leader_endpoint = match leader {
+            Some(ref p) => p.endpoint.clone(),
+            None => return Err(FederationError::PeerNotFound),
+        };
 
         // Would forward proof here via HTTP
         debug!(
             "Would forward proof to leader: {}",
-            leader.unwrap().endpoint
+            leader_endpoint
         );
 
         Ok(())
@@ -535,7 +538,8 @@ impl FederationManager {
 
     async fn check_peer_health(&self) {
         let now = chrono::Utc::now();
-        let timeout = chrono::Duration::from_std(self.config.peer_timeout).unwrap();
+        let timeout = chrono::Duration::from_std(self.config.peer_timeout)
+            .unwrap_or(chrono::Duration::seconds(30));
 
         let mut peers = self.peers.write().await;
         for peer in peers.values_mut() {
@@ -643,7 +647,8 @@ impl FederationManagerRef {
 
     async fn check_peer_health(&self) {
         let now = chrono::Utc::now();
-        let timeout = chrono::Duration::from_std(self.config.peer_timeout).unwrap();
+        let timeout = chrono::Duration::from_std(self.config.peer_timeout)
+            .unwrap_or(chrono::Duration::seconds(30));
 
         let mut peers = self.peers.write().await;
         for peer in peers.values_mut() {

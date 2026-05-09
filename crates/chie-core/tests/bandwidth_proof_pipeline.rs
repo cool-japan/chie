@@ -434,7 +434,7 @@ fn test_concurrent_chunk_transfers() {
 
             assert!(validate_bandwidth_proof(&proof).is_ok());
 
-            let mut proofs_guard = proofs_clone.lock().unwrap();
+            let mut proofs_guard = proofs_clone.lock().unwrap_or_else(|e| e.into_inner());
             proofs_guard.push(proof);
         });
 
@@ -446,7 +446,7 @@ fn test_concurrent_chunk_transfers() {
         handle.join().unwrap();
     }
 
-    let final_proofs = proofs.lock().unwrap();
+    let final_proofs = proofs.lock().unwrap_or_else(|e| e.into_inner());
     assert_eq!(final_proofs.len(), num_concurrent_transfers);
 
     // Verify all proofs are valid

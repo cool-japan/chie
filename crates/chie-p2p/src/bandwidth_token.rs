@@ -211,7 +211,7 @@ impl BandwidthTokenSystem {
 
     /// Registers a new peer with initial balance.
     pub fn register_peer(&mut self, peer_id: &str, initial_balance: u64) -> bool {
-        let mut peers = self.peers.write().unwrap();
+        let mut peers = self.peers.write().unwrap_or_else(|e| e.into_inner());
 
         if peers.contains_key(peer_id) {
             return false; // Already registered
@@ -220,7 +220,7 @@ impl BandwidthTokenSystem {
         peers.insert(peer_id.to_string(), PeerState::new(initial_balance));
 
         // Update stats
-        let mut stats = self.stats.write().unwrap();
+        let mut stats = self.stats.write().unwrap_or_else(|e| e.into_inner());
         stats.total_supply += initial_balance;
         stats.peer_count = peers.len();
 
@@ -229,7 +229,7 @@ impl BandwidthTokenSystem {
 
     /// Returns the balance for a peer.
     pub fn balance(&self, peer_id: &str) -> Result<TokenBalance, String> {
-        let peers = self.peers.read().unwrap();
+        let peers = self.peers.read().unwrap_or_else(|e| e.into_inner());
         peers
             .get(peer_id)
             .map(|state| state.balance.clone())
@@ -245,7 +245,7 @@ impl BandwidthTokenSystem {
             ));
         }
 
-        let mut peers = self.peers.write().unwrap();
+        let mut peers = self.peers.write().unwrap_or_else(|e| e.into_inner());
         let state = peers
             .get_mut(peer_id)
             .ok_or_else(|| format!("Peer {} not found", peer_id))?;
@@ -277,7 +277,7 @@ impl BandwidthTokenSystem {
         );
 
         // Update stats
-        let mut stats = self.stats.write().unwrap();
+        let mut stats = self.stats.write().unwrap_or_else(|e| e.into_inner());
         stats.total_staked += amount;
         stats.transaction_count += 1;
 
@@ -286,7 +286,7 @@ impl BandwidthTokenSystem {
 
     /// Unstakes tokens for a peer.
     pub fn unstake(&mut self, peer_id: &str, amount: u64) -> Result<(), String> {
-        let mut peers = self.peers.write().unwrap();
+        let mut peers = self.peers.write().unwrap_or_else(|e| e.into_inner());
         let state = peers
             .get_mut(peer_id)
             .ok_or_else(|| format!("Peer {} not found", peer_id))?;
@@ -311,7 +311,7 @@ impl BandwidthTokenSystem {
         );
 
         // Update stats
-        let mut stats = self.stats.write().unwrap();
+        let mut stats = self.stats.write().unwrap_or_else(|e| e.into_inner());
         stats.total_staked -= amount;
         stats.transaction_count += 1;
 
@@ -320,7 +320,7 @@ impl BandwidthTokenSystem {
 
     /// Rewards a peer with tokens.
     pub fn reward(&mut self, peer_id: &str, amount: u64, reason: String) -> Result<(), String> {
-        let mut peers = self.peers.write().unwrap();
+        let mut peers = self.peers.write().unwrap_or_else(|e| e.into_inner());
         let state = peers
             .get_mut(peer_id)
             .ok_or_else(|| format!("Peer {} not found", peer_id))?;
@@ -341,7 +341,7 @@ impl BandwidthTokenSystem {
         );
 
         // Update stats
-        let mut stats = self.stats.write().unwrap();
+        let mut stats = self.stats.write().unwrap_or_else(|e| e.into_inner());
         stats.total_supply += amount;
         stats.total_rewards += amount;
         stats.transaction_count += 1;
@@ -351,7 +351,7 @@ impl BandwidthTokenSystem {
 
     /// Penalizes a peer by reducing tokens.
     pub fn penalize(&mut self, peer_id: &str, amount: u64, reason: String) -> Result<(), String> {
-        let mut peers = self.peers.write().unwrap();
+        let mut peers = self.peers.write().unwrap_or_else(|e| e.into_inner());
         let state = peers
             .get_mut(peer_id)
             .ok_or_else(|| format!("Peer {} not found", peer_id))?;
@@ -378,7 +378,7 @@ impl BandwidthTokenSystem {
         );
 
         // Update stats
-        let mut stats = self.stats.write().unwrap();
+        let mut stats = self.stats.write().unwrap_or_else(|e| e.into_inner());
         stats.total_supply -= penalty;
         stats.total_penalties += penalty;
         stats.transaction_count += 1;
@@ -388,7 +388,7 @@ impl BandwidthTokenSystem {
 
     /// Slashes staked tokens for severe violations.
     pub fn slash(&mut self, peer_id: &str, reason: String) -> Result<u64, String> {
-        let mut peers = self.peers.write().unwrap();
+        let mut peers = self.peers.write().unwrap_or_else(|e| e.into_inner());
         let state = peers
             .get_mut(peer_id)
             .ok_or_else(|| format!("Peer {} not found", peer_id))?;
@@ -416,7 +416,7 @@ impl BandwidthTokenSystem {
         );
 
         // Update stats
-        let mut stats = self.stats.write().unwrap();
+        let mut stats = self.stats.write().unwrap_or_else(|e| e.into_inner());
         stats.total_supply -= slash_amount;
         stats.total_staked -= slash_amount;
         stats.total_slashed += slash_amount;
@@ -437,7 +437,7 @@ impl BandwidthTokenSystem {
             return Err("Cannot transfer to self".to_string());
         }
 
-        let mut peers = self.peers.write().unwrap();
+        let mut peers = self.peers.write().unwrap_or_else(|e| e.into_inner());
 
         // Check sender
         {
@@ -456,7 +456,9 @@ impl BandwidthTokenSystem {
         }
 
         // Perform transfer
-        let from_state = peers.get_mut(from).unwrap();
+        let from_state = peers
+            .get_mut(from)
+            .ok_or_else(|| format!("Sender {} not found after validation", from))?;
         from_state.balance.available -= amount;
         from_state.balance.total -= amount;
 
@@ -470,7 +472,9 @@ impl BandwidthTokenSystem {
             true,
         );
 
-        let to_state = peers.get_mut(to).unwrap();
+        let to_state = peers
+            .get_mut(to)
+            .ok_or_else(|| format!("Receiver {} not found after validation", to))?;
         to_state.balance.available += amount;
         to_state.balance.total += amount;
 
@@ -485,7 +489,7 @@ impl BandwidthTokenSystem {
         );
 
         // Update stats
-        let mut stats = self.stats.write().unwrap();
+        let mut stats = self.stats.write().unwrap_or_else(|e| e.into_inner());
         stats.transaction_count += 2; // Both sender and receiver
 
         Ok(())
@@ -493,7 +497,7 @@ impl BandwidthTokenSystem {
 
     /// Moves tokens to escrow.
     pub fn escrow(&mut self, peer_id: &str, amount: u64, reason: String) -> Result<(), String> {
-        let mut peers = self.peers.write().unwrap();
+        let mut peers = self.peers.write().unwrap_or_else(|e| e.into_inner());
         let state = peers
             .get_mut(peer_id)
             .ok_or_else(|| format!("Peer {} not found", peer_id))?;
@@ -518,7 +522,7 @@ impl BandwidthTokenSystem {
         );
 
         // Update stats
-        let mut stats = self.stats.write().unwrap();
+        let mut stats = self.stats.write().unwrap_or_else(|e| e.into_inner());
         stats.total_escrowed += amount;
         stats.transaction_count += 1;
 
@@ -527,7 +531,7 @@ impl BandwidthTokenSystem {
 
     /// Releases tokens from escrow.
     pub fn release(&mut self, peer_id: &str, amount: u64, reason: String) -> Result<(), String> {
-        let mut peers = self.peers.write().unwrap();
+        let mut peers = self.peers.write().unwrap_or_else(|e| e.into_inner());
         let state = peers
             .get_mut(peer_id)
             .ok_or_else(|| format!("Peer {} not found", peer_id))?;
@@ -552,7 +556,7 @@ impl BandwidthTokenSystem {
         );
 
         // Update stats
-        let mut stats = self.stats.write().unwrap();
+        let mut stats = self.stats.write().unwrap_or_else(|e| e.into_inner());
         stats.total_escrowed -= amount;
         stats.transaction_count += 1;
 
@@ -561,7 +565,7 @@ impl BandwidthTokenSystem {
 
     /// Returns transaction history for a peer.
     pub fn history(&self, peer_id: &str) -> Result<Vec<TokenTransaction>, String> {
-        let peers = self.peers.read().unwrap();
+        let peers = self.peers.read().unwrap_or_else(|e| e.into_inner());
         peers
             .get(peer_id)
             .map(|state| state.history.clone())
@@ -570,12 +574,12 @@ impl BandwidthTokenSystem {
 
     /// Returns current statistics.
     pub fn stats(&self) -> TokenStats {
-        self.stats.read().unwrap().clone()
+        self.stats.read().unwrap_or_else(|e| e.into_inner()).clone()
     }
 
     /// Returns all peer balances.
     pub fn all_balances(&self) -> HashMap<String, TokenBalance> {
-        let peers = self.peers.read().unwrap();
+        let peers = self.peers.read().unwrap_or_else(|e| e.into_inner());
         peers
             .iter()
             .map(|(id, state)| (id.clone(), state.balance.clone()))
@@ -603,7 +607,7 @@ impl BandwidthTokenSystem {
             return;
         }
 
-        let mut tx_counter = self.tx_counter.write().unwrap();
+        let mut tx_counter = self.tx_counter.write().unwrap_or_else(|e| e.into_inner());
         *tx_counter += 1;
 
         let tx = TokenTransaction {
@@ -615,7 +619,7 @@ impl BandwidthTokenSystem {
             reason,
             timestamp_ms: SystemTime::now()
                 .duration_since(UNIX_EPOCH)
-                .unwrap()
+                .unwrap_or_default()
                 .as_millis() as u64,
             success,
         };

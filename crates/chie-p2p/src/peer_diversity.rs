@@ -213,18 +213,18 @@ impl PeerDiversityManager {
             last_updated: Instant::now(),
         };
 
-        self.peers.write().unwrap().insert(peer_id, info);
+        self.peers.write().unwrap_or_else(|e| e.into_inner()).insert(peer_id, info);
     }
 
     /// Remove peer
     pub fn remove_peer(&self, peer_id: &PeerId) {
-        self.peers.write().unwrap().remove(peer_id);
+        self.peers.write().unwrap_or_else(|e| e.into_inner()).remove(peer_id);
     }
 
     /// Check diversity and get recommendations
     pub fn check_diversity(&self) -> Vec<DiversityRecommendation> {
         let mut recommendations = Vec::new();
-        let peers = self.peers.read().unwrap();
+        let peers = self.peers.read().unwrap_or_else(|e| e.into_inner());
 
         // Check geographic diversity
         let region_counts = self.count_by_region(&peers);
@@ -275,7 +275,7 @@ impl PeerDiversityManager {
         }
 
         // Update last check time
-        *self.last_check.write().unwrap() = Instant::now();
+        *self.last_check.write().unwrap_or_else(|e| e.into_inner()) = Instant::now();
 
         if recommendations.is_empty() {
             vec![DiversityRecommendation::NoAction]
@@ -337,7 +337,7 @@ impl PeerDiversityManager {
 
     /// Calculate diversity score (0.0-1.0)
     pub fn calculate_diversity_score(&self) -> f64 {
-        let peers = self.peers.read().unwrap();
+        let peers = self.peers.read().unwrap_or_else(|e| e.into_inner());
         if peers.is_empty() {
             return 0.0;
         }
@@ -371,7 +371,7 @@ impl PeerDiversityManager {
         &self,
         dimension: DiversityDimension,
     ) -> HashMap<String, Vec<PeerId>> {
-        let peers = self.peers.read().unwrap();
+        let peers = self.peers.read().unwrap_or_else(|e| e.into_inner());
         let mut result: HashMap<String, Vec<PeerId>> = HashMap::new();
 
         for peer in peers.values() {
@@ -396,7 +396,7 @@ impl PeerDiversityManager {
 
     /// Get underrepresented regions
     pub fn get_underrepresented_regions(&self) -> Vec<GeographicRegion> {
-        let peers = self.peers.read().unwrap();
+        let peers = self.peers.read().unwrap_or_else(|e| e.into_inner());
         let region_counts = self.count_by_region(&peers);
 
         [
@@ -418,7 +418,7 @@ impl PeerDiversityManager {
 
     /// Get overrepresented AS numbers
     pub fn get_overrepresented_as(&self) -> Vec<u32> {
-        let peers = self.peers.read().unwrap();
+        let peers = self.peers.read().unwrap_or_else(|e| e.into_inner());
         let as_counts = self.count_by_as(&peers);
 
         as_counts
@@ -430,7 +430,7 @@ impl PeerDiversityManager {
 
     /// Get diversity statistics
     pub fn get_stats(&self) -> DiversityStats {
-        let peers = self.peers.read().unwrap();
+        let peers = self.peers.read().unwrap_or_else(|e| e.into_inner());
         let total_peers = peers.len();
         let region_counts = self.count_by_region(&peers);
         let as_counts = self.count_by_as(&peers);
@@ -447,7 +447,7 @@ impl PeerDiversityManager {
 
     /// Should check diversity now
     pub fn should_check(&self) -> bool {
-        self.last_check.read().unwrap().elapsed() >= self.config.check_interval
+        self.last_check.read().unwrap_or_else(|e| e.into_inner()).elapsed() >= self.config.check_interval
     }
 }
 

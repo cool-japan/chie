@@ -139,7 +139,7 @@ impl CertificateManager {
         };
 
         // Cache the certificate
-        self.cache.lock().unwrap().insert(*peer_id, cert.clone());
+        self.cache.lock().unwrap_or_else(|e| e.into_inner()).insert(*peer_id, cert.clone());
 
         // Save to disk
         self.save_certificate(&cert)?;
@@ -150,7 +150,7 @@ impl CertificateManager {
     /// Load a certificate from disk
     pub fn load_certificate(&self, peer_id: &PeerId) -> Result<PeerCertificate, String> {
         // Check cache first
-        if let Some(cert) = self.cache.lock().unwrap().get(peer_id) {
+        if let Some(cert) = self.cache.lock().unwrap_or_else(|e| e.into_inner()).get(peer_id) {
             return Ok(cert.clone());
         }
 
@@ -175,7 +175,7 @@ impl CertificateManager {
         };
 
         // Cache it
-        self.cache.lock().unwrap().insert(*peer_id, cert.clone());
+        self.cache.lock().unwrap_or_else(|e| e.into_inner()).insert(*peer_id, cert.clone());
 
         Ok(cert)
     }
@@ -211,12 +211,12 @@ impl CertificateManager {
 
     /// Get all cached certificates
     pub fn get_cached_certificates(&self) -> Vec<PeerCertificate> {
-        self.cache.lock().unwrap().values().cloned().collect()
+        self.cache.lock().unwrap_or_else(|e| e.into_inner()).values().cloned().collect()
     }
 
     /// Clear certificate cache
     pub fn clear_cache(&self) {
-        self.cache.lock().unwrap().clear();
+        self.cache.lock().unwrap_or_else(|e| e.into_inner()).clear();
     }
 }
 
@@ -382,7 +382,7 @@ impl TlsAuthenticator {
 
     /// Record an authentication attempt
     fn record_attempt(&self, peer_id: &PeerId) {
-        let mut attempts = self.attempts.lock().unwrap();
+        let mut attempts = self.attempts.lock().unwrap_or_else(|e| e.into_inner());
         attempts
             .entry(*peer_id)
             .or_default()
@@ -393,7 +393,7 @@ impl TlsAuthenticator {
     pub fn get_attempts(&self, peer_id: &PeerId) -> Vec<SystemTime> {
         self.attempts
             .lock()
-            .unwrap()
+            .unwrap_or_else(|e| e.into_inner())
             .get(peer_id)
             .cloned()
             .unwrap_or_default()
@@ -401,7 +401,7 @@ impl TlsAuthenticator {
 
     /// Clear authentication history
     pub fn clear_attempts(&self) {
-        self.attempts.lock().unwrap().clear();
+        self.attempts.lock().unwrap_or_else(|e| e.into_inner()).clear();
     }
 }
 

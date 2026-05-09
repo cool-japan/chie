@@ -239,7 +239,7 @@ impl TrafficObfuscator {
 
         // Update statistics
         {
-            let mut stats = self.stats.lock().unwrap();
+            let mut stats = self.stats.lock().unwrap_or_else(|e| e.into_inner());
             stats.messages_obfuscated += 1;
             stats.padding_bytes_added += obfuscated.padding.len() as u64;
             stats.avg_padding_bytes =
@@ -318,7 +318,7 @@ impl TrafficObfuscator {
 
         // Update statistics
         {
-            let mut stats = self.stats.lock().unwrap();
+            let mut stats = self.stats.lock().unwrap_or_else(|e| e.into_inner());
             stats.total_delay_ms += delay.as_millis() as u64;
         }
 
@@ -335,7 +335,7 @@ impl TrafficObfuscator {
 
         let data: Vec<u8> = (0..size).map(|_| rng.random()).collect();
 
-        let mut stats = self.stats.lock().unwrap();
+        let mut stats = self.stats.lock().unwrap_or_else(|e| e.into_inner());
         stats.dummy_messages_sent += 1;
 
         ObfuscatedMessage {
@@ -357,10 +357,10 @@ impl TrafficObfuscator {
 
         loop {
             // Check if we're below max concurrent
-            let active = *self.active_dummy_connections.lock().unwrap();
+            let active = *self.active_dummy_connections.lock().unwrap_or_else(|e| e.into_inner());
             if active < self.config.dummy_traffic.max_concurrent {
                 let dummy = self.generate_dummy_message();
-                self.dummy_queue.lock().unwrap().push(dummy);
+                self.dummy_queue.lock().unwrap_or_else(|e| e.into_inner()).push(dummy);
             }
 
             sleep(interval).await;
@@ -369,17 +369,17 @@ impl TrafficObfuscator {
 
     /// Get statistics
     pub fn get_stats(&self) -> ObfuscationStats {
-        self.stats.lock().unwrap().clone()
+        self.stats.lock().unwrap_or_else(|e| e.into_inner()).clone()
     }
 
     /// Reset statistics
     pub fn reset_stats(&self) {
-        *self.stats.lock().unwrap() = ObfuscationStats::default();
+        *self.stats.lock().unwrap_or_else(|e| e.into_inner()) = ObfuscationStats::default();
     }
 
     /// Get pending dummy messages
     pub fn get_dummy_messages(&self) -> Vec<ObfuscatedMessage> {
-        let mut queue = self.dummy_queue.lock().unwrap();
+        let mut queue = self.dummy_queue.lock().unwrap_or_else(|e| e.into_inner());
         let messages = queue.clone();
         queue.clear();
         messages
@@ -387,12 +387,12 @@ impl TrafficObfuscator {
 
     /// Increment active dummy connections
     pub fn increment_dummy_connections(&self) {
-        *self.active_dummy_connections.lock().unwrap() += 1;
+        *self.active_dummy_connections.lock().unwrap_or_else(|e| e.into_inner()) += 1;
     }
 
     /// Decrement active dummy connections
     pub fn decrement_dummy_connections(&self) {
-        let mut active = self.active_dummy_connections.lock().unwrap();
+        let mut active = self.active_dummy_connections.lock().unwrap_or_else(|e| e.into_inner());
         if *active > 0 {
             *active -= 1;
         }
@@ -586,10 +586,10 @@ mod tests {
 
         obfuscator.increment_dummy_connections();
         obfuscator.increment_dummy_connections();
-        assert_eq!(*obfuscator.active_dummy_connections.lock().unwrap(), 2);
+        assert_eq!(*obfuscator.active_dummy_connections.lock().unwrap_or_else(|e| e.into_inner()), 2);
 
         obfuscator.decrement_dummy_connections();
-        assert_eq!(*obfuscator.active_dummy_connections.lock().unwrap(), 1);
+        assert_eq!(*obfuscator.active_dummy_connections.lock().unwrap_or_else(|e| e.into_inner()), 1);
     }
 
     #[test]
@@ -630,12 +630,12 @@ mod tests {
         obfuscator
             .dummy_queue
             .lock()
-            .unwrap()
+            .unwrap_or_else(|e| e.into_inner())
             .push(obfuscator.generate_dummy_message());
         obfuscator
             .dummy_queue
             .lock()
-            .unwrap()
+            .unwrap_or_else(|e| e.into_inner())
             .push(obfuscator.generate_dummy_message());
 
         let messages = obfuscator.get_dummy_messages();

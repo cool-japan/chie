@@ -607,14 +607,14 @@ pub fn get_tracing_stats() -> TracingStats {
     TRACING_STATS
         .get_or_init(|| Arc::new(std::sync::RwLock::new(TracingStats::new())))
         .read()
-        .unwrap()
+        .unwrap_or_else(|e| e.into_inner())
         .clone()
 }
 
 /// Resets the global tracing statistics.
 pub fn reset_tracing_stats() {
     let stats = TRACING_STATS.get_or_init(|| Arc::new(std::sync::RwLock::new(TracingStats::new())));
-    let mut stats_lock = stats.write().unwrap();
+    let mut stats_lock = stats.write().unwrap_or_else(|e| e.into_inner());
     *stats_lock = TracingStats::new();
 }
 

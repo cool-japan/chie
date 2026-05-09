@@ -169,29 +169,29 @@ impl BandwidthFairnessController {
 
     /// Registers a peer with weight and priority
     pub fn register_peer_with_priority(&self, peer_id: &str, weight: f64, priority: u8) {
-        let mut peers = self.peers.write().unwrap();
+        let mut peers = self.peers.write().unwrap_or_else(|e| e.into_inner());
         peers.insert(
             peer_id.to_string(),
             PeerBandwidth::new(weight.max(0.1), priority.min(10)),
         );
 
         // Update stats
-        let mut stats = self.stats.write().unwrap();
+        let mut stats = self.stats.write().unwrap_or_else(|e| e.into_inner());
         stats.total_peers = peers.len();
     }
 
     /// Unregisters a peer
     pub fn unregister_peer(&self, peer_id: &str) {
-        let mut peers = self.peers.write().unwrap();
+        let mut peers = self.peers.write().unwrap_or_else(|e| e.into_inner());
         peers.remove(peer_id);
 
-        let mut stats = self.stats.write().unwrap();
+        let mut stats = self.stats.write().unwrap_or_else(|e| e.into_inner());
         stats.total_peers = peers.len();
     }
 
     /// Requests bandwidth for a peer
     pub fn request_bandwidth(&self, peer_id: &str, bytes_per_sec: u64) {
-        let mut peers = self.peers.write().unwrap();
+        let mut peers = self.peers.write().unwrap_or_else(|e| e.into_inner());
 
         if let Some(peer) = peers.get_mut(peer_id) {
             peer.demand = bytes_per_sec;
@@ -201,7 +201,7 @@ impl BandwidthFairnessController {
 
     /// Reports actual bandwidth usage
     pub fn report_usage(&self, peer_id: &str, bytes_per_sec: u64) {
-        let mut peers = self.peers.write().unwrap();
+        let mut peers = self.peers.write().unwrap_or_else(|e| e.into_inner());
 
         if let Some(peer) = peers.get_mut(peer_id) {
             peer.actual_usage = bytes_per_sec;
@@ -211,10 +211,10 @@ impl BandwidthFairnessController {
 
     /// Recalculates bandwidth allocations for all peers
     pub fn recalculate_allocations(&self) {
-        let mut last_recalc = self.last_recalculation.write().unwrap();
+        let mut last_recalc = self.last_recalculation.write().unwrap_or_else(|e| e.into_inner());
         *last_recalc = Instant::now();
 
-        let mut peers = self.peers.write().unwrap();
+        let mut peers = self.peers.write().unwrap_or_else(|e| e.into_inner());
 
         match self.config.policy {
             AllocationPolicy::MaxMinFair => self.allocate_max_min_fair(&mut peers),
@@ -326,7 +326,7 @@ impl BandwidthFairnessController {
     }
 
     fn update_stats(&self, peers: &HashMap<String, PeerBandwidth>) {
-        let mut stats = self.stats.write().unwrap();
+        let mut stats = self.stats.write().unwrap_or_else(|e| e.into_inner());
 
         stats.total_peers = peers.len();
         stats.total_allocated = peers.values().map(|p| p.allocation).sum();
@@ -358,13 +358,13 @@ impl BandwidthFairnessController {
 
     /// Gets the current allocation for a peer
     pub fn get_allocation(&self, peer_id: &str) -> Option<u64> {
-        let peers = self.peers.read().unwrap();
+        let peers = self.peers.read().unwrap_or_else(|e| e.into_inner());
         peers.get(peer_id).map(|p| p.allocation)
     }
 
     /// Gets all peer allocations
     pub fn get_all_allocations(&self) -> HashMap<String, u64> {
-        let peers = self.peers.read().unwrap();
+        let peers = self.peers.read().unwrap_or_else(|e| e.into_inner());
         peers
             .iter()
             .map(|(id, peer)| (id.clone(), peer.allocation))
@@ -373,7 +373,7 @@ impl BandwidthFairnessController {
 
     /// Checks if automatic recalculation is needed
     pub fn should_recalculate(&self) -> bool {
-        let last = self.last_recalculation.read().unwrap();
+        let last = self.last_recalculation.read().unwrap_or_else(|e| e.into_inner());
         let interval = Duration::from_millis(self.config.adjustment_interval_ms);
         last.elapsed() >= interval
     }
@@ -387,10 +387,10 @@ impl BandwidthFairnessController {
 
     /// Clears all peer data
     pub fn clear(&self) {
-        let mut peers = self.peers.write().unwrap();
+        let mut peers = self.peers.write().unwrap_or_else(|e| e.into_inner());
         peers.clear();
 
-        let mut stats = self.stats.write().unwrap();
+        let mut stats = self.stats.write().unwrap_or_else(|e| e.into_inner());
         stats.total_peers = 0;
         stats.total_allocated = 0;
         stats.total_demanded = 0;
@@ -398,7 +398,7 @@ impl BandwidthFairnessController {
 
     /// Gets current statistics
     pub fn stats(&self) -> FairnessStats {
-        self.stats.read().unwrap().clone()
+        self.stats.read().unwrap_or_else(|e| e.into_inner()).clone()
     }
 
     /// Gets the configuration

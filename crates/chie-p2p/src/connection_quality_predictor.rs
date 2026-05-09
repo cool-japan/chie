@@ -219,7 +219,7 @@ impl ConnectionQualityPredictor {
     ) {
         let sample = ConnectionSample::new(success, latency_ms, bandwidth_kbps);
 
-        let mut history = self.history.write().unwrap();
+        let mut history = self.history.write().unwrap_or_else(|e| e.into_inner());
         let peer = history
             .entry(peer_id.to_string())
             .or_insert_with(|| PeerHistory::new(self.config.prediction_window));
@@ -227,14 +227,14 @@ impl ConnectionQualityPredictor {
         peer.add_sample(sample, self.config.prediction_window);
 
         // Update stats
-        let mut stats = self.stats.write().unwrap();
+        let mut stats = self.stats.write().unwrap_or_else(|e| e.into_inner());
         stats.total_connections += 1;
         stats.tracked_peers = history.len();
     }
 
     /// Predicts connection quality for a peer
     pub fn predict_quality(&self, peer_id: &str) -> Option<QualityPrediction> {
-        let history = self.history.read().unwrap();
+        let history = self.history.read().unwrap_or_else(|e| e.into_inner());
 
         if let Some(peer) = history.get(peer_id) {
             if peer.samples.len() < self.config.min_samples {
@@ -248,7 +248,7 @@ impl ConnectionQualityPredictor {
             };
 
             // Update stats
-            let mut stats = self.stats.write().unwrap();
+            let mut stats = self.stats.write().unwrap_or_else(|e| e.into_inner());
             stats.total_predictions += 1;
 
             // Update running averages
@@ -395,25 +395,25 @@ impl ConnectionQualityPredictor {
 
     /// Removes a peer from tracking
     pub fn remove_peer(&self, peer_id: &str) {
-        let mut history = self.history.write().unwrap();
+        let mut history = self.history.write().unwrap_or_else(|e| e.into_inner());
         history.remove(peer_id);
 
-        let mut stats = self.stats.write().unwrap();
+        let mut stats = self.stats.write().unwrap_or_else(|e| e.into_inner());
         stats.tracked_peers = history.len();
     }
 
     /// Clears all peer data
     pub fn clear(&self) {
-        let mut history = self.history.write().unwrap();
+        let mut history = self.history.write().unwrap_or_else(|e| e.into_inner());
         history.clear();
 
-        let mut stats = self.stats.write().unwrap();
+        let mut stats = self.stats.write().unwrap_or_else(|e| e.into_inner());
         stats.tracked_peers = 0;
     }
 
     /// Gets current statistics
     pub fn stats(&self) -> PredictorStats {
-        self.stats.read().unwrap().clone()
+        self.stats.read().unwrap_or_else(|e| e.into_inner()).clone()
     }
 
     /// Gets the configuration
@@ -423,7 +423,7 @@ impl ConnectionQualityPredictor {
 
     /// Gets all tracked peer IDs
     pub fn tracked_peer_ids(&self) -> Vec<String> {
-        let history = self.history.read().unwrap();
+        let history = self.history.read().unwrap_or_else(|e| e.into_inner());
         history.keys().cloned().collect()
     }
 }

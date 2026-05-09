@@ -185,29 +185,29 @@ impl CertificatePinner {
         policy: PinPolicy,
     ) -> Result<(), String> {
         let pin = Pin::new(*peer_id, cert_hash, policy);
-        self.pins.lock().unwrap().insert(*peer_id, pin);
+        self.pins.lock().unwrap_or_else(|e| e.into_inner()).insert(*peer_id, pin);
         Ok(())
     }
 
     /// Add a pin with custom configuration
     pub fn add_pin_custom(&self, pin: Pin) -> Result<(), String> {
-        self.pins.lock().unwrap().insert(pin.peer_id, pin);
+        self.pins.lock().unwrap_or_else(|e| e.into_inner()).insert(pin.peer_id, pin);
         Ok(())
     }
 
     /// Get pin for a peer
     pub fn get_pin(&self, peer_id: &PeerId) -> Option<Pin> {
-        self.pins.lock().unwrap().get(peer_id).cloned()
+        self.pins.lock().unwrap_or_else(|e| e.into_inner()).get(peer_id).cloned()
     }
 
     /// Remove pin for a peer
     pub fn remove_pin(&self, peer_id: &PeerId) -> bool {
-        self.pins.lock().unwrap().remove(peer_id).is_some()
+        self.pins.lock().unwrap_or_else(|e| e.into_inner()).remove(peer_id).is_some()
     }
 
     /// Verify a certificate against the pin
     pub fn verify_certificate(&self, peer_id: &PeerId, cert_hash: &[u8]) -> Result<bool, String> {
-        let mut pins = self.pins.lock().unwrap();
+        let mut pins = self.pins.lock().unwrap_or_else(|e| e.into_inner());
 
         // Get or create pin
         let pin = if let Some(pin) = pins.get_mut(peer_id) {
@@ -268,7 +268,7 @@ impl CertificatePinner {
 
     /// Record a pin violation
     fn record_violation(&self, violation: PinViolation) {
-        let mut violations = self.violations.lock().unwrap();
+        let mut violations = self.violations.lock().unwrap_or_else(|e| e.into_inner());
         violations.push(violation);
 
         // Trim if exceeds max
@@ -280,14 +280,14 @@ impl CertificatePinner {
 
     /// Get all violations
     pub fn get_violations(&self) -> Vec<PinViolation> {
-        self.violations.lock().unwrap().clone()
+        self.violations.lock().unwrap_or_else(|e| e.into_inner()).clone()
     }
 
     /// Get violations for a specific peer
     pub fn get_peer_violations(&self, peer_id: &PeerId) -> Vec<PinViolation> {
         self.violations
             .lock()
-            .unwrap()
+            .unwrap_or_else(|e| e.into_inner())
             .iter()
             .filter(|v| &v.peer_id == peer_id)
             .cloned()
@@ -296,17 +296,17 @@ impl CertificatePinner {
 
     /// Clear all violations
     pub fn clear_violations(&self) {
-        self.violations.lock().unwrap().clear();
+        self.violations.lock().unwrap_or_else(|e| e.into_inner()).clear();
     }
 
     /// Get all pins
     pub fn get_all_pins(&self) -> Vec<Pin> {
-        self.pins.lock().unwrap().values().cloned().collect()
+        self.pins.lock().unwrap_or_else(|e| e.into_inner()).values().cloned().collect()
     }
 
     /// Update pin for a peer (rotate certificate)
     pub fn update_pin(&self, peer_id: &PeerId, new_cert_hash: Vec<u8>) -> Result<(), String> {
-        let mut pins = self.pins.lock().unwrap();
+        let mut pins = self.pins.lock().unwrap_or_else(|e| e.into_inner());
 
         if let Some(pin) = pins.get_mut(peer_id) {
             pin.cert_hash = new_cert_hash;
@@ -320,7 +320,7 @@ impl CertificatePinner {
 
     /// Clean up expired pins
     pub fn cleanup_expired(&self) -> usize {
-        let mut pins = self.pins.lock().unwrap();
+        let mut pins = self.pins.lock().unwrap_or_else(|e| e.into_inner());
         let before = pins.len();
         pins.retain(|_, pin| !pin.is_expired());
         before - pins.len()
@@ -328,8 +328,8 @@ impl CertificatePinner {
 
     /// Get pin statistics
     pub fn get_stats(&self) -> PinStats {
-        let pins = self.pins.lock().unwrap();
-        let violations = self.violations.lock().unwrap();
+        let pins = self.pins.lock().unwrap_or_else(|e| e.into_inner());
+        let violations = self.violations.lock().unwrap_or_else(|e| e.into_inner());
 
         let mut by_policy = HashMap::new();
         let mut expired = 0;

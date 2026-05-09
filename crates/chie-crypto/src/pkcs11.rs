@@ -257,7 +257,7 @@ impl Pkcs11MockProvider {
 
         // Log initialization
         let entry = AuditEntry::new(AuditEventType::Authentication, "PKCS#11 Mock");
-        self.audit_log.lock().unwrap().push(entry);
+        self.audit_log.lock().unwrap_or_else(|e| e.into_inner()).push(entry);
 
         Ok(())
     }
@@ -265,7 +265,7 @@ impl Pkcs11MockProvider {
     /// Finalize the provider.
     pub fn finalize(&mut self) -> HsmResult<()> {
         // Close any open session
-        if let Some(mut session) = self.session.lock().unwrap().take() {
+        if let Some(mut session) = self.session.lock().unwrap_or_else(|e| e.into_inner()).take() {
             session.close()?;
         }
 
@@ -279,7 +279,7 @@ impl Pkcs11MockProvider {
             return Err(HsmError::NotInitialized);
         }
 
-        let mut session_guard = self.session.lock().unwrap();
+        let mut session_guard = self.session.lock().unwrap_or_else(|e| e.into_inner());
 
         // Check if a session already exists
         if session_guard.is_some() {
@@ -302,7 +302,7 @@ impl Pkcs11MockProvider {
 
     /// Close the current session.
     pub fn close_session(&self) -> HsmResult<()> {
-        let mut session_guard = self.session.lock().unwrap();
+        let mut session_guard = self.session.lock().unwrap_or_else(|e| e.into_inner());
 
         if let Some(mut session) = session_guard.take() {
             session.close()?;
@@ -313,7 +313,7 @@ impl Pkcs11MockProvider {
 
     /// Get the current session.
     fn get_session(&self) -> HsmResult<()> {
-        let session_guard = self.session.lock().unwrap();
+        let session_guard = self.session.lock().unwrap_or_else(|e| e.into_inner());
 
         if session_guard.is_none() {
             return Err(HsmError::Pkcs11Error("No active session".to_string()));
@@ -324,7 +324,7 @@ impl Pkcs11MockProvider {
 
     /// Allocate a new object handle.
     fn next_handle(&self) -> u64 {
-        let mut handle = self.next_handle.lock().unwrap();
+        let mut handle = self.next_handle.lock().unwrap_or_else(|e| e.into_inner());
         let current = *handle;
         *handle += 1;
         current
@@ -332,12 +332,12 @@ impl Pkcs11MockProvider {
 
     /// Log an audit event.
     fn log_audit(&self, entry: AuditEntry) {
-        self.audit_log.lock().unwrap().push(entry);
+        self.audit_log.lock().unwrap_or_else(|e| e.into_inner()).push(entry);
     }
 
     /// Get object by handle.
     fn get_object(&self, handle: u64) -> HsmResult<Pkcs11Object> {
-        let objects = self.objects.lock().unwrap();
+        let objects = self.objects.lock().unwrap_or_else(|e| e.into_inner());
         objects
             .get(&handle)
             .cloned()
@@ -389,7 +389,7 @@ impl SigningProvider for Pkcs11MockProvider {
         let key_id = object.key_id();
 
         // Store object
-        self.objects.lock().unwrap().insert(handle, object);
+        self.objects.lock().unwrap_or_else(|e| e.into_inner()).insert(handle, object);
 
         // Log audit event
         let entry = AuditEntry::new(AuditEventType::KeyGenerated, self.name())
@@ -414,7 +414,7 @@ impl SigningProvider for Pkcs11MockProvider {
         let key_id = object.key_id();
 
         // Store object
-        self.objects.lock().unwrap().insert(handle, object);
+        self.objects.lock().unwrap_or_else(|e| e.into_inner()).insert(handle, object);
 
         // Log audit event
         let entry = AuditEntry::new(AuditEventType::KeyImported, self.name())
@@ -464,7 +464,7 @@ impl SigningProvider for Pkcs11MockProvider {
     fn list_keys(&self) -> HsmResult<Vec<KeyMetadata>> {
         self.get_session()?;
 
-        let objects = self.objects.lock().unwrap();
+        let objects = self.objects.lock().unwrap_or_else(|e| e.into_inner());
         let keys = objects.values().map(|obj| obj.to_metadata()).collect();
 
         Ok(keys)
@@ -477,7 +477,7 @@ impl SigningProvider for Pkcs11MockProvider {
 
         self.objects
             .lock()
-            .unwrap()
+            .unwrap_or_else(|e| e.into_inner())
             .remove(&handle)
             .ok_or_else(|| HsmError::KeyNotFound(key_id.to_string()))?;
 
@@ -498,7 +498,7 @@ impl SigningProvider for Pkcs11MockProvider {
             return false;
         };
 
-        self.objects.lock().unwrap().contains_key(&handle)
+        self.objects.lock().unwrap_or_else(|e| e.into_inner()).contains_key(&handle)
     }
 
     fn health_check(&self) -> HsmResult<HealthStatus> {
@@ -506,7 +506,7 @@ impl SigningProvider for Pkcs11MockProvider {
             .with_response_time(1)
             .with_metric(
                 "objects_count",
-                self.objects.lock().unwrap().len().to_string(),
+                self.objects.lock().unwrap_or_else(|e| e.into_inner()).len().to_string(),
             )
             .with_metric("slot_id", self.slot_id.to_string());
 
@@ -514,7 +514,7 @@ impl SigningProvider for Pkcs11MockProvider {
     }
 
     fn get_audit_log(&self, limit: usize) -> HsmResult<Vec<AuditEntry>> {
-        let log = self.audit_log.lock().unwrap();
+        let log = self.audit_log.lock().unwrap_or_else(|e| e.into_inner());
         let len = log.len();
         let start = len.saturating_sub(limit);
         Ok(log[start..].to_vec())

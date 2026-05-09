@@ -163,7 +163,7 @@ impl VerificationPipeline {
 
     /// Enqueues a verification task.
     pub fn enqueue(&self, task: VerificationTask) -> Result<(), String> {
-        let mut queue = self.queue.lock().unwrap();
+        let mut queue = self.queue.lock().unwrap_or_else(|e| e.into_inner());
 
         if queue.len() >= self.config.max_queue_size {
             return Err("Queue is full".to_string());
@@ -177,7 +177,7 @@ impl VerificationPipeline {
 
         queue.insert(insert_pos, task);
 
-        let mut stats = self.stats.lock().unwrap();
+        let mut stats = self.stats.lock().unwrap_or_else(|e| e.into_inner());
         stats.tasks_enqueued += 1;
         stats.tasks_queued = queue.len();
 
@@ -186,13 +186,13 @@ impl VerificationPipeline {
 
     /// Gets the next task to process.
     pub fn next_task(&self) -> Option<VerificationTask> {
-        let mut queue = self.queue.lock().unwrap();
+        let mut queue = self.queue.lock().unwrap_or_else(|e| e.into_inner());
         let task = queue.pop_front()?;
 
-        let mut in_progress = self.in_progress.lock().unwrap();
+        let mut in_progress = self.in_progress.lock().unwrap_or_else(|e| e.into_inner());
         in_progress.insert(task.content_id.clone(), task.clone());
 
-        let mut stats = self.stats.lock().unwrap();
+        let mut stats = self.stats.lock().unwrap_or_else(|e| e.into_inner());
         stats.tasks_queued = queue.len();
         stats.tasks_in_progress = in_progress.len();
 
@@ -201,7 +201,7 @@ impl VerificationPipeline {
 
     /// Checks if the pipeline can accept more work.
     pub fn can_accept_work(&self) -> bool {
-        let in_progress = self.in_progress.lock().unwrap();
+        let in_progress = self.in_progress.lock().unwrap_or_else(|e| e.into_inner());
         in_progress.len() < self.config.max_concurrent
     }
 
@@ -212,13 +212,13 @@ impl VerificationPipeline {
 
         // Remove from in-progress and save task for potential retry
         let task = {
-            let mut in_progress = self.in_progress.lock().unwrap();
+            let mut in_progress = self.in_progress.lock().unwrap_or_else(|e| e.into_inner());
             in_progress.remove(&content_id)
         };
 
         // Add to results
         {
-            let mut results = self.results.lock().unwrap();
+            let mut results = self.results.lock().unwrap_or_else(|e| e.into_inner());
             results.push((Instant::now(), result.clone()));
 
             // Cleanup old results
@@ -228,8 +228,8 @@ impl VerificationPipeline {
 
         // Update stats
         {
-            let mut stats = self.stats.lock().unwrap();
-            stats.tasks_in_progress = self.in_progress.lock().unwrap().len();
+            let mut stats = self.stats.lock().unwrap_or_else(|e| e.into_inner());
+            stats.tasks_in_progress = self.in_progress.lock().unwrap_or_else(|e| e.into_inner()).len();
             stats.tasks_completed += 1;
 
             match status {
@@ -253,7 +253,7 @@ impl VerificationPipeline {
         // Handle retries for failed verifications
         if status == VerificationStatus::Failed && self.config.retry_failed {
             if let Some(original_task) = task {
-                let mut retry_count = self.retry_count.lock().unwrap();
+                let mut retry_count = self.retry_count.lock().unwrap_or_else(|e| e.into_inner());
                 let count = retry_count.entry(content_id.clone()).or_insert(0);
                 *count += 1;
 
@@ -274,7 +274,7 @@ impl VerificationPipeline {
 
     /// Gets the result for a specific content ID.
     pub fn get_result(&self, content_id: &str) -> Option<VerificationResult> {
-        let results = self.results.lock().unwrap();
+        let results = self.results.lock().unwrap_or_else(|e| e.into_inner());
         results
             .iter()
             .rev() // Most recent first
@@ -284,7 +284,7 @@ impl VerificationPipeline {
 
     /// Gets results for a specific peer.
     pub fn get_peer_results(&self, peer_id: &str) -> Vec<VerificationResult> {
-        let results = self.results.lock().unwrap();
+        let results = self.results.lock().unwrap_or_else(|e| e.into_inner());
         results
             .iter()
             .filter(|(_, r)| r.provider == peer_id)
@@ -309,7 +309,7 @@ impl VerificationPipeline {
 
     /// Checks if a task is overdue based on its deadline.
     pub fn is_overdue(&self, content_id: &str) -> bool {
-        let in_progress = self.in_progress.lock().unwrap();
+        let in_progress = self.in_progress.lock().unwrap_or_else(|e| e.into_inner());
         if let Some(task) = in_progress.get(content_id) {
             if let Some(deadline) = task.deadline {
                 return Instant::now() > deadline;
@@ -320,7 +320,7 @@ impl VerificationPipeline {
 
     /// Gets all overdue tasks.
     pub fn get_overdue_tasks(&self) -> Vec<VerificationTask> {
-        let in_progress = self.in_progress.lock().unwrap();
+        let in_progress = self.in_progress.lock().unwrap_or_else(|e| e.into_inner());
         let now = Instant::now();
 
         in_progress
@@ -340,12 +340,12 @@ impl VerificationPipeline {
     pub fn cancel_task(&self, content_id: &str) -> bool {
         // Try to remove from queue
         {
-            let mut queue = self.queue.lock().unwrap();
+            let mut queue = self.queue.lock().unwrap_or_else(|e| e.into_inner());
             if let Some(pos) = queue.iter().position(|t| t.content_id == content_id) {
                 queue.remove(pos);
 
                 // Update stats
-                let mut stats = self.stats.lock().unwrap();
+                let mut stats = self.stats.lock().unwrap_or_else(|e| e.into_inner());
                 stats.tasks_queued = queue.len();
                 return true;
             }
@@ -353,10 +353,10 @@ impl VerificationPipeline {
 
         // Try to remove from in-progress
         {
-            let mut in_progress = self.in_progress.lock().unwrap();
+            let mut in_progress = self.in_progress.lock().unwrap_or_else(|e| e.into_inner());
             if in_progress.remove(content_id).is_some() {
                 // Update stats
-                let mut stats = self.stats.lock().unwrap();
+                let mut stats = self.stats.lock().unwrap_or_else(|e| e.into_inner());
                 stats.tasks_in_progress = in_progress.len();
                 return true;
             }
@@ -367,17 +367,17 @@ impl VerificationPipeline {
 
     /// Gets current statistics.
     pub fn stats(&self) -> PipelineStats {
-        self.stats.lock().unwrap().clone()
+        self.stats.lock().unwrap_or_else(|e| e.into_inner()).clone()
     }
 
     /// Clears all queues and resets statistics.
     pub fn clear(&self) {
-        self.queue.lock().unwrap().clear();
-        self.in_progress.lock().unwrap().clear();
-        self.results.lock().unwrap().clear();
-        self.retry_count.lock().unwrap().clear();
+        self.queue.lock().unwrap_or_else(|e| e.into_inner()).clear();
+        self.in_progress.lock().unwrap_or_else(|e| e.into_inner()).clear();
+        self.results.lock().unwrap_or_else(|e| e.into_inner()).clear();
+        self.retry_count.lock().unwrap_or_else(|e| e.into_inner()).clear();
 
-        let mut stats = self.stats.lock().unwrap();
+        let mut stats = self.stats.lock().unwrap_or_else(|e| e.into_inner());
         *stats = PipelineStats {
             tasks_enqueued: 0,
             tasks_queued: 0,
@@ -396,11 +396,11 @@ impl Clone for VerificationPipeline {
     fn clone(&self) -> Self {
         Self {
             config: self.config.clone(),
-            queue: Arc::new(Mutex::new(self.queue.lock().unwrap().clone())),
-            in_progress: Arc::new(Mutex::new(self.in_progress.lock().unwrap().clone())),
-            results: Arc::new(Mutex::new(self.results.lock().unwrap().clone())),
-            stats: Arc::new(Mutex::new(self.stats.lock().unwrap().clone())),
-            retry_count: Arc::new(Mutex::new(self.retry_count.lock().unwrap().clone())),
+            queue: Arc::new(Mutex::new(self.queue.lock().unwrap_or_else(|e| e.into_inner()).clone())),
+            in_progress: Arc::new(Mutex::new(self.in_progress.lock().unwrap_or_else(|e| e.into_inner()).clone())),
+            results: Arc::new(Mutex::new(self.results.lock().unwrap_or_else(|e| e.into_inner()).clone())),
+            stats: Arc::new(Mutex::new(self.stats.lock().unwrap_or_else(|e| e.into_inner()).clone())),
+            retry_count: Arc::new(Mutex::new(self.retry_count.lock().unwrap_or_else(|e| e.into_inner()).clone())),
         }
     }
 }

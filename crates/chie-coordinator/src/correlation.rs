@@ -66,7 +66,10 @@ pub async fn correlation_middleware(mut request: Request, next: Next) -> Respons
     let (mut parts, body) = response.into_parts();
     parts.headers.insert(
         CORRELATION_ID_HEADER,
-        correlation_id.as_str().parse().unwrap(),
+        correlation_id
+            .as_str()
+            .parse()
+            .expect("UUID string is always a valid HeaderValue"),
     );
 
     Response::from_parts(parts, body)

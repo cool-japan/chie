@@ -93,7 +93,7 @@ impl Counter {
     #[inline]
     pub fn add(&self, value: f64) {
         if value >= 0.0 {
-            let mut val = self.value.lock().unwrap();
+            let mut val = self.value.lock().unwrap_or_else(|e| e.into_inner());
             *val += value;
         }
     }
@@ -102,13 +102,13 @@ impl Counter {
     #[must_use]
     #[inline]
     pub fn get(&self) -> f64 {
-        *self.value.lock().unwrap()
+        *self.value.lock().unwrap_or_else(|e| e.into_inner())
     }
 
     /// Reset the counter to zero.
     #[inline]
     pub fn reset(&self) {
-        *self.value.lock().unwrap() = 0.0;
+        *self.value.lock().unwrap_or_else(|e| e.into_inner()) = 0.0;
     }
 }
 
@@ -136,7 +136,7 @@ impl Gauge {
     /// Set the gauge to a value.
     #[inline]
     pub fn set(&self, value: f64) {
-        *self.value.lock().unwrap() = value;
+        *self.value.lock().unwrap_or_else(|e| e.into_inner()) = value;
     }
 
     /// Increment the gauge by 1.
@@ -154,14 +154,14 @@ impl Gauge {
     /// Add a value to the gauge.
     #[inline]
     pub fn add(&self, value: f64) {
-        let mut val = self.value.lock().unwrap();
+        let mut val = self.value.lock().unwrap_or_else(|e| e.into_inner());
         *val += value;
     }
 
     /// Subtract a value from the gauge.
     #[inline]
     pub fn sub(&self, value: f64) {
-        let mut val = self.value.lock().unwrap();
+        let mut val = self.value.lock().unwrap_or_else(|e| e.into_inner());
         *val -= value;
     }
 
@@ -169,7 +169,7 @@ impl Gauge {
     #[must_use]
     #[inline]
     pub fn get(&self) -> f64 {
-        *self.value.lock().unwrap()
+        *self.value.lock().unwrap_or_else(|e| e.into_inner())
     }
 }
 
@@ -198,8 +198,8 @@ impl Histogram {
     /// Observe a value.
     #[inline]
     pub fn observe(&self, value: f64) {
-        let mut sum = self.sum.lock().unwrap();
-        let mut count = self.count.lock().unwrap();
+        let mut sum = self.sum.lock().unwrap_or_else(|e| e.into_inner());
+        let mut count = self.count.lock().unwrap_or_else(|e| e.into_inner());
         *sum += value;
         *count += 1;
     }
@@ -207,29 +207,29 @@ impl Histogram {
     /// Get the sum of all observations.
     #[inline]
     pub fn sum(&self) -> f64 {
-        *self.sum.lock().unwrap()
+        *self.sum.lock().unwrap_or_else(|e| e.into_inner())
     }
 
     /// Get the count of observations.
     #[must_use]
     #[inline]
     pub fn count(&self) -> u64 {
-        *self.count.lock().unwrap()
+        *self.count.lock().unwrap_or_else(|e| e.into_inner())
     }
 
     /// Get the average value.
     #[inline]
     pub fn avg(&self) -> f64 {
-        let sum = *self.sum.lock().unwrap();
-        let count = *self.count.lock().unwrap();
+        let sum = *self.sum.lock().unwrap_or_else(|e| e.into_inner());
+        let count = *self.count.lock().unwrap_or_else(|e| e.into_inner());
         if count == 0 { 0.0 } else { sum / count as f64 }
     }
 
     /// Reset the histogram.
     #[inline]
     pub fn reset(&self) {
-        *self.sum.lock().unwrap() = 0.0;
-        *self.count.lock().unwrap() = 0;
+        *self.sum.lock().unwrap_or_else(|e| e.into_inner()) = 0.0;
+        *self.count.lock().unwrap_or_else(|e| e.into_inner()) = 0;
     }
 }
 

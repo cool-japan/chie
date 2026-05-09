@@ -490,7 +490,7 @@ impl SoftwareProvider {
 
     /// Log an audit event.
     fn log_audit(&self, entry: AuditEntry) {
-        let mut log = self.audit_log.write().unwrap();
+        let mut log = self.audit_log.write().unwrap_or_else(|e| e.into_inner());
         log.push(entry);
         // Keep only last 10,000 entries to prevent unbounded growth
         if log.len() > 10_000 {
@@ -499,7 +499,7 @@ impl SoftwareProvider {
     }
 
     fn next_key_id(&self) -> KeyId {
-        let keys = self.keys.read().unwrap();
+        let keys = self.keys.read().unwrap_or_else(|e| e.into_inner());
         let mut id = keys.len();
         loop {
             let key_id = KeyId::new(format!("sw-key-{}", id));
@@ -528,7 +528,7 @@ impl SigningProvider for SoftwareProvider {
             let metadata =
                 KeyMetadata::new(key_id.clone(), label).with_exportable(self.allow_export);
 
-            let mut keys = self.keys.write().unwrap();
+            let mut keys = self.keys.write().unwrap_or_else(|e| e.into_inner());
             keys.insert(key_id.clone(), (key_pair, metadata));
             Ok(key_id.clone())
         })();
@@ -554,7 +554,7 @@ impl SigningProvider for SoftwareProvider {
             let metadata =
                 KeyMetadata::new(key_id.clone(), label).with_exportable(self.allow_export);
 
-            let mut keys = self.keys.write().unwrap();
+            let mut keys = self.keys.write().unwrap_or_else(|e| e.into_inner());
             keys.insert(key_id.clone(), (key_pair, metadata));
             Ok(key_id.clone())
         })();
@@ -574,7 +574,7 @@ impl SigningProvider for SoftwareProvider {
     }
 
     fn get_public_key(&self, key_id: &KeyId) -> HsmResult<PublicKey> {
-        let keys = self.keys.read().unwrap();
+        let keys = self.keys.read().unwrap_or_else(|e| e.into_inner());
         let (key_pair, _) = keys
             .get(key_id)
             .ok_or_else(|| HsmError::KeyNotFound(key_id.to_string()))?;
@@ -583,7 +583,7 @@ impl SigningProvider for SoftwareProvider {
 
     fn sign(&self, key_id: &KeyId, message: &[u8]) -> HsmResult<SignatureBytes> {
         let result = (|| {
-            let mut keys = self.keys.write().unwrap();
+            let mut keys = self.keys.write().unwrap_or_else(|e| e.into_inner());
             let (key_pair, metadata) = keys
                 .get_mut(key_id)
                 .ok_or_else(|| HsmError::KeyNotFound(key_id.to_string()))?;
@@ -617,13 +617,13 @@ impl SigningProvider for SoftwareProvider {
     }
 
     fn list_keys(&self) -> HsmResult<Vec<KeyMetadata>> {
-        let keys = self.keys.read().unwrap();
+        let keys = self.keys.read().unwrap_or_else(|e| e.into_inner());
         Ok(keys.values().map(|(_, meta)| meta.clone()).collect())
     }
 
     fn delete_key(&self, key_id: &KeyId) -> HsmResult<()> {
         let result: HsmResult<()> = (|| {
-            let mut keys = self.keys.write().unwrap();
+            let mut keys = self.keys.write().unwrap_or_else(|e| e.into_inner());
             keys.remove(key_id)
                 .ok_or_else(|| HsmError::KeyNotFound(key_id.to_string()))?;
             Ok(())
@@ -643,13 +643,13 @@ impl SigningProvider for SoftwareProvider {
     }
 
     fn key_exists(&self, key_id: &KeyId) -> bool {
-        let keys = self.keys.read().unwrap();
+        let keys = self.keys.read().unwrap_or_else(|e| e.into_inner());
         keys.contains_key(key_id)
     }
 
     fn export_key(&self, key_id: &KeyId) -> HsmResult<SecretKey> {
         let result = (|| {
-            let keys = self.keys.read().unwrap();
+            let keys = self.keys.read().unwrap_or_else(|e| e.into_inner());
             let (key_pair, metadata) = keys
                 .get(key_id)
                 .ok_or_else(|| HsmError::KeyNotFound(key_id.to_string()))?;
@@ -680,7 +680,7 @@ impl SigningProvider for SoftwareProvider {
 
     fn update_key_state(&self, key_id: &KeyId, state: KeyLifecycleState) -> HsmResult<()> {
         let result: HsmResult<KeyLifecycleState> = (|| {
-            let mut keys = self.keys.write().unwrap();
+            let mut keys = self.keys.write().unwrap_or_else(|e| e.into_inner());
             let (_, metadata) = keys
                 .get_mut(key_id)
                 .ok_or_else(|| HsmError::KeyNotFound(key_id.to_string()))?;
@@ -706,7 +706,7 @@ impl SigningProvider for SoftwareProvider {
     }
 
     fn get_audit_log(&self, limit: usize) -> HsmResult<Vec<AuditEntry>> {
-        let log = self.audit_log.read().unwrap();
+        let log = self.audit_log.read().unwrap_or_else(|e| e.into_inner());
         let len = log.len();
         let start = len.saturating_sub(limit);
         Ok(log[start..].to_vec())
@@ -1127,7 +1127,7 @@ impl HsmManager {
 
     /// Add a signing provider.
     pub fn add_provider(&self, provider: Arc<dyn SigningProvider>) -> usize {
-        let mut providers = self.providers.write().unwrap();
+        let mut providers = self.providers.write().unwrap_or_else(|e| e.into_inner());
         let index = providers.len();
         providers.push(provider);
         index
@@ -1135,7 +1135,7 @@ impl HsmManager {
 
     /// Set the default provider by index.
     pub fn set_default_provider(&mut self, index: usize) -> HsmResult<()> {
-        let providers = self.providers.read().unwrap();
+        let providers = self.providers.read().unwrap_or_else(|e| e.into_inner());
         if index >= providers.len() {
             return Err(HsmError::ConfigError(format!(
                 "Invalid provider index: {}",
@@ -1149,19 +1149,19 @@ impl HsmManager {
 
     /// Get the default provider.
     pub fn default_provider(&self) -> Arc<dyn SigningProvider> {
-        let providers = self.providers.read().unwrap();
+        let providers = self.providers.read().unwrap_or_else(|e| e.into_inner());
         providers[self.default_provider].clone()
     }
 
     /// Get a provider by index.
     pub fn provider(&self, index: usize) -> Option<Arc<dyn SigningProvider>> {
-        let providers = self.providers.read().unwrap();
+        let providers = self.providers.read().unwrap_or_else(|e| e.into_inner());
         providers.get(index).cloned()
     }
 
     /// List all providers.
     pub fn list_providers(&self) -> Vec<String> {
-        let providers = self.providers.read().unwrap();
+        let providers = self.providers.read().unwrap_or_else(|e| e.into_inner());
         providers.iter().map(|p| p.name().to_string()).collect()
     }
 
@@ -1577,7 +1577,7 @@ mod tests {
         assert!(metadata.last_rotated.is_none());
 
         // Manually mark as rotated (simulate rotation)
-        let mut keys = provider.keys.write().unwrap();
+        let mut keys = provider.keys.write().unwrap_or_else(|e| e.into_inner());
         let (_, meta) = keys.get_mut(&key_id).unwrap();
         meta.mark_rotated();
         drop(keys);

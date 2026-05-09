@@ -83,12 +83,20 @@ impl Default for NodeConfig {
     fn default() -> Self {
         Self {
             listen_addrs: vec![
-                "/ip4/0.0.0.0/tcp/0".parse().unwrap(),
-                "/ip6/::/tcp/0".parse().unwrap(),
+                "/ip4/0.0.0.0/tcp/0"
+                    .parse()
+                    .expect("static multiaddr must parse"),
+                "/ip6/::/tcp/0"
+                    .parse()
+                    .expect("static multiaddr must parse"),
             ],
             quic_listen_addrs: vec![
-                "/ip4/0.0.0.0/udp/0/quic-v1".parse().unwrap(),
-                "/ip6/::/udp/0/quic-v1".parse().unwrap(),
+                "/ip4/0.0.0.0/udp/0/quic-v1"
+                    .parse()
+                    .expect("static multiaddr must parse"),
+                "/ip6/::/udp/0/quic-v1"
+                    .parse()
+                    .expect("static multiaddr must parse"),
             ],
             enable_quic: true,
             bootstrap_nodes: vec![],

@@ -28,7 +28,7 @@ tokio = { version = "1.51", features = ["full"] }
 # Serialization
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-oxicode = { version = "0.2.2", features = ["serde", "derive"] }
+oxicode = { version = "0.2.3", features = ["serde", "derive"] }
 toml = "1.1"
 
 # P2P networking
@@ -85,11 +85,11 @@ async-graphql = { version = "7.2", features = ["uuid", "chrono"] }
 async-graphql-axum = "7.2"
 
 # Compression (COOLJAPAN Pure Rust Policy)
-oxiarc-deflate = "0.2.6"
-oxiarc-lz4 = "0.2.6"
-oxiarc-zstd = "0.2.6"
-oxiarc-brotli = "0.2.6"
-oxiarc-snappy = "0.2.6"
+oxiarc-deflate = "0.2.8"
+oxiarc-lz4 = "0.2.8"
+oxiarc-zstd = "0.2.8"
+oxiarc-brotli = "0.2.8"
+oxiarc-snappy = "0.2.8"
 
 # HTTP client
 reqwest = { version = "0.13", features = ["json", "multipart"] }

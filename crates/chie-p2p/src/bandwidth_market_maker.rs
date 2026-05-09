@@ -152,7 +152,7 @@ impl BandwidthMarketMaker {
         total_demand: u64,
         num_bids: usize,
     ) {
-        let mut history = self.history.lock().unwrap();
+        let mut history = self.history.lock().unwrap_or_else(|e| e.into_inner());
 
         history.push(AuctionHistory {
             timestamp: Instant::now(),
@@ -168,14 +168,14 @@ impl BandwidthMarketMaker {
         history.retain(|h| h.timestamp >= cutoff);
 
         // Update stats
-        let mut stats = self.stats.lock().unwrap();
+        let mut stats = self.stats.lock().unwrap_or_else(|e| e.into_inner());
         stats.history_size = history.len();
         stats.market_condition = self.assess_market_condition_internal(&history);
     }
 
     /// Records a successful bid allocation.
     pub fn record_allocation(&self, price_paid: u64, bandwidth_allocated: u64) {
-        let mut stats = self.stats.lock().unwrap();
+        let mut stats = self.stats.lock().unwrap_or_else(|e| e.into_inner());
         stats.successful_bids += 1;
 
         let total_bids = stats.successful_bids as f64;
@@ -195,7 +195,7 @@ impl BandwidthMarketMaker {
 
     /// Gets a bidding recommendation based on current market conditions.
     pub fn recommend_bid(&self, desired_bandwidth: u64) -> Option<BidRecommendation> {
-        let history = self.history.lock().unwrap();
+        let history = self.history.lock().unwrap_or_else(|e| e.into_inner());
 
         // Need sufficient history
         if history.len() < self.config.min_history_size {
@@ -233,7 +233,7 @@ impl BandwidthMarketMaker {
         let confidence = self.calculate_confidence(history.len(), price_volatility);
 
         // Update stats
-        let mut stats = self.stats.lock().unwrap();
+        let mut stats = self.stats.lock().unwrap_or_else(|e| e.into_inner());
         stats.recommendations_made += 1;
 
         Some(BidRecommendation {
@@ -247,7 +247,7 @@ impl BandwidthMarketMaker {
 
     /// Assesses current market condition.
     pub fn assess_market_condition(&self) -> MarketCondition {
-        let history = self.history.lock().unwrap();
+        let history = self.history.lock().unwrap_or_else(|e| e.into_inner());
         self.assess_market_condition_internal(&history)
     }
 
@@ -386,14 +386,14 @@ impl BandwidthMarketMaker {
 
     /// Gets current statistics.
     pub fn stats(&self) -> MarketMakerStats {
-        self.stats.lock().unwrap().clone()
+        self.stats.lock().unwrap_or_else(|e| e.into_inner()).clone()
     }
 
     /// Clears all history and resets statistics.
     pub fn clear(&self) {
-        self.history.lock().unwrap().clear();
+        self.history.lock().unwrap_or_else(|e| e.into_inner()).clear();
 
-        let mut stats = self.stats.lock().unwrap();
+        let mut stats = self.stats.lock().unwrap_or_else(|e| e.into_inner());
         *stats = MarketMakerStats {
             market_condition: MarketCondition::Unknown,
             recommendations_made: 0,
@@ -411,8 +411,8 @@ impl Clone for BandwidthMarketMaker {
         Self {
             config: self.config.clone(),
             strategy: self.strategy,
-            history: Arc::new(Mutex::new(self.history.lock().unwrap().clone())),
-            stats: Arc::new(Mutex::new(self.stats.lock().unwrap().clone())),
+            history: Arc::new(Mutex::new(self.history.lock().unwrap_or_else(|e| e.into_inner()).clone())),
+            stats: Arc::new(Mutex::new(self.stats.lock().unwrap_or_else(|e| e.into_inner()).clone())),
         }
     }
 }

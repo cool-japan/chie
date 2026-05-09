@@ -163,7 +163,7 @@ impl AdaptiveRetryPolicy {
 
     /// Record a successful operation.
     pub fn record_success(&mut self, target: &str) {
-        let mut stats = self.target_stats.lock().unwrap();
+        let mut stats = self.target_stats.lock().unwrap_or_else(|e| e.into_inner());
         let entry = stats.entry(target.to_string()).or_default();
 
         entry.total_attempts += 1;
@@ -174,7 +174,7 @@ impl AdaptiveRetryPolicy {
 
     /// Record a failed operation.
     pub fn record_failure(&mut self, target: &str, failure_type: FailureType) {
-        let mut stats = self.target_stats.lock().unwrap();
+        let mut stats = self.target_stats.lock().unwrap_or_else(|e| e.into_inner());
         let entry = stats.entry(target.to_string()).or_default();
 
         entry.total_attempts += 1;
@@ -198,7 +198,7 @@ impl AdaptiveRetryPolicy {
     #[must_use]
     #[inline]
     pub fn should_retry(&self, target: &str, attempt: u32) -> bool {
-        let stats = self.target_stats.lock().unwrap();
+        let stats = self.target_stats.lock().unwrap_or_else(|e| e.into_inner());
 
         // Check attempt limit
         if attempt >= self.base_config.max_attempts {
@@ -228,7 +228,7 @@ impl AdaptiveRetryPolicy {
     #[inline]
     pub fn retry_delay(&self, target: &str, attempt: u32) -> Duration {
         let base_delay = self.base_config.delay_for_attempt(attempt);
-        let stats = self.target_stats.lock().unwrap();
+        let stats = self.target_stats.lock().unwrap_or_else(|e| e.into_inner());
 
         if let Some(target_stats) = stats.get(target) {
             // Adjust delay based on failure patterns
@@ -263,7 +263,7 @@ impl AdaptiveRetryPolicy {
     #[must_use]
     #[inline]
     pub fn success_rate(&self, target: &str) -> f64 {
-        let stats = self.target_stats.lock().unwrap();
+        let stats = self.target_stats.lock().unwrap_or_else(|e| e.into_inner());
         stats.get(target).map(|s| s.success_rate()).unwrap_or(0.5)
     }
 
@@ -271,7 +271,7 @@ impl AdaptiveRetryPolicy {
     #[must_use]
     #[inline]
     pub fn consecutive_failures(&self, target: &str) -> u32 {
-        let stats = self.target_stats.lock().unwrap();
+        let stats = self.target_stats.lock().unwrap_or_else(|e| e.into_inner());
         stats
             .get(target)
             .map(|s| s.consecutive_failures)
@@ -282,7 +282,7 @@ impl AdaptiveRetryPolicy {
     #[must_use]
     #[inline]
     pub fn is_target_having_issues(&self, target: &str) -> bool {
-        let stats = self.target_stats.lock().unwrap();
+        let stats = self.target_stats.lock().unwrap_or_else(|e| e.into_inner());
         stats
             .get(target)
             .map(|s| s.is_having_issues())
@@ -293,7 +293,7 @@ impl AdaptiveRetryPolicy {
     #[must_use]
     #[inline]
     pub fn recommended_config(&self, target: &str) -> RetryConfig {
-        let stats = self.target_stats.lock().unwrap();
+        let stats = self.target_stats.lock().unwrap_or_else(|e| e.into_inner());
 
         if let Some(target_stats) = stats.get(target) {
             let success_rate = target_stats.success_rate();
@@ -317,13 +317,13 @@ impl AdaptiveRetryPolicy {
 
     /// Reset statistics for a target.
     pub fn reset_target(&mut self, target: &str) {
-        let mut stats = self.target_stats.lock().unwrap();
+        let mut stats = self.target_stats.lock().unwrap_or_else(|e| e.into_inner());
         stats.remove(target);
     }
 
     /// Clear all statistics.
     pub fn reset_all(&mut self) {
-        let mut stats = self.target_stats.lock().unwrap();
+        let mut stats = self.target_stats.lock().unwrap_or_else(|e| e.into_inner());
         stats.clear();
     }
 
@@ -331,7 +331,7 @@ impl AdaptiveRetryPolicy {
     #[must_use]
     #[inline]
     pub fn tracked_targets_count(&self) -> usize {
-        let stats = self.target_stats.lock().unwrap();
+        let stats = self.target_stats.lock().unwrap_or_else(|e| e.into_inner());
         stats.len()
     }
 
@@ -339,7 +339,7 @@ impl AdaptiveRetryPolicy {
     #[must_use]
     #[inline]
     pub fn detect_failure_burst(&self, target: &str) -> bool {
-        let stats = self.target_stats.lock().unwrap();
+        let stats = self.target_stats.lock().unwrap_or_else(|e| e.into_inner());
 
         if let Some(target_stats) = stats.get(target) {
             // Check for 5+ failures in the last minute
@@ -360,7 +360,7 @@ impl AdaptiveRetryPolicy {
     #[must_use]
     #[inline]
     pub fn failure_interval(&self, target: &str) -> Option<Duration> {
-        let stats = self.target_stats.lock().unwrap();
+        let stats = self.target_stats.lock().unwrap_or_else(|e| e.into_inner());
 
         if let Some(target_stats) = stats.get(target) {
             if target_stats.recent_failures.len() < 2 {
@@ -393,7 +393,7 @@ impl AdaptiveRetryPolicy {
     #[must_use]
     #[inline]
     pub fn predict_recovery_time(&self, target: &str) -> Option<Duration> {
-        let stats = self.target_stats.lock().unwrap();
+        let stats = self.target_stats.lock().unwrap_or_else(|e| e.into_inner());
 
         if let Some(target_stats) = stats.get(target) {
             if let Some(last_success) = target_stats.last_success {
@@ -421,7 +421,7 @@ impl AdaptiveRetryPolicy {
     #[must_use]
     #[inline]
     pub fn failure_patterns(&self, target: &str) -> Option<FailurePatterns> {
-        let stats = self.target_stats.lock().unwrap();
+        let stats = self.target_stats.lock().unwrap_or_else(|e| e.into_inner());
 
         stats.get(target).map(|target_stats| {
             let mut type_counts: HashMap<FailureType, usize> = HashMap::new();

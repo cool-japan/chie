@@ -264,7 +264,7 @@ impl LifecycleEventManager {
     where
         F: Fn(&ContentEvent) + Send + Sync + 'static,
     {
-        let mut handlers = self.handlers.lock().unwrap();
+        let mut handlers = self.handlers.lock().unwrap_or_else(|e| e.into_inner());
         handlers
             .entry(event_type)
             .or_default()
@@ -273,7 +273,7 @@ impl LifecycleEventManager {
 
     /// Register a webhook for HTTP callbacks.
     pub fn register_webhook(&mut self, config: WebhookConfig) {
-        let mut webhooks = self.webhooks.lock().unwrap();
+        let mut webhooks = self.webhooks.lock().unwrap_or_else(|e| e.into_inner());
         webhooks.push(config);
     }
 
@@ -281,13 +281,13 @@ impl LifecycleEventManager {
     pub async fn emit(&self, event: ContentEvent) {
         // Update statistics
         {
-            let mut stats = self.stats.lock().unwrap();
+            let mut stats = self.stats.lock().unwrap_or_else(|e| e.into_inner());
             *stats.entry(event.event_type).or_insert(0) += 1;
         }
 
         // Add to history
         {
-            let mut history = self.history.lock().unwrap();
+            let mut history = self.history.lock().unwrap_or_else(|e| e.into_inner());
             history.push_back(EventHistoryEntry {
                 event: event.clone(),
                 timestamp_ms: crate::utils::current_timestamp_ms() as u64,
@@ -301,7 +301,7 @@ impl LifecycleEventManager {
 
         // Call handlers
         {
-            let handlers = self.handlers.lock().unwrap();
+            let handlers = self.handlers.lock().unwrap_or_else(|e| e.into_inner());
             if let Some(handlers_list) = handlers.get(&event.event_type) {
                 for handler in handlers_list {
                     handler(&event);
@@ -315,7 +315,7 @@ impl LifecycleEventManager {
 
     /// Trigger webhooks for an event (async).
     async fn trigger_webhooks(&self, event: &ContentEvent) {
-        let webhooks = self.webhooks.lock().unwrap().clone();
+        let webhooks = self.webhooks.lock().unwrap_or_else(|e| e.into_inner()).clone();
 
         for webhook in webhooks {
             // Check if this webhook should be triggered for this event type
@@ -362,7 +362,7 @@ impl LifecycleEventManager {
     #[must_use]
     #[inline]
     pub fn get_history(&self, event_type: Option<LifecycleEventType>) -> Vec<EventHistoryEntry> {
-        let history = self.history.lock().unwrap();
+        let history = self.history.lock().unwrap_or_else(|e| e.into_inner());
         match event_type {
             Some(et) => history
                 .iter()
@@ -377,7 +377,7 @@ impl LifecycleEventManager {
     #[must_use]
     #[inline]
     pub fn get_recent(&self, count: usize) -> Vec<EventHistoryEntry> {
-        let history = self.history.lock().unwrap();
+        let history = self.history.lock().unwrap_or_else(|e| e.into_inner());
         history.iter().rev().take(count).cloned().collect()
     }
 
@@ -387,7 +387,7 @@ impl LifecycleEventManager {
     pub fn get_event_count(&self, event_type: LifecycleEventType) -> u64 {
         self.stats
             .lock()
-            .unwrap()
+            .unwrap_or_else(|e| e.into_inner())
             .get(&event_type)
             .copied()
             .unwrap_or(0)
@@ -397,34 +397,34 @@ impl LifecycleEventManager {
     #[must_use]
     #[inline]
     pub fn get_total_event_count(&self) -> u64 {
-        self.stats.lock().unwrap().values().sum()
+        self.stats.lock().unwrap_or_else(|e| e.into_inner()).values().sum()
     }
 
     /// Get all event statistics.
     #[must_use]
     #[inline]
     pub fn get_stats(&self) -> HashMap<LifecycleEventType, u64> {
-        self.stats.lock().unwrap().clone()
+        self.stats.lock().unwrap_or_else(|e| e.into_inner()).clone()
     }
 
     /// Clear event history.
     pub fn clear_history(&mut self) {
-        self.history.lock().unwrap().clear();
+        self.history.lock().unwrap_or_else(|e| e.into_inner()).clear();
     }
 
     /// Reset event statistics.
     pub fn reset_stats(&mut self) {
-        self.stats.lock().unwrap().clear();
+        self.stats.lock().unwrap_or_else(|e| e.into_inner()).clear();
     }
 
     /// Remove all handlers for an event type.
     pub fn clear_handlers(&mut self, event_type: LifecycleEventType) {
-        self.handlers.lock().unwrap().remove(&event_type);
+        self.handlers.lock().unwrap_or_else(|e| e.into_inner()).remove(&event_type);
     }
 
     /// Remove all webhooks.
     pub fn clear_webhooks(&mut self) {
-        self.webhooks.lock().unwrap().clear();
+        self.webhooks.lock().unwrap_or_else(|e| e.into_inner()).clear();
     }
 }
 

@@ -193,11 +193,11 @@ impl ProgressStreamManager {
 
         self.transfers
             .write()
-            .unwrap()
+            .unwrap_or_else(|e| e.into_inner())
             .insert(transfer_id.clone(), progress);
         self.last_updates
             .write()
-            .unwrap()
+            .unwrap_or_else(|e| e.into_inner())
             .insert(transfer_id.clone(), now);
 
         let _ = self.sender.send(ProgressEvent::Started {
@@ -210,14 +210,14 @@ impl ProgressStreamManager {
 
     /// Update progress for a chunk
     pub fn update_chunk(&self, transfer_id: &str, chunk_index: u32, chunk_bytes: u64) {
-        let mut transfers = self.transfers.write().unwrap();
+        let mut transfers = self.transfers.write().unwrap_or_else(|e| e.into_inner());
 
         if let Some(progress) = transfers.get_mut(transfer_id) {
             progress.update_chunk(chunk_bytes);
 
             // Check if we should send update based on interval
             let should_update = {
-                let last_updates = self.last_updates.read().unwrap();
+                let last_updates = self.last_updates.read().unwrap_or_else(|e| e.into_inner());
                 if let Some(last) = last_updates.get(transfer_id) {
                     last.elapsed() >= self.config.update_interval
                 } else {
@@ -228,7 +228,7 @@ impl ProgressStreamManager {
             if should_update {
                 self.last_updates
                     .write()
-                    .unwrap()
+                    .unwrap_or_else(|e| e.into_inner())
                     .insert(transfer_id.to_string(), Instant::now());
 
                 let _ = self.sender.send(ProgressEvent::ChunkProgress {
@@ -246,7 +246,7 @@ impl ProgressStreamManager {
 
     /// Mark transfer as completed
     pub fn complete_transfer(&self, transfer_id: &str) {
-        let mut transfers = self.transfers.write().unwrap();
+        let mut transfers = self.transfers.write().unwrap_or_else(|e| e.into_inner());
 
         if let Some(progress) = transfers.remove(transfer_id) {
             let duration = progress.start_time.elapsed();
@@ -259,13 +259,13 @@ impl ProgressStreamManager {
                 average_speed: progress.average_speed,
             });
 
-            self.last_updates.write().unwrap().remove(transfer_id);
+            self.last_updates.write().unwrap_or_else(|e| e.into_inner()).remove(transfer_id);
         }
     }
 
     /// Mark transfer as failed
     pub fn fail_transfer(&self, transfer_id: &str, error: String) {
-        let mut transfers = self.transfers.write().unwrap();
+        let mut transfers = self.transfers.write().unwrap_or_else(|e| e.into_inner());
 
         if let Some(progress) = transfers.remove(transfer_id) {
             let _ = self.sender.send(ProgressEvent::Failed {
@@ -275,13 +275,13 @@ impl ProgressStreamManager {
                 bytes_downloaded: progress.downloaded_bytes,
             });
 
-            self.last_updates.write().unwrap().remove(transfer_id);
+            self.last_updates.write().unwrap_or_else(|e| e.into_inner()).remove(transfer_id);
         }
     }
 
     /// Pause transfer
     pub fn pause_transfer(&self, transfer_id: &str) {
-        let transfers = self.transfers.read().unwrap();
+        let transfers = self.transfers.read().unwrap_or_else(|e| e.into_inner());
 
         if let Some(progress) = transfers.get(transfer_id) {
             let _ = self.sender.send(ProgressEvent::Paused {
@@ -293,7 +293,7 @@ impl ProgressStreamManager {
 
     /// Resume transfer
     pub fn resume_transfer(&self, transfer_id: &str) {
-        let transfers = self.transfers.read().unwrap();
+        let transfers = self.transfers.read().unwrap_or_else(|e| e.into_inner());
 
         if let Some(progress) = transfers.get(transfer_id) {
             let _ = self.sender.send(ProgressEvent::Resumed {
@@ -305,24 +305,24 @@ impl ProgressStreamManager {
 
     /// Get current progress for a transfer
     pub fn get_progress(&self, transfer_id: &str) -> Option<TransferProgress> {
-        self.transfers.read().unwrap().get(transfer_id).cloned()
+        self.transfers.read().unwrap_or_else(|e| e.into_inner()).get(transfer_id).cloned()
     }
 
     /// Get all active transfers
     pub fn get_active_transfers(&self) -> Vec<TransferProgress> {
-        self.transfers.read().unwrap().values().cloned().collect()
+        self.transfers.read().unwrap_or_else(|e| e.into_inner()).values().cloned().collect()
     }
 
     /// Get number of active transfers
     pub fn active_count(&self) -> usize {
-        self.transfers.read().unwrap().len()
+        self.transfers.read().unwrap_or_else(|e| e.into_inner()).len()
     }
 
     /// Get total bytes being transferred across all active transfers
     pub fn total_active_bytes(&self) -> u64 {
         self.transfers
             .read()
-            .unwrap()
+            .unwrap_or_else(|e| e.into_inner())
             .values()
             .map(|p| p.total_bytes)
             .sum()
@@ -332,7 +332,7 @@ impl ProgressStreamManager {
     pub fn total_downloaded_bytes(&self) -> u64 {
         self.transfers
             .read()
-            .unwrap()
+            .unwrap_or_else(|e| e.into_inner())
             .values()
             .map(|p| p.downloaded_bytes)
             .sum()
@@ -342,7 +342,7 @@ impl ProgressStreamManager {
     pub fn aggregate_speed(&self) -> f64 {
         self.transfers
             .read()
-            .unwrap()
+            .unwrap_or_else(|e| e.into_inner())
             .values()
             .map(|p| p.current_speed)
             .sum()

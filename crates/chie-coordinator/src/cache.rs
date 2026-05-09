@@ -115,7 +115,7 @@ where
 
     /// Get a value from the cache
     pub fn get(&self, key: &K) -> Option<V> {
-        let mut entries = self.entries.write().unwrap();
+        let mut entries = self.entries.write().unwrap_or_else(|e| e.into_inner());
 
         if let Some(entry) = entries.get_mut(key) {
             // Check expiration
@@ -155,7 +155,7 @@ where
             access_count: 0,
         };
 
-        let mut entries = self.entries.write().unwrap();
+        let mut entries = self.entries.write().unwrap_or_else(|e| e.into_inner());
 
         // Evict if at capacity
         if entries.len() >= self.config.max_capacity && !entries.contains_key(&key) {
@@ -168,7 +168,7 @@ where
 
     /// Remove a value from the cache
     pub fn remove(&self, key: &K) -> Option<V> {
-        let mut entries = self.entries.write().unwrap();
+        let mut entries = self.entries.write().unwrap_or_else(|e| e.into_inner());
         entries.remove(key).map(|entry| {
             self.remove_from_access_order(key);
             entry.value
@@ -177,16 +177,16 @@ where
 
     /// Clear all entries
     pub fn clear(&self) {
-        let mut entries = self.entries.write().unwrap();
+        let mut entries = self.entries.write().unwrap_or_else(|e| e.into_inner());
         entries.clear();
 
-        let mut access_order = self.access_order.write().unwrap();
+        let mut access_order = self.access_order.write().unwrap_or_else(|e| e.into_inner());
         access_order.clear();
     }
 
     /// Clean up expired entries
     pub fn cleanup_expired(&self) -> usize {
-        let mut entries = self.entries.write().unwrap();
+        let mut entries = self.entries.write().unwrap_or_else(|e| e.into_inner());
         let now = Utc::now();
 
         let expired_keys: Vec<K> = entries
@@ -208,8 +208,8 @@ where
 
     /// Get cache statistics
     pub fn stats(&self) -> CacheStats {
-        let hits = *self.hits.read().unwrap();
-        let misses = *self.misses.read().unwrap();
+        let hits = *self.hits.read().unwrap_or_else(|e| e.into_inner());
+        let misses = *self.misses.read().unwrap_or_else(|e| e.into_inner());
         let total = hits + misses;
         let hit_rate = if total > 0 {
             hits as f64 / total as f64
@@ -221,15 +221,15 @@ where
             hits,
             misses,
             hit_rate,
-            entry_count: self.entries.read().unwrap().len(),
+            entry_count: self.entries.read().unwrap_or_else(|e| e.into_inner()).len(),
             max_capacity: self.config.max_capacity,
-            evictions: *self.evictions.read().unwrap(),
+            evictions: *self.evictions.read().unwrap_or_else(|e| e.into_inner()),
         }
     }
 
     /// Update the LRU access order
     fn update_access_order(&self, key: &K) {
-        let mut access_order = self.access_order.write().unwrap();
+        let mut access_order = self.access_order.write().unwrap_or_else(|e| e.into_inner());
 
         // Remove key if it exists
         if let Some(pos) = access_order.iter().position(|k| k == key) {
@@ -242,7 +242,7 @@ where
 
     /// Remove a key from access order
     fn remove_from_access_order(&self, key: &K) {
-        let mut access_order = self.access_order.write().unwrap();
+        let mut access_order = self.access_order.write().unwrap_or_else(|e| e.into_inner());
         if let Some(pos) = access_order.iter().position(|k| k == key) {
             access_order.remove(pos);
         }
@@ -250,11 +250,11 @@ where
 
     /// Evict the least recently used entry
     fn evict_lru(&self, entries: &mut HashMap<K, CacheEntry<V>>) {
-        let mut access_order = self.access_order.write().unwrap();
+        let mut access_order = self.access_order.write().unwrap_or_else(|e| e.into_inner());
 
         if let Some(lru_key) = access_order.pop_front() {
             entries.remove(&lru_key);
-            let mut evictions = self.evictions.write().unwrap();
+            let mut evictions = self.evictions.write().unwrap_or_else(|e| e.into_inner());
             *evictions += 1;
             debug!(key = ?lru_key, "Evicted LRU entry");
         }
@@ -263,7 +263,7 @@ where
     /// Record a cache hit
     fn record_hit(&self) {
         if self.config.enable_stats {
-            let mut hits = self.hits.write().unwrap();
+            let mut hits = self.hits.write().unwrap_or_else(|e| e.into_inner());
             *hits += 1;
         }
     }
@@ -271,7 +271,7 @@ where
     /// Record a cache miss
     fn record_miss(&self) {
         if self.config.enable_stats {
-            let mut misses = self.misses.write().unwrap();
+            let mut misses = self.misses.write().unwrap_or_else(|e| e.into_inner());
             *misses += 1;
         }
     }

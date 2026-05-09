@@ -230,7 +230,7 @@ impl ErrorTracker {
 
         // Store in history
         {
-            let mut errors = self.errors.write().unwrap();
+            let mut errors = self.errors.write().unwrap_or_else(|e| e.into_inner());
             if errors.len() >= self.config.max_history {
                 errors.pop_front();
             }
@@ -239,7 +239,7 @@ impl ErrorTracker {
 
         // Update aggregates
         {
-            let mut aggregates = self.aggregates.write().unwrap();
+            let mut aggregates = self.aggregates.write().unwrap_or_else(|e| e.into_inner());
             aggregates
                 .entry(error_type.clone())
                 .and_modify(|agg| {
@@ -277,19 +277,19 @@ impl ErrorTracker {
 
     /// Increment total requests counter
     pub fn record_request(&self) {
-        let mut total = self.total_requests.write().unwrap();
+        let mut total = self.total_requests.write().unwrap_or_else(|e| e.into_inner());
         *total += 1;
     }
 
     /// Get recent errors
     pub fn get_recent_errors(&self, limit: usize) -> Vec<ErrorInfo> {
-        let errors = self.errors.read().unwrap();
+        let errors = self.errors.read().unwrap_or_else(|e| e.into_inner());
         errors.iter().rev().take(limit).cloned().collect()
     }
 
     /// Get error aggregates
     pub fn get_aggregates(&self) -> Vec<ErrorAggregate> {
-        let aggregates = self.aggregates.read().unwrap();
+        let aggregates = self.aggregates.read().unwrap_or_else(|e| e.into_inner());
         let mut result: Vec<_> = aggregates.values().cloned().collect();
         result.sort_by(|a, b| b.count.cmp(&a.count));
         result
@@ -297,8 +297,8 @@ impl ErrorTracker {
 
     /// Get error rate statistics
     pub fn get_error_rate_stats(&self) -> ErrorRateStats {
-        let errors = self.errors.read().unwrap();
-        let total_requests = *self.total_requests.read().unwrap();
+        let errors = self.errors.read().unwrap_or_else(|e| e.into_inner());
+        let total_requests = *self.total_requests.read().unwrap_or_else(|e| e.into_inner());
 
         let cutoff = Utc::now() - ChronoDuration::minutes(self.config.rate_window_minutes);
         let recent_errors: Vec<_> = errors.iter().filter(|e| e.timestamp > cutoff).collect();
@@ -339,9 +339,9 @@ impl ErrorTracker {
 
     /// Clear error history
     pub fn clear_history(&self) {
-        let mut errors = self.errors.write().unwrap();
+        let mut errors = self.errors.write().unwrap_or_else(|e| e.into_inner());
         errors.clear();
-        let mut aggregates = self.aggregates.write().unwrap();
+        let mut aggregates = self.aggregates.write().unwrap_or_else(|e| e.into_inner());
         aggregates.clear();
     }
 

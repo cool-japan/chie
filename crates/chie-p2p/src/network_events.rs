@@ -387,7 +387,7 @@ impl NetworkEventManager {
         // Check for duplicate
         if self.config.enable_deduplication {
             let event_hash = format!("{:?}", event);
-            let mut recent = self.recent_events.write().unwrap();
+            let mut recent = self.recent_events.write().unwrap_or_else(|e| e.into_inner());
 
             if let Some(last_time) = recent.get(&event_hash) {
                 if last_time.elapsed() < self.config.dedup_window {
@@ -399,7 +399,7 @@ impl NetworkEventManager {
         }
 
         // Create timestamped event
-        let mut next_id = self.next_event_id.write().unwrap();
+        let mut next_id = self.next_event_id.write().unwrap_or_else(|e| e.into_inner());
         let timestamped = TimestampedEvent {
             event: event.clone(),
             timestamp: Instant::now(),
@@ -409,7 +409,7 @@ impl NetworkEventManager {
         drop(next_id);
 
         // Add to history
-        let mut history = self.history.write().unwrap();
+        let mut history = self.history.write().unwrap_or_else(|e| e.into_inner());
         history.push_back(timestamped.clone());
 
         // Trim history
@@ -419,7 +419,7 @@ impl NetworkEventManager {
         drop(history);
 
         // Update statistics
-        let mut stats = self.stats.write().unwrap();
+        let mut stats = self.stats.write().unwrap_or_else(|e| e.into_inner());
         stats.total_events += 1;
         *stats
             .events_by_category
@@ -432,7 +432,7 @@ impl NetworkEventManager {
         drop(stats);
 
         // Notify subscribers
-        let subscriptions = self.subscriptions.read().unwrap();
+        let subscriptions = self.subscriptions.read().unwrap_or_else(|e| e.into_inner());
         for subscription in subscriptions.iter() {
             if subscription.filter.matches(&event) {
                 (subscription.callback)(&timestamped);
@@ -445,7 +445,7 @@ impl NetworkEventManager {
     where
         F: Fn(&TimestampedEvent) + Send + Sync + 'static,
     {
-        let mut next_id = self.next_subscription_id.write().unwrap();
+        let mut next_id = self.next_subscription_id.write().unwrap_or_else(|e| e.into_inner());
         let id = *next_id;
         *next_id += 1;
         drop(next_id);
@@ -456,10 +456,10 @@ impl NetworkEventManager {
             callback: Arc::new(callback),
         };
 
-        let mut subscriptions = self.subscriptions.write().unwrap();
+        let mut subscriptions = self.subscriptions.write().unwrap_or_else(|e| e.into_inner());
         subscriptions.push(subscription);
 
-        let mut stats = self.stats.write().unwrap();
+        let mut stats = self.stats.write().unwrap_or_else(|e| e.into_inner());
         stats.active_subscriptions = subscriptions.len();
 
         id
@@ -467,16 +467,16 @@ impl NetworkEventManager {
 
     /// Unsubscribe from events
     pub fn unsubscribe(&self, subscription_id: SubscriptionId) {
-        let mut subscriptions = self.subscriptions.write().unwrap();
+        let mut subscriptions = self.subscriptions.write().unwrap_or_else(|e| e.into_inner());
         subscriptions.retain(|s| s.id != subscription_id);
 
-        let mut stats = self.stats.write().unwrap();
+        let mut stats = self.stats.write().unwrap_or_else(|e| e.into_inner());
         stats.active_subscriptions = subscriptions.len();
     }
 
     /// Get event history matching a filter
     pub fn get_history(&self, filter: &EventFilter, limit: usize) -> Vec<TimestampedEvent> {
-        let history = self.history.read().unwrap();
+        let history = self.history.read().unwrap_or_else(|e| e.into_inner());
         history
             .iter()
             .rev()
@@ -488,18 +488,18 @@ impl NetworkEventManager {
 
     /// Get all events in history
     pub fn get_all_history(&self, limit: usize) -> Vec<TimestampedEvent> {
-        let history = self.history.read().unwrap();
+        let history = self.history.read().unwrap_or_else(|e| e.into_inner());
         history.iter().rev().take(limit).cloned().collect()
     }
 
     /// Get event statistics
     pub fn stats(&self) -> EventStats {
-        self.stats.read().unwrap().clone()
+        self.stats.read().unwrap_or_else(|e| e.into_inner()).clone()
     }
 
     /// Clear event history
     pub fn clear_history(&self) {
-        let mut history = self.history.write().unwrap();
+        let mut history = self.history.write().unwrap_or_else(|e| e.into_inner());
         history.clear();
     }
 
@@ -508,11 +508,11 @@ impl NetworkEventManager {
         let now = Instant::now();
 
         // Clean up old events from history
-        let mut history = self.history.write().unwrap();
+        let mut history = self.history.write().unwrap_or_else(|e| e.into_inner());
         history.retain(|e| now.duration_since(e.timestamp) <= self.config.max_event_age);
 
         // Clean up old deduplication entries
-        let mut recent = self.recent_events.write().unwrap();
+        let mut recent = self.recent_events.write().unwrap_or_else(|e| e.into_inner());
         recent.retain(|_, time| now.duration_since(*time) <= self.config.dedup_window);
     }
 }
@@ -545,7 +545,7 @@ mod tests {
         let received_clone = received.clone();
 
         let _sub_id = manager.subscribe(EventFilter::all(), move |_event| {
-            *received_clone.write().unwrap() += 1;
+            *received_clone.write().unwrap_or_else(|e| e.into_inner()) += 1;
         });
 
         manager.emit(NetworkEvent::PeerConnected {
@@ -553,7 +553,7 @@ mod tests {
             address: "127.0.0.1:8080".to_string(),
         });
 
-        assert_eq!(*received.read().unwrap(), 1);
+        assert_eq!(*received.read().unwrap_or_else(|e| e.into_inner()), 1);
     }
 
     #[test]
@@ -564,7 +564,7 @@ mod tests {
 
         let filter = EventFilter::categories(vec![EventCategory::Connection]);
         let _sub_id = manager.subscribe(filter, move |_event| {
-            *received_clone.write().unwrap() += 1;
+            *received_clone.write().unwrap_or_else(|e| e.into_inner()) += 1;
         });
 
         // Should match
@@ -579,7 +579,7 @@ mod tests {
             provider: PeerId::random().to_string(),
         });
 
-        assert_eq!(*received.read().unwrap(), 1);
+        assert_eq!(*received.read().unwrap_or_else(|e| e.into_inner()), 1);
     }
 
     #[test]
@@ -590,7 +590,7 @@ mod tests {
 
         let filter = EventFilter::min_severity(EventSeverity::Warning);
         let _sub_id = manager.subscribe(filter, move |_event| {
-            *received_clone.write().unwrap() += 1;
+            *received_clone.write().unwrap_or_else(|e| e.into_inner()) += 1;
         });
 
         // Info event - should not match
@@ -606,7 +606,7 @@ mod tests {
             error: "timeout".to_string(),
         });
 
-        assert_eq!(*received.read().unwrap(), 1);
+        assert_eq!(*received.read().unwrap_or_else(|e| e.into_inner()), 1);
     }
 
     #[test]
@@ -616,7 +616,7 @@ mod tests {
         let received_clone = received.clone();
 
         let sub_id = manager.subscribe(EventFilter::all(), move |_event| {
-            *received_clone.write().unwrap() += 1;
+            *received_clone.write().unwrap_or_else(|e| e.into_inner()) += 1;
         });
 
         manager.emit(NetworkEvent::PeerConnected {
@@ -624,7 +624,7 @@ mod tests {
             address: "127.0.0.1:8080".to_string(),
         });
 
-        assert_eq!(*received.read().unwrap(), 1);
+        assert_eq!(*received.read().unwrap_or_else(|e| e.into_inner()), 1);
 
         manager.unsubscribe(sub_id);
 
@@ -633,7 +633,7 @@ mod tests {
             address: "127.0.0.1:8081".to_string(),
         });
 
-        assert_eq!(*received.read().unwrap(), 1); // Still 1, not 2
+        assert_eq!(*received.read().unwrap_or_else(|e| e.into_inner()), 1); // Still 1, not 2
     }
 
     #[test]
@@ -875,7 +875,7 @@ mod tests {
 
         let filter = EventFilter::peer(peer_id);
         let _sub_id = manager.subscribe(filter, move |_event| {
-            *received_clone.write().unwrap() += 1;
+            *received_clone.write().unwrap_or_else(|e| e.into_inner()) += 1;
         });
 
         // Should match
@@ -890,6 +890,6 @@ mod tests {
             address: "127.0.0.1:8081".to_string(),
         });
 
-        assert_eq!(*received.read().unwrap(), 1);
+        assert_eq!(*received.read().unwrap_or_else(|e| e.into_inner()), 1);
     }
 }

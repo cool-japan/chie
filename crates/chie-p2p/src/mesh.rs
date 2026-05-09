@@ -196,8 +196,11 @@ impl MeshSimulation {
             let tcp_port = self.config.base_tcp_port + i as u16;
             let quic_port = self.config.base_quic_port + i as u16;
 
-            node.listen_addrs
-                .push(format!("/ip4/127.0.0.1/tcp/{}", tcp_port).parse().unwrap());
+            node.listen_addrs.push(
+                format!("/ip4/127.0.0.1/tcp/{}", tcp_port)
+                    .parse()
+                    .expect("formatted multiaddr must parse"),
+            );
             if self.config.enable_quic {
                 node.listen_addrs.push(
                     format!("/ip4/127.0.0.1/udp/{}/quic-v1", quic_port)

@@ -307,13 +307,11 @@ impl NetworkAnalytics {
                 let mut stats = inner.bandwidth.clone();
 
                 // Calculate average transfer rate
-                if !inner.transfer_history.is_empty() {
-                    let total_duration = inner
-                        .transfer_history
-                        .last()
-                        .unwrap()
-                        .0
-                        .duration_since(inner.transfer_history.first().unwrap().0);
+                if let (Some(first), Some(last)) = (
+                    inner.transfer_history.first(),
+                    inner.transfer_history.last(),
+                ) {
+                    let total_duration = last.0.duration_since(first.0);
 
                     if total_duration.as_secs() > 0 {
                         stats.avg_transfer_rate =

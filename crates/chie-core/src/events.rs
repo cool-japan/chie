@@ -319,7 +319,7 @@ impl EventBus {
     #[must_use]
     pub fn subscribe(&self, event_type: EventType) -> Receiver<Event> {
         let (tx, rx) = channel();
-        let mut subs = self.subscribers.lock().unwrap();
+        let mut subs = self.subscribers.lock().unwrap_or_else(|e| e.into_inner());
         subs.entry(event_type).or_default().push(tx);
         rx
     }
@@ -330,19 +330,19 @@ impl EventBus {
 
         // Update statistics
         {
-            let mut stats = self.stats.lock().unwrap();
+            let mut stats = self.stats.lock().unwrap_or_else(|e| e.into_inner());
             stats.total_events += 1;
             *stats.events_by_type.entry(event_type).or_insert(0) += 1;
         }
 
         // Send to subscribers
-        let mut subs = self.subscribers.lock().unwrap();
+        let mut subs = self.subscribers.lock().unwrap_or_else(|e| e.into_inner());
         if let Some(subscribers) = subs.get_mut(&event_type) {
             // Remove disconnected subscribers
             subscribers.retain(|tx| tx.send(event.clone()).is_ok());
 
             // Update subscriber count
-            self.stats.lock().unwrap().active_subscribers = subs.values().map(|v| v.len()).sum();
+            self.stats.lock().unwrap_or_else(|e| e.into_inner()).active_subscribers = subs.values().map(|v| v.len()).sum();
         }
     }
 
@@ -350,13 +350,13 @@ impl EventBus {
     #[must_use]
     #[inline]
     pub fn stats(&self) -> EventStats {
-        self.stats.lock().unwrap().clone()
+        self.stats.lock().unwrap_or_else(|e| e.into_inner()).clone()
     }
 
     /// Reset statistics.
     #[inline]
     pub fn reset_stats(&self) {
-        *self.stats.lock().unwrap() = EventStats::default();
+        *self.stats.lock().unwrap_or_else(|e| e.into_inner()) = EventStats::default();
     }
 
     /// Get number of subscribers for an event type.
@@ -365,7 +365,7 @@ impl EventBus {
     pub fn subscriber_count(&self, event_type: EventType) -> usize {
         self.subscribers
             .lock()
-            .unwrap()
+            .unwrap_or_else(|e| e.into_inner())
             .get(&event_type)
             .map(|v| v.len())
             .unwrap_or(0)
@@ -374,8 +374,8 @@ impl EventBus {
     /// Clear all subscribers.
     #[inline]
     pub fn clear_subscribers(&self) {
-        self.subscribers.lock().unwrap().clear();
-        self.stats.lock().unwrap().active_subscribers = 0;
+        self.subscribers.lock().unwrap_or_else(|e| e.into_inner()).clear();
+        self.stats.lock().unwrap_or_else(|e| e.into_inner()).active_subscribers = 0;
     }
 }
 
@@ -440,7 +440,7 @@ impl AsyncEventBus {
     #[inline]
     #[must_use]
     pub fn subscribe(&self, event_type: EventType) -> broadcast::Receiver<Event> {
-        let mut broadcasters = self.broadcasters.lock().unwrap();
+        let mut broadcasters = self.broadcasters.lock().unwrap_or_else(|e| e.into_inner());
         let tx = broadcasters
             .entry(event_type)
             .or_insert_with(|| broadcast::channel(self.capacity).0);
@@ -453,13 +453,13 @@ impl AsyncEventBus {
 
         // Update statistics
         {
-            let mut stats = self.stats.lock().unwrap();
+            let mut stats = self.stats.lock().unwrap_or_else(|e| e.into_inner());
             stats.total_events += 1;
             *stats.events_by_type.entry(event_type).or_insert(0) += 1;
         }
 
         // Send to subscribers
-        let broadcasters = self.broadcasters.lock().unwrap();
+        let broadcasters = self.broadcasters.lock().unwrap_or_else(|e| e.into_inner());
         if let Some(tx) = broadcasters.get(&event_type) {
             let receiver_count = tx.receiver_count();
             let _ = tx.send(event);
@@ -473,13 +473,13 @@ impl AsyncEventBus {
     #[must_use]
     #[inline]
     pub fn stats(&self) -> EventStats {
-        self.stats.lock().unwrap().clone()
+        self.stats.lock().unwrap_or_else(|e| e.into_inner()).clone()
     }
 
     /// Reset statistics.
     #[inline]
     pub fn reset_stats(&self) {
-        *self.stats.lock().unwrap() = EventStats::default();
+        *self.stats.lock().unwrap_or_else(|e| e.into_inner()) = EventStats::default();
     }
 
     /// Get number of active receivers for an event type.
@@ -488,7 +488,7 @@ impl AsyncEventBus {
     pub fn receiver_count(&self, event_type: EventType) -> usize {
         self.broadcasters
             .lock()
-            .unwrap()
+            .unwrap_or_else(|e| e.into_inner())
             .get(&event_type)
             .map(|tx| tx.receiver_count())
             .unwrap_or(0)
@@ -737,7 +737,7 @@ impl EventStore {
     pub fn persist(&self, event: &Event) -> std::io::Result<()> {
         use std::io::Write;
 
-        let mut file_guard = self.file.lock().unwrap();
+        let mut file_guard = self.file.lock().unwrap_or_else(|e| e.into_inner());
         if let Some(file) = file_guard.as_mut() {
             // Serialize event to JSON
             let json = serde_json::to_string(event)
@@ -748,7 +748,7 @@ impl EventStore {
             file.flush()?;
 
             // Update counter
-            let mut count = self.events_written.lock().unwrap();
+            let mut count = self.events_written.lock().unwrap_or_else(|e| e.into_inner());
             *count += 1;
 
             Ok(())
@@ -774,7 +774,7 @@ impl EventStore {
     {
         use std::io::Write;
 
-        let mut file_guard = self.file.lock().unwrap();
+        let mut file_guard = self.file.lock().unwrap_or_else(|e| e.into_inner());
         if let Some(file) = file_guard.as_mut() {
             let mut count = 0;
 
@@ -788,7 +788,7 @@ impl EventStore {
             file.flush()?;
 
             // Update counter
-            let mut total = self.events_written.lock().unwrap();
+            let mut total = self.events_written.lock().unwrap_or_else(|e| e.into_inner());
             *total += count as u64;
 
             Ok(count)
@@ -801,7 +801,7 @@ impl EventStore {
     #[must_use]
     #[inline]
     pub fn events_written(&self) -> u64 {
-        *self.events_written.lock().unwrap()
+        *self.events_written.lock().unwrap_or_else(|e| e.into_inner())
     }
 
     /// Get the file path of this event store.
@@ -815,7 +815,7 @@ impl EventStore {
     pub fn close(&self) -> std::io::Result<()> {
         use std::io::Write;
 
-        let mut file_guard = self.file.lock().unwrap();
+        let mut file_guard = self.file.lock().unwrap_or_else(|e| e.into_inner());
         if let Some(mut file) = file_guard.take() {
             file.flush()?;
         }

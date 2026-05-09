@@ -243,7 +243,7 @@ impl ContentMigrationManager {
 
         let id = migration.id.clone();
 
-        let mut planned = self.planned.write().unwrap();
+        let mut planned = self.planned.write().unwrap_or_else(|e| e.into_inner());
 
         // Insert based on priority (higher priority first)
         let pos = planned
@@ -254,7 +254,7 @@ impl ContentMigrationManager {
         planned.insert(pos, migration);
 
         // Update stats
-        let mut stats = self.stats.write().unwrap();
+        let mut stats = self.stats.write().unwrap_or_else(|e| e.into_inner());
         stats.total_planned += 1;
         stats.pending_count = planned.len();
 
@@ -267,8 +267,8 @@ impl ContentMigrationManager {
 
     /// Executes pending migrations up to the concurrency limit
     pub fn execute_migrations(&self) -> usize {
-        let mut planned = self.planned.write().unwrap();
-        let mut active = self.active.write().unwrap();
+        let mut planned = self.planned.write().unwrap_or_else(|e| e.into_inner());
+        let mut active = self.active.write().unwrap_or_else(|e| e.into_inner());
 
         let available_slots = self
             .config
@@ -289,7 +289,7 @@ impl ContentMigrationManager {
         }
 
         if started_count > 0 {
-            let mut stats = self.stats.write().unwrap();
+            let mut stats = self.stats.write().unwrap_or_else(|e| e.into_inner());
             stats.total_executed += started_count as u64;
             stats.pending_count = planned.len();
             stats.active_count = active.len();
@@ -300,7 +300,7 @@ impl ContentMigrationManager {
 
     /// Updates migration progress
     pub fn update_progress(&self, migration_id: &str, progress: f64) -> bool {
-        let mut active = self.active.write().unwrap();
+        let mut active = self.active.write().unwrap_or_else(|e| e.into_inner());
 
         if let Some(migration) = active.get_mut(migration_id) {
             migration.progress = progress.clamp(0.0, 1.0);
@@ -312,7 +312,7 @@ impl ContentMigrationManager {
 
     /// Marks a migration as completed
     pub fn complete_migration(&self, migration_id: &str, bytes_transferred: u64) -> bool {
-        let mut active = self.active.write().unwrap();
+        let mut active = self.active.write().unwrap_or_else(|e| e.into_inner());
 
         if let Some(mut migration) = active.remove(migration_id) {
             migration.state = MigrationState::Completed;
@@ -321,11 +321,11 @@ impl ContentMigrationManager {
 
             let duration = migration.duration();
 
-            let mut completed = self.completed.write().unwrap();
+            let mut completed = self.completed.write().unwrap_or_else(|e| e.into_inner());
             completed.push(migration);
 
             // Update stats
-            let mut stats = self.stats.write().unwrap();
+            let mut stats = self.stats.write().unwrap_or_else(|e| e.into_inner());
             stats.total_completed += 1;
             stats.active_count = active.len();
             stats.total_bytes_migrated += bytes_transferred;
@@ -348,18 +348,18 @@ impl ContentMigrationManager {
 
     /// Marks a migration as failed
     pub fn fail_migration(&self, migration_id: &str, error: &str) -> bool {
-        let mut active = self.active.write().unwrap();
+        let mut active = self.active.write().unwrap_or_else(|e| e.into_inner());
 
         if let Some(mut migration) = active.remove(migration_id) {
             migration.state = MigrationState::Failed;
             migration.finished_at = Some(Instant::now());
             migration.error = Some(error.to_string());
 
-            let mut completed = self.completed.write().unwrap();
+            let mut completed = self.completed.write().unwrap_or_else(|e| e.into_inner());
             completed.push(migration);
 
             // Update stats
-            let mut stats = self.stats.write().unwrap();
+            let mut stats = self.stats.write().unwrap_or_else(|e| e.into_inner());
             stats.total_failed += 1;
             stats.active_count = active.len();
 
@@ -373,16 +373,18 @@ impl ContentMigrationManager {
     pub fn cancel_migration(&self, migration_id: &str) -> bool {
         // Try to remove from planned first
         {
-            let mut planned = self.planned.write().unwrap();
+            let mut planned = self.planned.write().unwrap_or_else(|e| e.into_inner());
             if let Some(pos) = planned.iter().position(|m| m.id == migration_id) {
-                let mut migration = planned.remove(pos).unwrap();
+                let Some(mut migration) = planned.remove(pos) else {
+                    return false;
+                };
                 migration.state = MigrationState::Cancelled;
                 migration.finished_at = Some(Instant::now());
 
-                let mut completed = self.completed.write().unwrap();
+                let mut completed = self.completed.write().unwrap_or_else(|e| e.into_inner());
                 completed.push(migration);
 
-                let mut stats = self.stats.write().unwrap();
+                let mut stats = self.stats.write().unwrap_or_else(|e| e.into_inner());
                 stats.total_cancelled += 1;
                 stats.pending_count = planned.len();
 
@@ -392,15 +394,15 @@ impl ContentMigrationManager {
 
         // Try to remove from active
         {
-            let mut active = self.active.write().unwrap();
+            let mut active = self.active.write().unwrap_or_else(|e| e.into_inner());
             if let Some(mut migration) = active.remove(migration_id) {
                 migration.state = MigrationState::Cancelled;
                 migration.finished_at = Some(Instant::now());
 
-                let mut completed = self.completed.write().unwrap();
+                let mut completed = self.completed.write().unwrap_or_else(|e| e.into_inner());
                 completed.push(migration);
 
-                let mut stats = self.stats.write().unwrap();
+                let mut stats = self.stats.write().unwrap_or_else(|e| e.into_inner());
                 stats.total_cancelled += 1;
                 stats.active_count = active.len();
 
@@ -415,7 +417,7 @@ impl ContentMigrationManager {
     pub fn get_migration(&self, migration_id: &str) -> Option<Migration> {
         // Check active first
         {
-            let active = self.active.read().unwrap();
+            let active = self.active.read().unwrap_or_else(|e| e.into_inner());
             if let Some(migration) = active.get(migration_id) {
                 return Some(migration.clone());
             }
@@ -423,7 +425,7 @@ impl ContentMigrationManager {
 
         // Check planned
         {
-            let planned = self.planned.read().unwrap();
+            let planned = self.planned.read().unwrap_or_else(|e| e.into_inner());
             if let Some(migration) = planned.iter().find(|m| m.id == migration_id) {
                 return Some(migration.clone());
             }
@@ -431,26 +433,26 @@ impl ContentMigrationManager {
 
         // Check completed
         {
-            let completed = self.completed.read().unwrap();
+            let completed = self.completed.read().unwrap_or_else(|e| e.into_inner());
             completed.iter().find(|m| m.id == migration_id).cloned()
         }
     }
 
     /// Gets all active migrations
     pub fn active_migrations(&self) -> Vec<Migration> {
-        let active = self.active.read().unwrap();
+        let active = self.active.read().unwrap_or_else(|e| e.into_inner());
         active.values().cloned().collect()
     }
 
     /// Gets all planned migrations
     pub fn planned_migrations(&self) -> Vec<Migration> {
-        let planned = self.planned.read().unwrap();
+        let planned = self.planned.read().unwrap_or_else(|e| e.into_inner());
         planned.iter().cloned().collect()
     }
 
     /// Checks for timed-out migrations and marks them as failed
     pub fn check_timeouts(&self) -> usize {
-        let mut active = self.active.write().unwrap();
+        let mut active = self.active.write().unwrap_or_else(|e| e.into_inner());
         let mut timed_out = Vec::new();
 
         let now = Instant::now();
@@ -471,13 +473,13 @@ impl ContentMigrationManager {
                 migration.finished_at = Some(now);
                 migration.error = Some("Migration timed out".to_string());
 
-                let mut completed = self.completed.write().unwrap();
+                let mut completed = self.completed.write().unwrap_or_else(|e| e.into_inner());
                 completed.push(migration);
             }
         }
 
         if count > 0 {
-            let mut stats = self.stats.write().unwrap();
+            let mut stats = self.stats.write().unwrap_or_else(|e| e.into_inner());
             stats.total_failed += count as u64;
             stats.active_count = active.len();
         }
@@ -487,13 +489,13 @@ impl ContentMigrationManager {
 
     /// Clears completed migration history
     pub fn clear_history(&self) {
-        let mut completed = self.completed.write().unwrap();
+        let mut completed = self.completed.write().unwrap_or_else(|e| e.into_inner());
         completed.clear();
     }
 
     /// Gets current statistics
     pub fn stats(&self) -> MigrationStats {
-        let stats = self.stats.read().unwrap();
+        let stats = self.stats.read().unwrap_or_else(|e| e.into_inner());
         stats.clone()
     }
 

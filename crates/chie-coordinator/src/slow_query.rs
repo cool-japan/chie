@@ -134,7 +134,7 @@ impl SlowQueryLogger {
 
             // Store in history
             {
-                let mut history = self.history.write().unwrap();
+                let mut history = self.history.write().unwrap_or_else(|e| e.into_inner());
                 if history.len() >= self.config.max_history {
                     history.pop_front();
                 }
@@ -143,7 +143,7 @@ impl SlowQueryLogger {
 
             // Increment total count
             {
-                let mut count = self.total_count.write().unwrap();
+                let mut count = self.total_count.write().unwrap_or_else(|e| e.into_inner());
                 *count += 1;
             }
 
@@ -160,13 +160,13 @@ impl SlowQueryLogger {
 
     /// Get the current slow query history
     pub fn get_history(&self) -> Vec<SlowQueryInfo> {
-        self.history.read().unwrap().iter().cloned().collect()
+        self.history.read().unwrap_or_else(|e| e.into_inner()).iter().cloned().collect()
     }
 
     /// Get slow query statistics
     pub fn get_stats(&self) -> SlowQueryStats {
-        let history = self.history.read().unwrap();
-        let total_count = *self.total_count.read().unwrap();
+        let history = self.history.read().unwrap_or_else(|e| e.into_inner());
+        let total_count = *self.total_count.read().unwrap_or_else(|e| e.into_inner());
 
         if history.is_empty() {
             return SlowQueryStats {
@@ -195,7 +195,7 @@ impl SlowQueryLogger {
 
     /// Clear the slow query history
     pub fn clear_history(&self) {
-        let mut history = self.history.write().unwrap();
+        let mut history = self.history.write().unwrap_or_else(|e| e.into_inner());
         history.clear();
     }
 

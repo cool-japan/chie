@@ -267,7 +267,7 @@ impl AutoTuner {
         if !self.config.enabled {
             return;
         }
-        let mut measurements = self.measurements.write().unwrap();
+        let mut measurements = self.measurements.write().unwrap_or_else(|e| e.into_inner());
         measurements.add_latency(latency_ms);
     }
 
@@ -276,7 +276,7 @@ impl AutoTuner {
         if !self.config.enabled {
             return;
         }
-        let mut measurements = self.measurements.write().unwrap();
+        let mut measurements = self.measurements.write().unwrap_or_else(|e| e.into_inner());
         measurements.add_bandwidth(bandwidth_mbps);
     }
 
@@ -285,13 +285,13 @@ impl AutoTuner {
         if !self.config.enabled {
             return;
         }
-        let mut measurements = self.measurements.write().unwrap();
+        let mut measurements = self.measurements.write().unwrap_or_else(|e| e.into_inner());
         measurements.add_packet_loss(loss_ratio.clamp(0.0, 1.0));
     }
 
     /// Get current network condition.
     pub fn current_condition(&self) -> NetworkCondition {
-        let measurements = self.measurements.read().unwrap();
+        let measurements = self.measurements.read().unwrap_or_else(|e| e.into_inner());
         let avg_latency = measurements.avg_latency();
         let avg_bandwidth = measurements.avg_bandwidth();
         let avg_loss = measurements.avg_packet_loss();
@@ -303,13 +303,13 @@ impl AutoTuner {
         if !self.config.enabled {
             return false;
         }
-        let last_adjustment = self.last_adjustment.read().unwrap();
+        let last_adjustment = self.last_adjustment.read().unwrap_or_else(|e| e.into_inner());
         last_adjustment.elapsed() >= self.config.adjustment_interval
     }
 
     /// Generate tuning recommendations.
     pub fn get_recommendations(&self) -> TuningRecommendations {
-        let measurements = self.measurements.read().unwrap();
+        let measurements = self.measurements.read().unwrap_or_else(|e| e.into_inner());
         let condition = NetworkCondition::from_metrics(
             measurements.avg_latency(),
             measurements.avg_bandwidth(),
@@ -341,15 +341,15 @@ impl AutoTuner {
 
     /// Apply tuning (marks that tuning was applied).
     pub fn mark_tuned(&self) {
-        *self.last_adjustment.write().unwrap() = Instant::now();
-        *self.adjustments_made.write().unwrap() += 1;
+        *self.last_adjustment.write().unwrap_or_else(|e| e.into_inner()) = Instant::now();
+        *self.adjustments_made.write().unwrap_or_else(|e| e.into_inner()) += 1;
     }
 
     /// Get auto-tuning statistics.
     pub fn stats(&self) -> AutoTuningStats {
-        let measurements = self.measurements.read().unwrap();
-        let last_adjustment = self.last_adjustment.read().unwrap();
-        let adjustments_made = *self.adjustments_made.read().unwrap();
+        let measurements = self.measurements.read().unwrap_or_else(|e| e.into_inner());
+        let last_adjustment = self.last_adjustment.read().unwrap_or_else(|e| e.into_inner());
+        let adjustments_made = *self.adjustments_made.read().unwrap_or_else(|e| e.into_inner());
 
         AutoTuningStats {
             adjustments_made,
@@ -363,9 +363,9 @@ impl AutoTuner {
 
     /// Reset auto-tuning state.
     pub fn reset(&self) {
-        *self.measurements.write().unwrap() = NetworkMeasurements::new();
-        *self.last_adjustment.write().unwrap() = Instant::now();
-        *self.adjustments_made.write().unwrap() = 0;
+        *self.measurements.write().unwrap_or_else(|e| e.into_inner()) = NetworkMeasurements::new();
+        *self.last_adjustment.write().unwrap_or_else(|e| e.into_inner()) = Instant::now();
+        *self.adjustments_made.write().unwrap_or_else(|e| e.into_inner()) = 0;
     }
 }
 

@@ -25,5 +25,6 @@ aws-credential-types = { workspace = true }
 reqwest = { workspace = true }
 rand = { workspace = true }
 blake3 = { workspace = true }
+hex = { workspace = true }
 chie-shared = { workspace = true }
 chie-crypto = { workspace = true }

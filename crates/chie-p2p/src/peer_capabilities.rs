@@ -240,11 +240,11 @@ impl CapabilityManager {
 
         self.peer_capabilities
             .write()
-            .unwrap()
+            .unwrap_or_else(|e| e.into_inner())
             .insert(peer_id, info);
 
         // Update index
-        let mut index = self.capability_index.write().unwrap();
+        let mut index = self.capability_index.write().unwrap_or_else(|e| e.into_inner());
         for cap_meta in capabilities {
             index
                 .entry(cap_meta.capability)
@@ -255,7 +255,7 @@ impl CapabilityManager {
 
     /// Get capabilities for a peer
     pub fn get_capabilities(&self, peer_id: &PeerId) -> Option<Vec<CapabilityMetadata>> {
-        let caps = self.peer_capabilities.read().unwrap();
+        let caps = self.peer_capabilities.read().unwrap_or_else(|e| e.into_inner());
         caps.get(peer_id)
             .filter(|info| !info.is_expired())
             .map(|info| info.capabilities.clone())
@@ -272,8 +272,8 @@ impl CapabilityManager {
 
     /// Find peers with capability
     pub fn find_peers_with_capability(&self, capability: Capability) -> Vec<PeerId> {
-        let index = self.capability_index.read().unwrap();
-        let caps = self.peer_capabilities.read().unwrap();
+        let index = self.capability_index.read().unwrap_or_else(|e| e.into_inner());
+        let caps = self.peer_capabilities.read().unwrap_or_else(|e| e.into_inner());
 
         index
             .get(&capability)
@@ -307,7 +307,7 @@ impl CapabilityManager {
             .collect();
 
         // Filter by remaining requirements
-        let caps = self.peer_capabilities.read().unwrap();
+        let caps = self.peer_capabilities.read().unwrap_or_else(|e| e.into_inner());
 
         candidates.retain(|peer_id| {
             if let Some(info) = caps.get(peer_id) {
@@ -348,8 +348,8 @@ impl CapabilityManager {
     /// Remove peer capabilities
     pub fn remove_peer(&self, peer_id: &PeerId) {
         // Remove from index
-        if let Some(info) = self.peer_capabilities.write().unwrap().remove(peer_id) {
-            let mut index = self.capability_index.write().unwrap();
+        if let Some(info) = self.peer_capabilities.write().unwrap_or_else(|e| e.into_inner()).remove(peer_id) {
+            let mut index = self.capability_index.write().unwrap_or_else(|e| e.into_inner());
             for cap_meta in info.capabilities {
                 if let Some(peers) = index.get_mut(&cap_meta.capability) {
                     peers.remove(peer_id);
@@ -360,7 +360,7 @@ impl CapabilityManager {
 
     /// Cleanup expired advertisements
     pub fn cleanup(&self) {
-        let mut last_cleanup = self.last_cleanup.write().unwrap();
+        let mut last_cleanup = self.last_cleanup.write().unwrap_or_else(|e| e.into_inner());
         if last_cleanup.elapsed() < self.config.cleanup_interval {
             return;
         }
@@ -371,7 +371,7 @@ impl CapabilityManager {
         let expired: Vec<PeerId> = self
             .peer_capabilities
             .read()
-            .unwrap()
+            .unwrap_or_else(|e| e.into_inner())
             .iter()
             .filter(|(_, info)| info.is_expired())
             .map(|(peer_id, _)| *peer_id)
@@ -385,8 +385,8 @@ impl CapabilityManager {
 
     /// Get statistics
     pub fn get_stats(&self) -> CapabilityStats {
-        let caps = self.peer_capabilities.read().unwrap();
-        let index = self.capability_index.read().unwrap();
+        let caps = self.peer_capabilities.read().unwrap_or_else(|e| e.into_inner());
+        let index = self.capability_index.read().unwrap_or_else(|e| e.into_inner());
 
         let total_peers = caps.len();
         let active_peers = caps.values().filter(|info| !info.is_expired()).count();

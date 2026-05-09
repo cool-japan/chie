@@ -205,7 +205,7 @@ impl PeerClusteringManager {
             as_number,
             last_updated: Instant::now(),
         };
-        self.peer_locations.write().unwrap().insert(peer_id, info);
+        self.peer_locations.write().unwrap_or_else(|e| e.into_inner()).insert(peer_id, info);
     }
 
     /// Perform clustering
@@ -222,7 +222,7 @@ impl PeerClusteringManager {
     fn cluster_geographic(&self) {
         let mut clusters: HashMap<String, PeerCluster> = HashMap::new();
         let mut peer_to_cluster: HashMap<PeerId, String> = HashMap::new();
-        let locations = self.peer_locations.read().unwrap();
+        let locations = self.peer_locations.read().unwrap_or_else(|e| e.into_inner());
 
         let peers: Vec<(PeerId, &PeerLocationInfo)> =
             locations.iter().map(|(p, i)| (*p, i)).collect();
@@ -267,15 +267,15 @@ impl PeerClusteringManager {
             cluster.update_center(&location_map);
         }
 
-        *self.clusters.write().unwrap() = clusters;
-        *self.peer_to_cluster.write().unwrap() = peer_to_cluster;
+        *self.clusters.write().unwrap_or_else(|e| e.into_inner()) = clusters;
+        *self.peer_to_cluster.write().unwrap_or_else(|e| e.into_inner()) = peer_to_cluster;
     }
 
     /// Latency-based clustering
     fn cluster_latency(&self) {
         let mut clusters: HashMap<String, PeerCluster> = HashMap::new();
         let mut peer_to_cluster: HashMap<PeerId, String> = HashMap::new();
-        let locations = self.peer_locations.read().unwrap();
+        let locations = self.peer_locations.read().unwrap_or_else(|e| e.into_inner());
 
         let mut peers: Vec<(PeerId, Duration)> =
             locations.iter().map(|(p, i)| (*p, i.latency)).collect();
@@ -322,15 +322,15 @@ impl PeerClusteringManager {
             }
         }
 
-        *self.clusters.write().unwrap() = clusters;
-        *self.peer_to_cluster.write().unwrap() = peer_to_cluster;
+        *self.clusters.write().unwrap_or_else(|e| e.into_inner()) = clusters;
+        *self.peer_to_cluster.write().unwrap_or_else(|e| e.into_inner()) = peer_to_cluster;
     }
 
     /// Hybrid clustering (geographic + latency)
     fn cluster_hybrid(&self) {
         let mut clusters: HashMap<String, PeerCluster> = HashMap::new();
         let mut peer_to_cluster: HashMap<PeerId, String> = HashMap::new();
-        let locations = self.peer_locations.read().unwrap();
+        let locations = self.peer_locations.read().unwrap_or_else(|e| e.into_inner());
 
         let peers: Vec<(PeerId, &PeerLocationInfo)> =
             locations.iter().map(|(p, i)| (*p, i)).collect();
@@ -409,15 +409,15 @@ impl PeerClusteringManager {
             clusters.insert(cluster_id, cluster);
         }
 
-        *self.clusters.write().unwrap() = clusters;
-        *self.peer_to_cluster.write().unwrap() = peer_to_cluster;
+        *self.clusters.write().unwrap_or_else(|e| e.into_inner()) = clusters;
+        *self.peer_to_cluster.write().unwrap_or_else(|e| e.into_inner()) = peer_to_cluster;
     }
 
     /// AS-based clustering
     fn cluster_as(&self) {
         let mut clusters: HashMap<String, PeerCluster> = HashMap::new();
         let mut peer_to_cluster: HashMap<PeerId, String> = HashMap::new();
-        let locations = self.peer_locations.read().unwrap();
+        let locations = self.peer_locations.read().unwrap_or_else(|e| e.into_inner());
 
         for (peer_id, info) in locations.iter() {
             if let Some(as_num) = info.as_number {
@@ -432,24 +432,24 @@ impl PeerClusteringManager {
             }
         }
 
-        *self.clusters.write().unwrap() = clusters;
-        *self.peer_to_cluster.write().unwrap() = peer_to_cluster;
+        *self.clusters.write().unwrap_or_else(|e| e.into_inner()) = clusters;
+        *self.peer_to_cluster.write().unwrap_or_else(|e| e.into_inner()) = peer_to_cluster;
     }
 
     /// Get cluster for a peer
     pub fn get_peer_cluster(&self, peer_id: &PeerId) -> Option<String> {
-        self.peer_to_cluster.read().unwrap().get(peer_id).cloned()
+        self.peer_to_cluster.read().unwrap_or_else(|e| e.into_inner()).get(peer_id).cloned()
     }
 
     /// Get all clusters
     pub fn get_clusters(&self) -> Vec<PeerCluster> {
-        self.clusters.read().unwrap().values().cloned().collect()
+        self.clusters.read().unwrap_or_else(|e| e.into_inner()).values().cloned().collect()
     }
 
     /// Get peers in the same cluster as the given peer
     pub fn get_cluster_peers(&self, peer_id: &PeerId) -> Vec<PeerId> {
         if let Some(cluster_id) = self.get_peer_cluster(peer_id) {
-            if let Some(cluster) = self.clusters.read().unwrap().get(&cluster_id) {
+            if let Some(cluster) = self.clusters.read().unwrap_or_else(|e| e.into_inner()).get(&cluster_id) {
                 return cluster.peers.clone();
             }
         }
@@ -458,9 +458,9 @@ impl PeerClusteringManager {
 
     /// Get cluster statistics
     pub fn get_stats(&self) -> ClusteringStats {
-        let clusters = self.clusters.read().unwrap();
+        let clusters = self.clusters.read().unwrap_or_else(|e| e.into_inner());
         let total_clusters = clusters.len();
-        let total_peers = self.peer_locations.read().unwrap().len();
+        let total_peers = self.peer_locations.read().unwrap_or_else(|e| e.into_inner()).len();
         let avg_cluster_size = if total_clusters > 0 {
             total_peers as f64 / total_clusters as f64
         } else {
@@ -578,7 +578,7 @@ mod tests {
         let location = GeoCoordinate::new(40.7128, -74.0060);
         manager.add_peer_location(peer, location, Duration::from_millis(50), Some(12345));
 
-        let locations = manager.peer_locations.read().unwrap();
+        let locations = manager.peer_locations.read().unwrap_or_else(|e| e.into_inner());
         assert!(locations.contains_key(&peer));
     }
 
