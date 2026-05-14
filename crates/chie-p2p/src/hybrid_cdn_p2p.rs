@@ -254,7 +254,7 @@ impl HybridController {
     ) -> DeliveryDecision {
         let timestamp_ms = SystemTime::now()
             .duration_since(UNIX_EPOCH)
-            .unwrap()
+            .expect("system time is always after UNIX_EPOCH")
             .as_millis() as u64;
 
         // Check basic availability

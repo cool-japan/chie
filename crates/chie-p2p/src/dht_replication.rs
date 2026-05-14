@@ -315,7 +315,7 @@ impl DhtReplicationManager {
             .map(|s| (s.content_hash.clone(), s.priority))
             .collect();
 
-        needs_replication.sort_by(|a, b| b.1.cmp(&a.1)); // Higher priority first
+        needs_replication.sort_by_key(|b| std::cmp::Reverse(b.1)); // Higher priority first
 
         needs_replication
             .into_iter()

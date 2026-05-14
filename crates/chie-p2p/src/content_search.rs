@@ -291,22 +291,22 @@ impl ContentSearch {
         // Sort results
         match query.sort_by {
             SortOrder::Relevance => {
-                results.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap());
+                results.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap_or(std::cmp::Ordering::Equal));
             }
             SortOrder::NewestFirst => {
-                results.sort_by(|a, b| b.created_at.cmp(&a.created_at));
+                results.sort_by_key(|b| std::cmp::Reverse(b.created_at));
             }
             SortOrder::OldestFirst => {
-                results.sort_by(|a, b| a.created_at.cmp(&b.created_at));
+                results.sort_by_key(|a| a.created_at);
             }
             SortOrder::Popularity => {
-                results.sort_by(|a, b| b.popularity.cmp(&a.popularity));
+                results.sort_by_key(|b| std::cmp::Reverse(b.popularity));
             }
             SortOrder::SizeDescending => {
-                results.sort_by(|a, b| b.size.cmp(&a.size));
+                results.sort_by_key(|b| std::cmp::Reverse(b.size));
             }
             SortOrder::SizeAscending => {
-                results.sort_by(|a, b| a.size.cmp(&b.size));
+                results.sort_by_key(|a| a.size);
             }
         }
 

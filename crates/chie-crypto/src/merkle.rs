@@ -116,7 +116,7 @@ impl MerkleTree {
 
     /// Get the root hash of the tree.
     pub fn root(&self) -> &Hash {
-        &self.levels.last().unwrap()[0]
+        &self.levels.last().expect("levels is always non-empty after construction")[0]
     }
 
     /// Get the number of leaves in the tree.

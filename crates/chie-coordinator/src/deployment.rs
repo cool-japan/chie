@@ -401,12 +401,12 @@ impl DeploymentManager {
         let old_id = old_env_id.ok_or(DeploymentError::EnvironmentNotFound)?;
         let new_id = new_env_id.ok_or(DeploymentError::EnvironmentNotFound)?;
 
-        // Swap active status
-        environments.get_mut(&old_id).unwrap().is_active = false;
-        environments.get_mut(&old_id).unwrap().traffic_percentage = 0;
+        // Swap active status - ids were found by iterating environments above, so they must exist
+        environments.get_mut(&old_id).expect("old_id found by iteration above").is_active = false;
+        environments.get_mut(&old_id).expect("old_id found by iteration above").traffic_percentage = 0;
 
-        environments.get_mut(&new_id).unwrap().is_active = true;
-        environments.get_mut(&new_id).unwrap().traffic_percentage = 100;
+        environments.get_mut(&new_id).expect("new_id found by iteration above").is_active = true;
+        environments.get_mut(&new_id).expect("new_id found by iteration above").traffic_percentage = 100;
 
         deployment.current_traffic_to_new = 100;
         deployment.status = DeploymentStatus::Completed;

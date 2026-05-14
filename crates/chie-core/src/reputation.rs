@@ -293,7 +293,7 @@ impl ReputationTracker {
     pub fn get_top_peers(&mut self, n: usize) -> Vec<String> {
         self.apply_decay();
         let mut peers: Vec<_> = self.peers.values().collect();
-        peers.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap());
+        peers.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap_or(std::cmp::Ordering::Equal));
         peers.iter().take(n).map(|p| p.peer_id.clone()).collect()
     }
 

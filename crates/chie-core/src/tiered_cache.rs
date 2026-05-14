@@ -432,7 +432,7 @@ impl TieredCache {
             .map(|(key, meta)| (key.clone(), meta.access_count))
             .collect();
 
-        items.sort_by(|a, b| b.1.cmp(&a.1));
+        items.sort_by_key(|b| std::cmp::Reverse(b.1));
 
         items.into_iter().take(limit).map(|(key, _)| key).collect()
     }

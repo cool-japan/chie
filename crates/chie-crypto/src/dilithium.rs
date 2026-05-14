@@ -184,7 +184,7 @@ impl Dilithium2 {
 
     /// Sign a message.
     pub fn sign(message: &[u8], sk: &Dilithium2SecretKey) -> Dilithium2Signature {
-        let secret_key = dilithium2::SecretKey::from_bytes(&sk.0).unwrap();
+        let secret_key = dilithium2::SecretKey::from_bytes(&sk.0).expect("secret key bytes are valid: produced by keygen above");
         let sig = dilithium2::detached_sign(message, &secret_key);
         Dilithium2Signature(sig.as_bytes().to_vec())
     }
@@ -220,7 +220,7 @@ impl Dilithium3 {
 
     /// Sign a message.
     pub fn sign(message: &[u8], sk: &Dilithium3SecretKey) -> Dilithium3Signature {
-        let secret_key = dilithium3::SecretKey::from_bytes(&sk.0).unwrap();
+        let secret_key = dilithium3::SecretKey::from_bytes(&sk.0).expect("secret key bytes are valid: produced by keygen above");
         let sig = dilithium3::detached_sign(message, &secret_key);
         Dilithium3Signature(sig.as_bytes().to_vec())
     }
@@ -256,7 +256,7 @@ impl Dilithium5 {
 
     /// Sign a message.
     pub fn sign(message: &[u8], sk: &Dilithium5SecretKey) -> Dilithium5Signature {
-        let secret_key = dilithium5::SecretKey::from_bytes(&sk.0).unwrap();
+        let secret_key = dilithium5::SecretKey::from_bytes(&sk.0).expect("secret key bytes are valid: produced by keygen above");
         let sig = dilithium5::detached_sign(message, &secret_key);
         Dilithium5Signature(sig.as_bytes().to_vec())
     }

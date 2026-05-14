@@ -188,7 +188,7 @@ impl BackupShare {
     fn new(index: u8, share: Share, config: BackupConfig) -> Self {
         let timestamp = SystemTime::now()
             .duration_since(UNIX_EPOCH)
-            .unwrap()
+            .expect("system time is always after UNIX_EPOCH")
             .as_secs();
 
         let share_data = share.data.clone();
@@ -431,11 +431,11 @@ pub fn backup_key_encrypted(
 
     let timestamp = SystemTime::now()
         .duration_since(UNIX_EPOCH)
-        .unwrap()
+        .expect("system time is always after UNIX_EPOCH")
         .as_secs();
 
     // Convert nonce to array
-    let nonce_bytes: [u8; 12] = nonce.as_slice().try_into().unwrap();
+    let nonce_bytes: [u8; 12] = nonce.as_slice().try_into().expect("nonce is exactly 12 bytes from generation");
 
     Ok(EncryptedBackup {
         ciphertext,
@@ -497,11 +497,11 @@ pub fn backup_secret_encrypted(
 
     let timestamp = SystemTime::now()
         .duration_since(UNIX_EPOCH)
-        .unwrap()
+        .expect("system time is always after UNIX_EPOCH")
         .as_secs();
 
     // Convert nonce to array
-    let nonce_bytes: [u8; 12] = nonce.as_slice().try_into().unwrap();
+    let nonce_bytes: [u8; 12] = nonce.as_slice().try_into().expect("nonce is exactly 12 bytes from generation");
 
     Ok(EncryptedBackup {
         ciphertext,

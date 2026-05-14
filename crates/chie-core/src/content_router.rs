@@ -307,7 +307,7 @@ impl ContentRouter {
             .map(|(cid, locs)| (cid.clone(), locs.len()))
             .collect();
 
-        content_peers.sort_by(|a, b| b.1.cmp(&a.1));
+        content_peers.sort_by_key(|b| std::cmp::Reverse(b.1));
 
         content_peers
             .into_iter()
@@ -325,7 +325,7 @@ impl ContentRouter {
             .map(|(cid, locs)| (cid.clone(), locs.len()))
             .collect();
 
-        content_peers.sort_by(|a, b| a.1.cmp(&b.1));
+        content_peers.sort_by_key(|a| a.1);
 
         content_peers
             .into_iter()

@@ -65,7 +65,7 @@ impl KeyVersion {
     pub fn new(version: u32, fingerprint: String, ttl: Option<Duration>) -> Self {
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
-            .unwrap()
+                .expect("system time is always after UNIX_EPOCH")
             .as_secs();
 
         Self {
@@ -88,7 +88,7 @@ impl KeyVersion {
         if let Some(expires_at) = self.expires_at {
             let now = SystemTime::now()
                 .duration_since(UNIX_EPOCH)
-                .unwrap()
+                .expect("system time is always after UNIX_EPOCH")
                 .as_secs();
             if now > expires_at {
                 return false;
@@ -103,7 +103,7 @@ impl KeyVersion {
         if let Some(expires_at) = self.expires_at {
             let now = SystemTime::now()
                 .duration_since(UNIX_EPOCH)
-                .unwrap()
+                .expect("system time is always after UNIX_EPOCH")
                 .as_secs();
             return now > expires_at;
         }
@@ -116,7 +116,7 @@ impl KeyVersion {
         self.revoked_at = Some(
             SystemTime::now()
                 .duration_since(UNIX_EPOCH)
-                .unwrap()
+                .expect("system time is always after UNIX_EPOCH")
                 .as_secs(),
         );
         self.revocation_reason = reason;
@@ -366,7 +366,7 @@ impl SigningKeyRing {
         if let Some(version) = self.versions.get(&self.current_version) {
             let now = SystemTime::now()
                 .duration_since(UNIX_EPOCH)
-                .unwrap()
+                .expect("system time is always after UNIX_EPOCH")
                 .as_secs();
             let age = now.saturating_sub(version.created_at);
             age > self.policy.max_age.as_secs() || version.revoked || version.is_expired()
@@ -545,7 +545,7 @@ impl EncryptionKeyRing {
         if let Some(version) = self.versions.get(&self.current_version) {
             let now = SystemTime::now()
                 .duration_since(UNIX_EPOCH)
-                .unwrap()
+                .expect("system time is always after UNIX_EPOCH")
                 .as_secs();
             let age = now.saturating_sub(version.created_at);
             age > self.policy.max_age.as_secs() || version.revoked || version.is_expired()

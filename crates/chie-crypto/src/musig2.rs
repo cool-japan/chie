@@ -390,10 +390,10 @@ impl MuSig2Signature {
 
     /// Deserialize signature from bytes
     pub fn from_bytes(bytes: &[u8; 64]) -> MuSig2Result<Self> {
-        let r = curve25519_dalek::ristretto::CompressedRistretto(bytes[..32].try_into().unwrap())
+        let r = curve25519_dalek::ristretto::CompressedRistretto(bytes[..32].try_into().expect("bytes is fixed size array so slices are exactly 32 bytes"))
             .decompress()
             .ok_or(MuSig2Error::InvalidSignature)?;
-        let s = Scalar::from_bytes_mod_order(bytes[32..].try_into().unwrap());
+        let s = Scalar::from_bytes_mod_order(bytes[32..].try_into().expect("bytes is fixed size array so slices are exactly 32 bytes"));
 
         Ok(Self { r, s })
     }

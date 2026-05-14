@@ -149,7 +149,7 @@ impl SessionManager {
     fn generate_session_id(&self) -> SessionId {
         let timestamp = SystemTime::now()
             .duration_since(UNIX_EPOCH)
-            .unwrap()
+            .expect("system time is always after UNIX_EPOCH")
             .as_nanos();
         let random = rand::random::<u64>();
         format!("session-{:x}-{:x}", timestamp, random)

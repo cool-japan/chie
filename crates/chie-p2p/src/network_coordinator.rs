@@ -529,7 +529,7 @@ impl NetworkCoordinator {
     /// Get current recommendations
     pub fn get_recommendations(&self) -> Vec<Recommendation> {
         let mut recs = self.recommendations.clone();
-        recs.sort_by(|a, b| b.priority.partial_cmp(&a.priority).unwrap());
+        recs.sort_by(|a, b| b.priority.partial_cmp(&a.priority).unwrap_or(std::cmp::Ordering::Equal));
         recs
     }
 

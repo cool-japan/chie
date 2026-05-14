@@ -662,7 +662,7 @@ impl BackupManager {
         }
 
         // Sort by creation time (newest first)
-        manifests.sort_by(|a, b| b.created_at.cmp(&a.created_at));
+        manifests.sort_by_key(|b| std::cmp::Reverse(b.created_at));
 
         Ok(manifests)
     }

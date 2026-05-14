@@ -291,7 +291,7 @@ impl ErrorTracker {
     pub fn get_aggregates(&self) -> Vec<ErrorAggregate> {
         let aggregates = self.aggregates.read().unwrap_or_else(|e| e.into_inner());
         let mut result: Vec<_> = aggregates.values().cloned().collect();
-        result.sort_by(|a, b| b.count.cmp(&a.count));
+        result.sort_by_key(|b| std::cmp::Reverse(b.count));
         result
     }
 

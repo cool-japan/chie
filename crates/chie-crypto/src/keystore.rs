@@ -127,7 +127,7 @@ impl KeyMetadata {
     pub fn new(key_id: String, key_type: KeyType) -> Self {
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
-            .unwrap()
+            .expect("system time is always after UNIX_EPOCH")
             .as_secs();
 
         Self {
@@ -145,7 +145,7 @@ impl KeyMetadata {
     pub fn touch(&mut self) {
         self.last_accessed = SystemTime::now()
             .duration_since(UNIX_EPOCH)
-            .unwrap()
+            .expect("system time is always after UNIX_EPOCH")
             .as_secs();
     }
 }

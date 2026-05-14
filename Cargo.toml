@@ -118,6 +118,20 @@ inherits = "release"
 lto = false  # Disable LTO for benchmarks to avoid rustc bug
 strip = false
 
+[patch.crates-io]
+oxiarc-core = { path = "/Users/kitasan/work/oxiarc/oxiarc-core" }
+oxiarc-archive = { path = "/Users/kitasan/work/oxiarc/oxiarc-archive" }
+oxiarc-lzma = { path = "/Users/kitasan/work/oxiarc/oxiarc-lzma" }
+oxiarc-zstd = { path = "/Users/kitasan/work/oxiarc/oxiarc-zstd" }
+oxiarc-snappy = { path = "/Users/kitasan/work/oxiarc/oxiarc-snappy" }
+oxiarc-bzip2 = { path = "/Users/kitasan/work/oxiarc/oxiarc-bzip2" }
+oxiarc-brotli = { path = "/Users/kitasan/work/oxiarc/oxiarc-brotli" }
+oxiarc-lzhuf = { path = "/Users/kitasan/work/oxiarc/oxiarc-lzhuf" }
+oxiarc-lz4 = { path = "/Users/kitasan/work/oxiarc/oxiarc-lz4" }
+oxiarc-lzw = { path = "/Users/kitasan/work/oxiarc/oxiarc-lzw" }
+oxiarc-cli = { path = "/Users/kitasan/work/oxiarc/oxiarc-cli" }
+oxiarc-deflate = { path = "/Users/kitasan/work/oxiarc/oxiarc-deflate" }
+
 [workspace.metadata.cargo-audit.ignore]
 # RUSTSEC-2023-0071: Marvin Attack timing side-channel in `rsa` crate.
 # No upstream fix available as of 2026-04. Transitive via sqlx-mysql → sqlx.

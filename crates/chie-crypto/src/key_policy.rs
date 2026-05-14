@@ -161,7 +161,7 @@ impl KeyPolicy {
         if self.allowed_operations.is_none() {
             self.allowed_operations = Some(HashSet::new());
         }
-        self.allowed_operations.as_mut().unwrap().insert(op);
+        self.allowed_operations.as_mut().expect("allowed_operations is Some: set in if-branch above").insert(op);
         self
     }
 

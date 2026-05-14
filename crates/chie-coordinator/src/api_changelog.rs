@@ -113,7 +113,7 @@ pub fn get_all_versions() -> Vec<ApiVersion> {
     vec![ApiVersion {
         version: "0.1.0".to_string(),
         release_date: chrono::DateTime::parse_from_rfc3339("2026-01-08T00:00:00Z")
-            .unwrap()
+            .expect("valid RFC3339 date literal")
             .with_timezone(&Utc),
         status: ApiStatus::Beta,
         min_client_version: "0.1.0".to_string(),
@@ -133,7 +133,7 @@ pub fn get_changelog() -> ApiChangelog {
             ChangelogEntry {
                 version: "0.1.0".to_string(),
                 date: chrono::DateTime::parse_from_rfc3339("2026-01-08T00:00:00Z")
-                    .unwrap()
+            .expect("valid RFC3339 date literal")
                     .with_timezone(&Utc),
                 change_type: ChangeType::Feature,
                 category: "Webhooks".to_string(),
@@ -145,7 +145,7 @@ pub fn get_changelog() -> ApiChangelog {
             ChangelogEntry {
                 version: "0.1.0".to_string(),
                 date: chrono::DateTime::parse_from_rfc3339("2026-01-08T00:00:00Z")
-                    .unwrap()
+            .expect("valid RFC3339 date literal")
                     .with_timezone(&Utc),
                 change_type: ChangeType::Feature,
                 category: "Email".to_string(),
@@ -157,7 +157,7 @@ pub fn get_changelog() -> ApiChangelog {
             ChangelogEntry {
                 version: "0.1.0".to_string(),
                 date: chrono::DateTime::parse_from_rfc3339("2026-01-08T00:00:00Z")
-                    .unwrap()
+            .expect("valid RFC3339 date literal")
                     .with_timezone(&Utc),
                 change_type: ChangeType::Feature,
                 category: "Analytics".to_string(),
@@ -169,7 +169,7 @@ pub fn get_changelog() -> ApiChangelog {
             ChangelogEntry {
                 version: "0.1.0".to_string(),
                 date: chrono::DateTime::parse_from_rfc3339("2026-01-08T00:00:00Z")
-                    .unwrap()
+            .expect("valid RFC3339 date literal")
                     .with_timezone(&Utc),
                 change_type: ChangeType::Feature,
                 category: "Developer Tools".to_string(),
@@ -181,7 +181,7 @@ pub fn get_changelog() -> ApiChangelog {
             ChangelogEntry {
                 version: "0.1.0".to_string(),
                 date: chrono::DateTime::parse_from_rfc3339("2026-01-08T00:00:00Z")
-                    .unwrap()
+            .expect("valid RFC3339 date literal")
                     .with_timezone(&Utc),
                 change_type: ChangeType::Feature,
                 category: "Rate Limiting".to_string(),
@@ -193,7 +193,7 @@ pub fn get_changelog() -> ApiChangelog {
             ChangelogEntry {
                 version: "0.1.0".to_string(),
                 date: chrono::DateTime::parse_from_rfc3339("2026-01-04T00:00:00Z")
-                    .unwrap()
+            .expect("valid RFC3339 date literal")
                     .with_timezone(&Utc),
                 change_type: ChangeType::Feature,
                 category: "Compliance".to_string(),
@@ -205,7 +205,7 @@ pub fn get_changelog() -> ApiChangelog {
             ChangelogEntry {
                 version: "0.1.0".to_string(),
                 date: chrono::DateTime::parse_from_rfc3339("2026-01-04T00:00:00Z")
-                    .unwrap()
+            .expect("valid RFC3339 date literal")
                     .with_timezone(&Utc),
                 change_type: ChangeType::Feature,
                 category: "Legal".to_string(),
@@ -217,7 +217,7 @@ pub fn get_changelog() -> ApiChangelog {
             ChangelogEntry {
                 version: "0.1.0".to_string(),
                 date: chrono::DateTime::parse_from_rfc3339("2026-01-04T00:00:00Z")
-                    .unwrap()
+            .expect("valid RFC3339 date literal")
                     .with_timezone(&Utc),
                 change_type: ChangeType::Feature,
                 category: "Content".to_string(),
@@ -229,7 +229,7 @@ pub fn get_changelog() -> ApiChangelog {
             ChangelogEntry {
                 version: "0.1.0".to_string(),
                 date: chrono::DateTime::parse_from_rfc3339("2026-01-29T00:00:00Z")
-                    .unwrap()
+            .expect("valid RFC3339 date literal")
                     .with_timezone(&Utc),
                 change_type: ChangeType::Feature,
                 category: "Payments".to_string(),
@@ -241,7 +241,7 @@ pub fn get_changelog() -> ApiChangelog {
             ChangelogEntry {
                 version: "0.1.0".to_string(),
                 date: chrono::DateTime::parse_from_rfc3339("2026-01-29T00:00:00Z")
-                    .unwrap()
+            .expect("valid RFC3339 date literal")
                     .with_timezone(&Utc),
                 change_type: ChangeType::Feature,
                 category: "Multi-Tenancy".to_string(),
@@ -253,7 +253,7 @@ pub fn get_changelog() -> ApiChangelog {
             ChangelogEntry {
                 version: "0.1.0".to_string(),
                 date: chrono::DateTime::parse_from_rfc3339("2026-01-18T00:00:00Z")
-                    .unwrap()
+            .expect("valid RFC3339 date literal")
                     .with_timezone(&Utc),
                 change_type: ChangeType::Feature,
                 category: "Authentication".to_string(),
@@ -265,7 +265,7 @@ pub fn get_changelog() -> ApiChangelog {
             ChangelogEntry {
                 version: "0.1.0".to_string(),
                 date: chrono::DateTime::parse_from_rfc3339("2026-01-18T00:00:00Z")
-                    .unwrap()
+            .expect("valid RFC3339 date literal")
                     .with_timezone(&Utc),
                 change_type: ChangeType::Feature,
                 category: "Proofs".to_string(),
@@ -277,7 +277,7 @@ pub fn get_changelog() -> ApiChangelog {
             ChangelogEntry {
                 version: "0.1.0".to_string(),
                 date: chrono::DateTime::parse_from_rfc3339("2026-01-18T00:00:00Z")
-                    .unwrap()
+            .expect("valid RFC3339 date literal")
                     .with_timezone(&Utc),
                 change_type: ChangeType::Security,
                 category: "Authentication".to_string(),
@@ -289,7 +289,7 @@ pub fn get_changelog() -> ApiChangelog {
             ChangelogEntry {
                 version: "0.1.0".to_string(),
                 date: chrono::DateTime::parse_from_rfc3339("2026-01-18T00:00:00Z")
-                    .unwrap()
+            .expect("valid RFC3339 date literal")
                     .with_timezone(&Utc),
                 change_type: ChangeType::Performance,
                 category: "Caching".to_string(),

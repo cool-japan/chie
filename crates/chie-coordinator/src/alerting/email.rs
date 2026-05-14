@@ -213,7 +213,7 @@ impl AlertingManager {
         }
 
         // Sort emails by priority (highest priority first)
-        emails_to_retry.sort_by(|a, b| b.1.priority.cmp(&a.1.priority));
+        emails_to_retry.sort_by_key(|b| std::cmp::Reverse(b.1.priority));
 
         // Retry emails
         for (_index, mut failed_email) in emails_to_retry {

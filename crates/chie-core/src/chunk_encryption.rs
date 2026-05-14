@@ -101,7 +101,7 @@ impl EncryptedChunk {
             return Err(ChunkEncryptionError::InvalidNonce);
         }
 
-        let index = u64::from_le_bytes(bytes[0..8].try_into().unwrap());
+        let index = u64::from_le_bytes(bytes[0..8].try_into().expect("slice is exactly 8 bytes per length guard above"));
         let mut nonce = [0u8; NONCE_SIZE];
         nonce.copy_from_slice(&bytes[8..8 + NONCE_SIZE]);
         let mut plaintext_hash = [0u8; 32];
@@ -109,7 +109,7 @@ impl EncryptedChunk {
         let ciphertext_len = u32::from_le_bytes(
             bytes[8 + NONCE_SIZE + 32..8 + NONCE_SIZE + 36]
                 .try_into()
-                .unwrap(),
+                .expect("slice is exactly 4 bytes per length guard above"),
         ) as usize;
 
         if bytes.len() < 8 + NONCE_SIZE + 36 + ciphertext_len {

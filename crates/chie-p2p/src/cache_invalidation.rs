@@ -246,7 +246,7 @@ impl CacheInvalidation {
         let id = id.into();
         let now = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
+            .expect("system time is always after UNIX_EPOCH")
             .as_secs();
 
         let event = InvalidationEvent {
@@ -381,7 +381,7 @@ impl CacheInvalidation {
     pub fn receive_event(&mut self, event: InvalidationEvent) {
         let now = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
+            .expect("system time is always after UNIX_EPOCH")
             .as_secs();
 
         // Ignore expired events
@@ -432,7 +432,7 @@ impl CacheInvalidation {
 
         let now = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
+            .expect("system time is always after UNIX_EPOCH")
             .as_secs();
 
         let mut events = self.events.write();
@@ -720,7 +720,7 @@ mod tests {
     fn test_event_expiration() {
         let now = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
+            .expect("system time is always after UNIX_EPOCH")
             .as_secs();
 
         let event = InvalidationEvent {
@@ -744,7 +744,7 @@ mod tests {
 
         let now = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
+            .expect("system time is always after UNIX_EPOCH")
             .as_secs();
 
         let event = InvalidationEvent {

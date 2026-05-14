@@ -392,15 +392,12 @@ impl AdaptiveChunkSize {
     /// Get statistics
     pub fn stats(&self) -> ChunkSizeStats {
         let total_peers = self.peer_states.len();
-        let avg_chunk_size = if total_peers > 0 {
-            self.peer_states
-                .values()
-                .map(|s| s.current_chunk_size)
-                .sum::<usize>()
-                / total_peers
-        } else {
-            self.config.default_chunk_size
-        };
+        let avg_chunk_size = self.peer_states
+            .values()
+            .map(|s| s.current_chunk_size)
+            .sum::<usize>()
+            .checked_div(total_peers)
+            .unwrap_or(self.config.default_chunk_size);
 
         let total_transfers: u64 = self.peer_states.values().map(|s| s.total_transfers).sum();
         let successful_transfers: u64 = self

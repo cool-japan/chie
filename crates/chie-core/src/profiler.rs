@@ -314,7 +314,7 @@ impl Profiler {
 
         // Sort by total duration (highest first)
         let mut sorted_stats: Vec<_> = self.stats.iter().collect();
-        sorted_stats.sort_by(|a, b| b.1.total_duration.cmp(&a.1.total_duration));
+        sorted_stats.sort_by_key(|b| std::cmp::Reverse(b.1.total_duration));
 
         // Header
         lines.push(format!(
@@ -450,7 +450,7 @@ where
     if guard.is_none() {
         *guard = Some(Profiler::new());
     }
-    f(guard.as_mut().unwrap())
+    f(guard.as_mut().expect("guard is Some: initialized in if-branch above"))
 }
 
 /// Macro for easy profiling of code blocks.

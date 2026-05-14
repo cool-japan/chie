@@ -110,7 +110,7 @@ impl ErasureConfig {
 
 impl Default for ErasureConfig {
     fn default() -> Self {
-        Self::new(10, 4).unwrap() // 10 data + 4 parity = recover from 4 failures
+        Self::new(10, 4).expect("10 data + 4 parity is always a valid erasure config") // 10 data + 4 parity = recover from 4 failures
     }
 }
 

@@ -475,7 +475,7 @@ impl AdaptiveReplicationManager {
             .collect();
 
         // Sort by capacity score (highest first)
-        candidates.sort_by(|a, b| b.capacity_score().partial_cmp(&a.capacity_score()).unwrap());
+        candidates.sort_by(|a, b| b.capacity_score().partial_cmp(&a.capacity_score()).unwrap_or(std::cmp::Ordering::Equal));
 
         candidates
             .iter()
@@ -497,7 +497,7 @@ impl AdaptiveReplicationManager {
                 .collect();
 
             // Sort by score (lowest first)
-            peer_scores.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
+            peer_scores.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap_or(std::cmp::Ordering::Equal));
 
             return peer_scores
                 .iter()

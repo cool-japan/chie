@@ -287,7 +287,7 @@ impl HashAccumulator {
         let mut all_hashes = vec![element_hash];
         for chunk in proof.witness.chunks(32) {
             if chunk.len() == 32 {
-                let hash: [u8; 32] = chunk.try_into().unwrap();
+                let hash: [u8; 32] = chunk.try_into().expect("slice is exactly 32 bytes per len==32 check above");
                 all_hashes.push(hash);
             }
         }
@@ -415,7 +415,7 @@ impl CompactAccumulator {
         let mut all_hashes = vec![element_hash];
         for chunk in proof.witness.chunks(32) {
             if chunk.len() == 32 {
-                let hash: [u8; 32] = chunk.try_into().unwrap();
+                let hash: [u8; 32] = chunk.try_into().expect("slice is exactly 32 bytes per len==32 check above");
                 all_hashes.push(hash);
             }
         }

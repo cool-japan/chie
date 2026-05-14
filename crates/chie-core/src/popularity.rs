@@ -273,7 +273,7 @@ impl PopularityTracker {
             .filter_map(|cid| self.calculate_score(cid))
             .collect();
 
-        scores.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap());
+        scores.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap_or(std::cmp::Ordering::Equal));
         scores.truncate(n);
         scores
     }
@@ -313,7 +313,7 @@ impl PopularityTracker {
             })
             .collect();
 
-        scores.sort_by(|a, b| b.hourly_requests.cmp(&a.hourly_requests));
+        scores.sort_by_key(|b| std::cmp::Reverse(b.hourly_requests));
         scores
     }
 
@@ -357,7 +357,7 @@ impl PopularityTracker {
                 })
                 .collect();
 
-            by_score.sort_by(|a, b| a.1.cmp(&b.1));
+            by_score.sort_by_key(|a| a.1);
 
             // Remove bottom 10%
             let to_remove = self.content.len() - self.config.max_tracked_content;

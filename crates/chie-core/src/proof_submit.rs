@@ -284,7 +284,7 @@ impl ProofSubmitter {
         });
 
         if let Some(idx) = ready_idx {
-            let mut queued = queue.remove(idx).unwrap();
+            let mut queued = queue.remove(idx).expect("idx is valid: just obtained from position() on this queue");
             queued.state = SubmitState::Submitting;
             queued.last_attempt = Some(now);
             queued.attempts += 1;

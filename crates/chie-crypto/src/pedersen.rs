@@ -127,8 +127,8 @@ impl PedersenCommitment {
     /// let sum = c1.add(&c2);
     /// ```
     pub fn add(&self, other: &Self) -> Self {
-        let p1 = CompressedRistretto(self.point).decompress().unwrap();
-        let p2 = CompressedRistretto(other.point).decompress().unwrap();
+        let p1 = CompressedRistretto(self.point).decompress().expect("commitment point is always a valid Ristretto point");
+        let p2 = CompressedRistretto(other.point).decompress().expect("commitment point is always a valid Ristretto point");
         let sum = (p1 + p2).compress();
         Self {
             point: sum.to_bytes(),
@@ -139,8 +139,8 @@ impl PedersenCommitment {
     ///
     /// C(a) - C(b) = C(a-b)
     pub fn sub(&self, other: &Self) -> Self {
-        let p1 = CompressedRistretto(self.point).decompress().unwrap();
-        let p2 = CompressedRistretto(other.point).decompress().unwrap();
+        let p1 = CompressedRistretto(self.point).decompress().expect("commitment point is always a valid Ristretto point");
+        let p2 = CompressedRistretto(other.point).decompress().expect("commitment point is always a valid Ristretto point");
         let diff = (p1 - p2).compress();
         Self {
             point: diff.to_bytes(),
@@ -151,7 +151,7 @@ impl PedersenCommitment {
     ///
     /// n * C(a) = C(n*a)
     pub fn mul(&self, scalar: u64) -> Self {
-        let p = CompressedRistretto(self.point).decompress().unwrap();
+        let p = CompressedRistretto(self.point).decompress().expect("commitment point is always a valid Ristretto point");
         let s = Scalar::from(scalar);
         let result = (s * p).compress();
         Self {

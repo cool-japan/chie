@@ -218,7 +218,7 @@ impl PopularityTracker {
             })
             .collect();
 
-        items.sort_by(|a, b| b.popularity_score.partial_cmp(&a.popularity_score).unwrap());
+        items.sort_by(|a, b| b.popularity_score.partial_cmp(&a.popularity_score).unwrap_or(std::cmp::Ordering::Equal));
         items.truncate(n);
         items
     }
@@ -315,7 +315,7 @@ impl PopularityTracker {
         if let Some((least_popular_id, _)) = self
             .content_map
             .iter()
-            .min_by(|(_, a), (_, b)| a.popularity_score.partial_cmp(&b.popularity_score).unwrap())
+            .min_by(|(_, a), (_, b)| a.popularity_score.partial_cmp(&b.popularity_score).unwrap_or(std::cmp::Ordering::Equal))
         {
             let id_to_remove = least_popular_id.clone();
             self.content_map.remove(&id_to_remove);
@@ -339,7 +339,7 @@ impl PopularityTracker {
         self.content_map
             .values()
             .map(|m| m.popularity_score)
-            .max_by(|a, b| a.partial_cmp(b).unwrap())
+            .max_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
             .unwrap_or(0.0)
     }
 }

@@ -103,7 +103,7 @@ impl TransportConfig {
             webrtc_listen_addrs: vec![
                 format!("/ip4/0.0.0.0/udp/{}/webrtc-direct", port)
                     .parse()
-                    .unwrap(),
+        .expect("formatted multiaddr is always valid"),
             ],
             ..Default::default()
         }
@@ -116,7 +116,7 @@ impl TransportConfig {
             webrtc_listen_addrs: vec![
                 format!("/ip4/0.0.0.0/udp/{}/webrtc-direct", webrtc_port)
                     .parse()
-                    .unwrap(),
+        .expect("formatted multiaddr is always valid"),
             ],
             ..Default::default()
         }
@@ -232,7 +232,7 @@ pub fn tcp_listen_addr(port: u16) -> Multiaddr {
 pub fn quic_listen_addr(port: u16) -> Multiaddr {
     format!("/ip4/0.0.0.0/udp/{}/quic-v1", port)
         .parse()
-        .unwrap()
+        .expect("formatted multiaddr is always valid")
 }
 
 /// Create TCP listen address for IPv6 from port.
@@ -253,14 +253,14 @@ pub fn quic_listen_addr_v6(port: u16) -> Multiaddr {
 pub fn webrtc_listen_addr(port: u16) -> Multiaddr {
     format!("/ip4/0.0.0.0/udp/{}/webrtc-direct", port)
         .parse()
-        .unwrap()
+        .expect("formatted multiaddr is always valid")
 }
 
 /// Create WebRTC listen address for IPv6 from port.
 pub fn webrtc_listen_addr_v6(port: u16) -> Multiaddr {
     format!("/ip6/::/udp/{}/webrtc-direct", port)
         .parse()
-        .unwrap()
+        .expect("formatted multiaddr is always valid")
 }
 
 /// Convert a TCP address to its QUIC equivalent.

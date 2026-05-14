@@ -267,7 +267,7 @@ impl BloomPsiServer {
             hasher.update(&base_hash);
             hasher.update(&(i as u64).to_le_bytes());
             let hash_val = hasher.finalize();
-            let idx = u64::from_le_bytes(hash_val.as_bytes()[0..8].try_into().unwrap()) as usize;
+            let idx = u64::from_le_bytes(hash_val.as_bytes()[0..8].try_into().expect("hash bytes are always >= 8 bytes")) as usize;
             indices.push(idx % self.filter_size);
         }
 
@@ -326,7 +326,7 @@ impl BloomPsiClient {
             hasher.update(&base_hash);
             hasher.update(&(i as u64).to_le_bytes());
             let hash_val = hasher.finalize();
-            let idx = u64::from_le_bytes(hash_val.as_bytes()[0..8].try_into().unwrap()) as usize;
+            let idx = u64::from_le_bytes(hash_val.as_bytes()[0..8].try_into().expect("hash bytes are always >= 8 bytes")) as usize;
             indices.push(idx % filter_size);
         }
 

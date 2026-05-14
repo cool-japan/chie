@@ -120,7 +120,7 @@ impl SrpVerifier {
 
     /// Serialize the verifier.
     pub fn to_bytes(&self) -> Vec<u8> {
-        crate::codec::encode(self).unwrap()
+        crate::codec::encode(self).expect("encoding SrpVerifier to bytes is infallible")
     }
 
     /// Deserialize the verifier.

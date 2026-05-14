@@ -310,7 +310,7 @@ impl PexManager {
 
         // Sort by reputation if enabled
         if self.config.reputation_based {
-            eligible.sort_by(|a, b| b.reputation.cmp(&a.reputation));
+            eligible.sort_by_key(|b| std::cmp::Reverse(b.reputation));
         }
 
         eligible

@@ -209,8 +209,8 @@ impl NetworkDiagnostics {
         }
 
         let avg_latency = self.calculate_average(&successful_pings);
-        let min_latency = *successful_pings.iter().min().unwrap();
-        let max_latency = *successful_pings.iter().max().unwrap();
+        let min_latency = *successful_pings.iter().min().expect("successful_pings non-empty: guarded by is_empty() check above");
+        let max_latency = *successful_pings.iter().max().expect("successful_pings non-empty: guarded by is_empty() check above");
         let jitter = self.calculate_jitter(&successful_pings, avg_latency);
 
         let packet_loss_rate =

@@ -246,7 +246,7 @@ impl ConnectionScheduler {
         while let Some(conn) = queue.pop() {
             if conn.scheduled_time <= now {
                 if earliest.is_none()
-                    || conn.scheduled_time < earliest.as_ref().unwrap().scheduled_time
+                    || conn.scheduled_time < earliest.as_ref().expect("earliest is Some: is_none() short-circuit prevents this branch when None").scheduled_time
                 {
                     if let Some(prev) = earliest.take() {
                         remaining.push(prev);

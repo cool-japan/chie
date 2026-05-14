@@ -205,7 +205,7 @@ impl MeshSimulation {
                 node.listen_addrs.push(
                     format!("/ip4/127.0.0.1/udp/{}/quic-v1", quic_port)
                         .parse()
-                        .unwrap(),
+                        .expect("formatted multiaddr must parse"),
                 );
             }
 

@@ -455,7 +455,7 @@ impl RelayRewardManager {
     /// Get top earners
     pub fn get_top_earners(&self, count: usize) -> Vec<&RelayEarnings> {
         let mut earners: Vec<&RelayEarnings> = self.earnings.values().collect();
-        earners.sort_by(|a, b| b.total_earned.cmp(&a.total_earned));
+        earners.sort_by_key(|b| std::cmp::Reverse(b.total_earned));
         earners.into_iter().take(count).collect()
     }
 

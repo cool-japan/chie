@@ -204,7 +204,7 @@ impl BandwidthThrottle {
             self.peers
                 .insert(peer_id.to_string(), PeerThrottle::new(&self.config));
         }
-        self.peers.get_mut(peer_id).unwrap()
+        self.peers.get_mut(peer_id).expect("peer exists: just inserted if missing above")
     }
 
     /// Check if upload is allowed and consume tokens if so.
@@ -225,7 +225,7 @@ impl BandwidthThrottle {
         }
 
         // Check per-peer limit
-        let peer = self.peers.get_mut(peer_id).unwrap();
+        let peer = self.peers.get_mut(peer_id).expect("peer exists: just inserted if missing above");
         if !peer.upload.try_consume(bytes) {
             // Refund global tokens
             let wait_time = peer.upload.time_until_available(bytes);
@@ -263,7 +263,7 @@ impl BandwidthThrottle {
         }
 
         // Check per-peer limit
-        let peer = self.peers.get_mut(peer_id).unwrap();
+        let peer = self.peers.get_mut(peer_id).expect("peer exists: just inserted if missing above");
         if !peer.download.try_consume(bytes) {
             // Refund global tokens
             let wait_time = peer.download.time_until_available(bytes);

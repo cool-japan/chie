@@ -596,7 +596,7 @@ impl WebhookManager {
             Some(deliveries) => {
                 let mut result = deliveries.clone();
                 // Sort by attempted_at descending (most recent first)
-                result.sort_by(|a, b| b.attempted_at.cmp(&a.attempted_at));
+                result.sort_by_key(|b| std::cmp::Reverse(b.attempted_at));
 
                 if let Some(limit) = limit {
                     result.truncate(limit);
@@ -614,7 +614,7 @@ impl WebhookManager {
             history.values().flat_map(|v| v.iter()).cloned().collect();
 
         // Sort by attempted_at descending (most recent first)
-        all_deliveries.sort_by(|a, b| b.attempted_at.cmp(&a.attempted_at));
+        all_deliveries.sort_by_key(|b| std::cmp::Reverse(b.attempted_at));
 
         if let Some(limit) = limit {
             all_deliveries.truncate(limit);
@@ -644,7 +644,7 @@ impl WebhookManager {
         };
 
         // Sort by attempted_at descending
-        failed.sort_by(|a, b| b.attempted_at.cmp(&a.attempted_at));
+        failed.sort_by_key(|b| std::cmp::Reverse(b.attempted_at));
 
         if let Some(limit) = limit {
             failed.truncate(limit);

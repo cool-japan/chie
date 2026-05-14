@@ -140,7 +140,7 @@ pub fn validate_email(field: &str, email: &str) -> ValidationResult<()> {
 static URL_REGEX: OnceLock<Regex> = OnceLock::new();
 
 fn url_regex() -> &'static Regex {
-    URL_REGEX.get_or_init(|| Regex::new(r"^https?://[^\s/$.?#].[^\s]*$").unwrap())
+    URL_REGEX.get_or_init(|| Regex::new(r"^https?://[^\s/$.?#].[^\s]*$").expect("valid static URL regex"))
 }
 
 /// Validate URL format.
@@ -388,7 +388,7 @@ static CONTENT_HASH_REGEX: OnceLock<Regex> = OnceLock::new();
 fn content_hash_regex() -> &'static Regex {
     CONTENT_HASH_REGEX.get_or_init(|| {
         // IPFS CID format (e.g., Qm... or bafy...)
-        Regex::new(r"^(Qm[1-9A-HJ-NP-Za-km-z]{44}|bafy[0-9a-z]{55})$").unwrap()
+        Regex::new(r"^(Qm[1-9A-HJ-NP-Za-km-z]{44}|bafy[0-9a-z]{55})$").expect("valid static IPFS CID regex")
     })
 }
 
@@ -413,7 +413,7 @@ static PEER_ID_REGEX: OnceLock<Regex> = OnceLock::new();
 fn peer_id_regex() -> &'static Regex {
     PEER_ID_REGEX.get_or_init(|| {
         // libp2p peer ID format (e.g., 12D3KooW...)
-        Regex::new(r"^12D3KooW[1-9A-HJ-NP-Za-km-z]{44}$").unwrap()
+        Regex::new(r"^12D3KooW[1-9A-HJ-NP-Za-km-z]{44}$").expect("valid static libp2p peer ID regex")
     })
 }
 

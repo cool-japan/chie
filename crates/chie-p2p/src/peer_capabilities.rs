@@ -341,7 +341,7 @@ impl CapabilityManager {
             })
             .collect();
 
-        ranked.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
+        ranked.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
         ranked
     }
 

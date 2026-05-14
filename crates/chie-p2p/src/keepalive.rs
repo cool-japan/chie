@@ -255,7 +255,7 @@ impl KeepaliveManager {
             let sequence = state.last_sequence;
             let timestamp = std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
-                .unwrap()
+                .expect("system time is always after UNIX_EPOCH")
                 .as_millis() as u64;
 
             // Update stats
@@ -336,9 +336,8 @@ impl KeepaliveManager {
 
                 // Update average RTT
                 let total_conns = connections.len() as u128;
-                if total_conns > 0 {
-                    let sum_rtt: Duration = connections.values().map(|c| c.avg_rtt).sum();
-                    stats.avg_rtt = Duration::from_nanos((sum_rtt.as_nanos() / total_conns) as u64);
+                if let Some(avg_nanos) = connections.values().map(|c| c.avg_rtt).sum::<Duration>().as_nanos().checked_div(total_conns) {
+                    stats.avg_rtt = Duration::from_nanos(avg_nanos as u64);
                 }
 
                 stats.active_connections = connections.values().filter(|c| c.is_alive).count();
@@ -387,7 +386,7 @@ impl KeepaliveManager {
                 if elapsed > self.config.response_timeout {
                     // Only count as timeout if we haven't received a pong yet
                     if state.last_pong_received.is_none()
-                        || state.last_pong_received.unwrap() < last_ping
+                        || state.last_pong_received.expect("last_pong_received is Some: is_none() short-circuit prevents this when None") < last_ping
                     {
                         state.consecutive_failures += 1;
 

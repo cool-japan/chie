@@ -314,7 +314,7 @@ impl<U: ChunkUploader + 'static> ChunkedUploadManager<U> {
         // Get remaining chunks
         let (remaining, content_id, total_size, total_chunks, bytes_at_start) = {
             let mut states = self.states.write().await;
-            let state = states.get_mut(upload_id).unwrap();
+            let state = states.get_mut(upload_id).expect("upload_id must be registered before calling this function");
             state.status = UploadStatus::InProgress;
             (
                 state.remaining_chunks(),
@@ -352,7 +352,7 @@ impl<U: ChunkUploader + 'static> ChunkedUploadManager<U> {
             let chunk_data = file_data[start..end].to_vec();
 
             let handle = tokio::spawn(async move {
-                let _permit = sem.acquire().await.unwrap();
+                let _permit = sem.acquire().await.expect("semaphore not closed while upload tasks run");
 
                 // Retry loop with exponential backoff
                 let mut last_error = None;
@@ -411,7 +411,7 @@ impl<U: ChunkUploader + 'static> ChunkedUploadManager<U> {
                     if let Some(tx) = &progress_tx {
                         let elapsed = start_time.elapsed().as_secs_f64();
                         let state = self.states.read().await;
-                        let s = state.get(upload_id).unwrap();
+                        let s = state.get(upload_id).expect("upload_id must be registered before calling this function");
                         let uploaded = s.uploaded_bytes();
                         let rate = if elapsed > 0.0 {
                             (uploaded - bytes_at_start) as f64 / elapsed
@@ -456,7 +456,7 @@ impl<U: ChunkUploader + 'static> ChunkedUploadManager<U> {
         // Update final state
         let final_state = {
             let mut states = self.states.write().await;
-            let state = states.get_mut(upload_id).unwrap();
+            let state = states.get_mut(upload_id).expect("upload_id must be registered before calling this function");
 
             if state.is_complete() {
                 state.status = UploadStatus::Completed;

@@ -577,10 +577,9 @@ pub const fn chunk_offset(chunk_index: u64, chunk_size: u64) -> u64 {
 #[inline]
 #[must_use]
 pub const fn byte_to_chunk_index(byte_offset: u64, chunk_size: u64) -> u64 {
-    if chunk_size == 0 {
-        0
-    } else {
-        byte_offset / chunk_size
+    match byte_offset.checked_div(chunk_size) {
+        Some(v) => v,
+        None => 0,
     }
 }
 

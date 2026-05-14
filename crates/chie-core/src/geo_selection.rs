@@ -251,7 +251,7 @@ impl GeoSelector {
             .collect();
 
         // Sort by distance
-        peers_with_distance.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
+        peers_with_distance.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap_or(std::cmp::Ordering::Equal));
 
         // Take top N
         peers_with_distance
@@ -286,7 +286,7 @@ impl GeoSelector {
             .collect();
 
         // Sort by score (descending)
-        peers_with_score.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
+        peers_with_score.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
 
         peers_with_score
             .into_iter()
@@ -316,7 +316,7 @@ impl GeoSelector {
             })
             .collect();
 
-        peers_with_score.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
+        peers_with_score.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
 
         // First, select best peer from each region
         for (peer, _) in &peers_with_score {

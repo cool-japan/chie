@@ -540,7 +540,7 @@ impl AnalyticsCollector {
                 transfer_count: 0,
             })
             .collect();
-        top_earners.sort_by(|a, b| b.total_earned.cmp(&a.total_earned));
+        top_earners.sort_by_key(|b| std::cmp::Reverse(b.total_earned));
         top_earners.truncate(10);
 
         EarningAnalytics {
@@ -567,7 +567,7 @@ impl AnalyticsCollector {
 
         let (avg, p50, p95, p99) = if !samples.is_empty() {
             let mut sorted: Vec<f64> = samples.clone();
-            sorted.sort_by(|a, b| a.partial_cmp(b).unwrap());
+            sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
 
             let avg = sorted.iter().sum::<f64>() / sorted.len() as f64;
             let p50 = sorted[sorted.len() / 2];

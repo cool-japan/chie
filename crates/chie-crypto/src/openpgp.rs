@@ -97,7 +97,7 @@ impl OpenPgpPublicKey {
     pub fn from_ed25519(public_key: &PublicKey, user_id: impl Into<String>) -> Self {
         let created = SystemTime::now()
             .duration_since(UNIX_EPOCH)
-            .unwrap()
+            .expect("system time is always after UNIX_EPOCH")
             .as_secs() as u32;
 
         Self {
@@ -158,7 +158,7 @@ impl OpenPgpPublicKey {
 
         // Split into 64-character lines
         for chunk in encoded.as_bytes().chunks(64) {
-            result.push_str(std::str::from_utf8(chunk).unwrap());
+            result.push_str(std::str::from_utf8(chunk).expect("base64 encoded bytes are always valid UTF-8"));
             result.push('\n');
         }
 
@@ -204,7 +204,7 @@ impl OpenPgpSecretKey {
     pub fn from_ed25519(keypair: &KeyPair, user_id: impl Into<String>) -> Self {
         let created = SystemTime::now()
             .duration_since(UNIX_EPOCH)
-            .unwrap()
+            .expect("system time is always after UNIX_EPOCH")
             .as_secs() as u32;
 
         Self {
@@ -276,7 +276,7 @@ impl OpenPgpSecretKey {
 
         // Split into 64-character lines
         for chunk in encoded.as_bytes().chunks(64) {
-            result.push_str(std::str::from_utf8(chunk).unwrap());
+            result.push_str(std::str::from_utf8(chunk).expect("base64 encoded bytes are always valid UTF-8"));
             result.push('\n');
         }
 

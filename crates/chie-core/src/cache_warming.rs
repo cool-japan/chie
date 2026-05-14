@@ -221,7 +221,7 @@ impl CacheWarmer {
             .collect();
 
         // Sort by score (descending)
-        candidates.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap());
+        candidates.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap_or(std::cmp::Ordering::Equal));
 
         // Apply constraints
         self.apply_constraints(&mut candidates);
@@ -344,7 +344,7 @@ impl CacheWarmer {
     fn current_timestamp_ms() -> u64 {
         std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
+            .expect("system time is always after UNIX_EPOCH")
             .as_millis() as u64
     }
 }

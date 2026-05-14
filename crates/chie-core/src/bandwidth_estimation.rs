@@ -300,14 +300,14 @@ impl BandwidthEstimator {
             .samples
             .iter()
             .map(|s| s.bandwidth_mbps)
-            .min_by(|a, b| a.partial_cmp(b).unwrap())
+            .min_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
             .unwrap_or(0.0);
 
         let max_bw = self
             .samples
             .iter()
             .map(|s| s.bandwidth_mbps)
-            .max_by(|a, b| a.partial_cmp(b).unwrap())
+            .max_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
             .unwrap_or(0.0);
 
         let avg_rtt = if self.rtt_samples.is_empty() {

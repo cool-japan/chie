@@ -172,7 +172,7 @@ impl ReputationManager {
             self.peers
                 .insert(*peer, PeerStats::new(self.config.initial_score));
         }
-        self.peers.get_mut(peer).unwrap()
+        self.peers.get_mut(peer).expect("peer exists: just inserted if missing above")
     }
 
     /// Apply time-based decay to a peer's score.
@@ -332,7 +332,7 @@ impl ReputationManager {
             .map(|(peer, stats)| (*peer, stats.score))
             .collect();
 
-        peers.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
+        peers.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
         peers
     }
 

@@ -290,7 +290,7 @@ impl ReputationDecayManager {
             .map(|(p, r)| (*p, r.reputation))
             .collect();
 
-        peers.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
+        peers.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
         peers.truncate(n);
         peers
     }

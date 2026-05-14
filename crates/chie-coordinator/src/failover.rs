@@ -212,7 +212,7 @@ impl FailoverManager {
             return Err(FailoverError::TargetNotFound);
         }
 
-        let target = target.unwrap();
+        let target = target.expect("target is Some: checked is_none() and returned above");
         if target.status != PeerStatus::Healthy {
             return Err(FailoverError::TargetUnhealthy);
         }

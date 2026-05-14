@@ -456,7 +456,7 @@ impl RelayOptimizer {
             .map(|(id, cap)| (*id, cap.reliability))
             .collect();
 
-        relays.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
+        relays.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
         relays.truncate(count);
         relays
     }

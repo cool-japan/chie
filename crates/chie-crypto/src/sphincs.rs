@@ -190,7 +190,7 @@ impl SphincsSHAKE128f {
 
     /// Sign a message.
     pub fn sign(message: &[u8], sk: &SphincsSHAKE128fSecretKey) -> SphincsSHAKE128fSignature {
-        let secret_key = sphincsshake128fsimple::SecretKey::from_bytes(&sk.0).unwrap();
+        let secret_key = sphincsshake128fsimple::SecretKey::from_bytes(&sk.0).expect("secret key bytes are valid: produced by keygen above");
         let sig = sphincsshake128fsimple::detached_sign(message, &secret_key);
         SphincsSHAKE128fSignature(sig.as_bytes().to_vec())
     }
@@ -226,7 +226,7 @@ impl SphincsSHAKE192f {
 
     /// Sign a message.
     pub fn sign(message: &[u8], sk: &SphincsSHAKE192fSecretKey) -> SphincsSHAKE192fSignature {
-        let secret_key = sphincsshake192fsimple::SecretKey::from_bytes(&sk.0).unwrap();
+        let secret_key = sphincsshake192fsimple::SecretKey::from_bytes(&sk.0).expect("secret key bytes are valid: produced by keygen above");
         let sig = sphincsshake192fsimple::detached_sign(message, &secret_key);
         SphincsSHAKE192fSignature(sig.as_bytes().to_vec())
     }
@@ -262,7 +262,7 @@ impl SphincsSHAKE256f {
 
     /// Sign a message.
     pub fn sign(message: &[u8], sk: &SphincsSHAKE256fSecretKey) -> SphincsSHAKE256fSignature {
-        let secret_key = sphincsshake256fsimple::SecretKey::from_bytes(&sk.0).unwrap();
+        let secret_key = sphincsshake256fsimple::SecretKey::from_bytes(&sk.0).expect("secret key bytes are valid: produced by keygen above");
         let sig = sphincsshake256fsimple::detached_sign(message, &secret_key);
         SphincsSHAKE256fSignature(sig.as_bytes().to_vec())
     }

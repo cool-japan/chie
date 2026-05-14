@@ -560,46 +560,47 @@ pub fn record_coalescing_stats(
     metrics::counter!("chie_coalescing_executed_requests").absolute(executed_requests);
 }
 
-// TODO: Uncomment when database migration 005_tenants.sql is run
-// // ============================================================================
-// // Multi-Tenancy Metrics
-// // ============================================================================
-//
-// /// Record tenant created
-// pub fn record_tenant_created() {
-//     metrics::counter!("chie_tenants_created_total").increment(1);
-// }
-//
-// /// Record tenant updated
-// pub fn record_tenant_updated() {
-//     metrics::counter!("chie_tenants_updated_total").increment(1);
-// }
-//
-// /// Record tenant deleted
-// pub fn record_tenant_deleted() {
-//     metrics::counter!("chie_tenants_deleted_total").increment(1);
-// }
-//
-// /// Record tenant context extraction
-// pub fn record_tenant_context_extracted(namespace: &str) {
-//     metrics::counter!("chie_tenant_requests_total", "namespace" => namespace.to_string()).increment(1);
-// }
-//
-// /// Record tenant quota exceeded
-// pub fn record_tenant_quota_exceeded(tenant_id: &str, quota_type: &str) {
-//     metrics::counter!("chie_tenant_quota_exceeded_total", "tenant_id" => tenant_id.to_string(), "quota_type" => quota_type.to_string()).increment(1);
-// }
-//
-// /// Record tenant statistics
-// pub fn record_tenant_stats(
-//     total_tenants: usize,
-//     active_tenants: usize,
-//     suspended_tenants: usize,
-// ) {
-//     metrics::gauge!("chie_tenants_total").set(total_tenants as f64);
-//     metrics::gauge!("chie_tenants_active").set(active_tenants as f64);
-//     metrics::gauge!("chie_tenants_suspended").set(suspended_tenants as f64);
-// }
+// ============================================================================
+// Multi-Tenancy Metrics
+// ============================================================================
+
+/// Record tenant created
+pub fn record_tenant_created() {
+    metrics::counter!("chie_tenants_created_total").increment(1);
+}
+
+/// Record tenant updated
+pub fn record_tenant_updated() {
+    metrics::counter!("chie_tenants_updated_total").increment(1);
+}
+
+/// Record tenant deleted
+pub fn record_tenant_deleted() {
+    metrics::counter!("chie_tenants_deleted_total").increment(1);
+}
+
+/// Record tenant context extraction (request routed to a specific namespace)
+pub fn record_tenant_context_extracted(namespace: &str) {
+    metrics::counter!("chie_tenant_requests_total", "namespace" => namespace.to_string())
+        .increment(1);
+}
+
+/// Record tenant quota exceeded event
+pub fn record_tenant_quota_exceeded(tenant_id: &str, quota_type: &str) {
+    metrics::counter!(
+        "chie_tenant_quota_exceeded_total",
+        "tenant_id" => tenant_id.to_string(),
+        "quota_type" => quota_type.to_string()
+    )
+    .increment(1);
+}
+
+/// Record current tenant statistics snapshot
+pub fn record_tenant_stats(total_tenants: usize, active_tenants: usize, suspended_tenants: usize) {
+    metrics::gauge!("chie_tenants_total").set(total_tenants as f64);
+    metrics::gauge!("chie_tenants_active").set(active_tenants as f64);
+    metrics::gauge!("chie_tenants_suspended").set(suspended_tenants as f64);
+}
 
 // ============================================================================
 // Payment & Settlement Metrics

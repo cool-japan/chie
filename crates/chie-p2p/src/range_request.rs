@@ -403,15 +403,15 @@ impl RangeRequestHandler {
 
         if !ranges.is_empty() {
             let range_sizes: Vec<u64> = ranges.iter().map(|r| r.len()).collect();
-            stats.largest_range = stats.largest_range.max(*range_sizes.iter().max().unwrap());
+            stats.largest_range = stats.largest_range.max(*range_sizes.iter().max().expect("range_sizes non-empty: guarded by is_empty() check"));
             stats.smallest_range = if stats.smallest_range == 0 {
-                *range_sizes.iter().min().unwrap()
+                *range_sizes.iter().min().expect("range_sizes non-empty: guarded by is_empty() check")
             } else {
-                stats.smallest_range.min(*range_sizes.iter().min().unwrap())
+                stats.smallest_range.min(*range_sizes.iter().min().expect("range_sizes non-empty: guarded by is_empty() check"))
             };
 
-            if stats.total_requests > 0 {
-                stats.avg_range_size = stats.total_bytes_served / stats.total_requests;
+            if let Some(avg) = stats.total_bytes_served.checked_div(stats.total_requests) {
+                stats.avg_range_size = avg;
             }
         }
 

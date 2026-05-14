@@ -174,7 +174,7 @@ impl CheckpointManager {
 
         // Sort by timestamp (newest first)
         self.checkpoints
-            .sort_by(|a, b| b.timestamp_ms.cmp(&a.timestamp_ms));
+            .sort_by_key(|b| std::cmp::Reverse(b.timestamp_ms));
 
         Ok(())
     }

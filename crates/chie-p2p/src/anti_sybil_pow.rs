@@ -70,7 +70,7 @@ impl PoWChallenge {
 
         let timestamp = SystemTime::now()
             .duration_since(UNIX_EPOCH)
-            .unwrap()
+            .expect("system time is always after UNIX_EPOCH")
             .as_secs();
 
         Self {
@@ -86,7 +86,7 @@ impl PoWChallenge {
     pub fn is_expired(&self) -> bool {
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
-            .unwrap()
+            .expect("system time is always after UNIX_EPOCH")
             .as_secs();
         now > self.timestamp + self.ttl
     }
@@ -441,7 +441,7 @@ mod tests {
         // Simulate expiry by setting old timestamp
         challenge.timestamp = SystemTime::now()
             .duration_since(UNIX_EPOCH)
-            .unwrap()
+            .expect("system time is always after UNIX_EPOCH")
             .as_secs()
             - 10;
         assert!(challenge.is_expired());
@@ -585,7 +585,7 @@ mod tests {
         // Make it expired
         challenge.timestamp = SystemTime::now()
             .duration_since(UNIX_EPOCH)
-            .unwrap()
+            .expect("system time is always after UNIX_EPOCH")
             .as_secs()
             - 1000;
 

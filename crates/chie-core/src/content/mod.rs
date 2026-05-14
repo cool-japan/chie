@@ -180,14 +180,14 @@ impl ContentManager {
     /// Get all cached content sorted by size (descending).
     pub fn get_largest_content(&self, limit: usize) -> Vec<&ContentMetadata> {
         let mut content: Vec<_> = self.metadata_cache.iter().map(|(_, m)| m).collect();
-        content.sort_by(|a, b| b.size_bytes.cmp(&a.size_bytes));
+        content.sort_by_key(|b| std::cmp::Reverse(b.size_bytes));
         content.into_iter().take(limit).collect()
     }
 
     /// Get all cached content sorted by creation time (newest first).
     pub fn get_newest_content(&self, limit: usize) -> Vec<&ContentMetadata> {
         let mut content: Vec<_> = self.metadata_cache.iter().map(|(_, m)| m).collect();
-        content.sort_by(|a, b| b.created_at.cmp(&a.created_at));
+        content.sort_by_key(|b| std::cmp::Reverse(b.created_at));
         content.into_iter().take(limit).collect()
     }
 

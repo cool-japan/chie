@@ -425,10 +425,10 @@ impl ThresholdEcdsaSignature {
 
     /// Deserialize from bytes
     pub fn from_bytes(bytes: &[u8; 64]) -> ThresholdEcdsaResult<Self> {
-        let r = curve25519_dalek::ristretto::CompressedRistretto(bytes[..32].try_into().unwrap())
+        let r = curve25519_dalek::ristretto::CompressedRistretto(bytes[..32].try_into().expect("bytes is fixed size so slices are exact size"))
             .decompress()
             .ok_or(ThresholdEcdsaError::InvalidSignature)?;
-        let s = Scalar::from_bytes_mod_order(bytes[32..].try_into().unwrap());
+        let s = Scalar::from_bytes_mod_order(bytes[32..].try_into().expect("bytes is fixed size so slices are exact size"));
 
         Ok(Self { r, s })
     }
@@ -445,9 +445,9 @@ impl PublicShare {
 
     /// Deserialize from bytes
     pub fn from_bytes(bytes: &[u8; 36]) -> ThresholdEcdsaResult<Self> {
-        let signer_id = u32::from_le_bytes(bytes[..4].try_into().unwrap());
+        let signer_id = u32::from_le_bytes(bytes[..4].try_into().expect("bytes is fixed size so slices are exact size"));
         let public_key =
-            curve25519_dalek::ristretto::CompressedRistretto(bytes[4..].try_into().unwrap())
+            curve25519_dalek::ristretto::CompressedRistretto(bytes[4..].try_into().expect("bytes is fixed size so slices are exact size"))
                 .decompress()
                 .ok_or(ThresholdEcdsaError::InvalidPublicKey)?;
 

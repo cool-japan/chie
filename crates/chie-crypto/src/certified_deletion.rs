@@ -298,7 +298,7 @@ impl Default for CertifiedDeletion {
 fn current_timestamp() -> u64 {
     std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
-        .unwrap()
+        .expect("system time is always after UNIX_EPOCH")
         .as_secs()
 }
 

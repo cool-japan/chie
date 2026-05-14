@@ -405,9 +405,9 @@ impl PeerQualityPredictor {
             .collect();
 
         if ascending {
-            ranked.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
+            ranked.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap_or(std::cmp::Ordering::Equal));
         } else {
-            ranked.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
+            ranked.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
         }
 
         ranked

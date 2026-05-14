@@ -17,6 +17,18 @@ use std::time::{Duration, Instant};
 use tokio::sync::mpsc;
 use tracing::{debug, info, warn};
 
+/// Commands that can be sent to a running P2P node.
+#[derive(Debug)]
+pub enum NodeCommand {
+    /// Publish raw bytes to a gossipsub topic.
+    Publish {
+        /// Gossipsub topic name.
+        topic: String,
+        /// Payload to broadcast.
+        data: Vec<u8>,
+    },
+}
+
 /// Events emitted by the P2P node.
 #[derive(Debug)]
 pub enum NodeEvent {
@@ -44,6 +56,15 @@ pub enum NodeEvent {
     PeerDisconnected(PeerId),
     /// Connection established.
     ConnectionEstablished { peer: PeerId, num_established: u32 },
+    /// An inbound gossipsub message.
+    GossipMessage {
+        /// The `TopicHash::to_string()` of the topic (hex-SHA256 of the topic name).
+        topic: String,
+        /// The raw payload.
+        data: Vec<u8>,
+        /// The propagation source peer.
+        source: PeerId,
+    },
 }
 
 /// Configuration for the P2P node.
@@ -502,6 +523,67 @@ impl P2PNode {
         self.swarm.connected_peers().cloned().collect()
     }
 
+    /// Run the event loop, also processing inbound [`NodeCommand`]s from `cmd_rx`.
+    ///
+    /// Terminates when both the command channel is closed and the swarm idles,
+    /// or more practically when the caller drops `cmd_tx`.  In normal usage this
+    /// runs forever inside a spawned task.
+    pub async fn run_with_commands(&mut self, cmd_rx: &mut mpsc::Receiver<NodeCommand>) {
+        loop {
+            tokio::select! {
+                event = self.swarm.select_next_some() => {
+                    match event {
+                        SwarmEvent::Behaviour(ev) => {
+                            self.handle_behaviour_event(ev).await;
+                        }
+                        SwarmEvent::ConnectionEstablished {
+                            peer_id,
+                            num_established,
+                            ..
+                        } => {
+                            let num: u32 = num_established.into();
+                            info!("Connected to peer: {} (total: {})", peer_id, num);
+                            let _ = self
+                                .event_tx
+                                .send(NodeEvent::ConnectionEstablished {
+                                    peer: peer_id,
+                                    num_established: num,
+                                })
+                                .await;
+                        }
+                        SwarmEvent::ConnectionClosed { peer_id, .. } => {
+                            debug!("Disconnected from peer: {}", peer_id);
+                            let _ = self
+                                .event_tx
+                                .send(NodeEvent::PeerDisconnected(peer_id))
+                                .await;
+                        }
+                        SwarmEvent::NewListenAddr { address, .. } => {
+                            info!("Listening on: {}", address);
+                        }
+                        SwarmEvent::IncomingConnection { .. } => {
+                            debug!("Incoming connection");
+                        }
+                        _ => {}
+                    }
+                }
+                cmd = cmd_rx.recv() => {
+                    match cmd {
+                        Some(NodeCommand::Publish { topic, data }) => {
+                            if let Err(e) = self.publish(&topic, data) {
+                                warn!("publish to '{}' failed: {}", topic, e);
+                            }
+                        }
+                        None => {
+                            // Command channel closed — keep running until the swarm is done.
+                            debug!("NodeCommand channel closed; node continues without commands");
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     /// Run the event loop (call this in a spawned task).
     pub async fn run(&mut self) {
         loop {
@@ -651,6 +733,14 @@ impl P2PNode {
                     propagation_source,
                     message.data.len()
                 );
+                let _ = self
+                    .event_tx
+                    .send(NodeEvent::GossipMessage {
+                        topic: message.topic.to_string(),
+                        data: message.data,
+                        source: propagation_source,
+                    })
+                    .await;
             }
             gossipsub::Event::Subscribed { peer_id, topic } => {
                 debug!("Peer {} subscribed to {}", peer_id, topic);

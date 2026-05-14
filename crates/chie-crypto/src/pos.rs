@@ -290,7 +290,7 @@ impl StorageVerifier {
         for i in 0..count {
             hasher.update(&i.to_le_bytes());
             let hash = hasher.finalize();
-            let idx = u64::from_le_bytes(hash.as_bytes()[0..8].try_into().unwrap()) as usize
+            let idx = u64::from_le_bytes(hash.as_bytes()[0..8].try_into().expect("hash bytes are always >= 8 bytes")) as usize
                 % total_chunks;
             chunk_indices.push(idx);
         }

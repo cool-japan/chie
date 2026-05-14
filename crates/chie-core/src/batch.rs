@@ -213,7 +213,7 @@ impl BatchProcessor {
             let timeout = self.config.operation_timeout;
 
             let handle = tokio::spawn(async move {
-                let _permit = semaphore.acquire().await.unwrap();
+                let _permit = semaphore.acquire().await.expect("semaphore not closed while batch task runs");
 
                 // Execute with timeout
                 match tokio::time::timeout(timeout, f(item)).await {

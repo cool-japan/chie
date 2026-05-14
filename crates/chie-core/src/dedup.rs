@@ -792,7 +792,7 @@ impl DedupStore {
             .map(|(hash, chunk_ref)| (*hash, chunk_ref.ref_count, chunk_ref.size))
             .collect();
 
-        chunks.sort_by(|a, b| b.1.cmp(&a.1));
+        chunks.sort_by_key(|b| std::cmp::Reverse(b.1));
         chunks.truncate(limit);
 
         chunks

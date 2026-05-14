@@ -354,7 +354,10 @@ pub const fn saturating_mul_const(a: u64, b: u64) -> u64 {
 /// ```
 #[inline]
 pub const fn percentage_const(part: u64, total: u64) -> u64 {
-    if total == 0 { 0 } else { (part * 100) / total }
+    match (part * 100).checked_div(total) {
+        Some(v) => v,
+        None => 0,
+    }
 }
 
 /// Truncate string to maximum length with ellipsis.
@@ -724,7 +727,7 @@ pub mod async_utils {
             }
         }
 
-        Err(last_error.unwrap())
+        Err(last_error.expect("last_error is Some: loop executes at least once and always sets it on Err"))
     }
 
     /// Sleep for a specified duration (async).
@@ -1637,7 +1640,7 @@ mod tests {
         let timestamp_ms = 1609459200000i64; // 2021-01-01 00:00:00 UTC
         let system_time = timestamp_to_systemtime(timestamp_ms);
 
-        let duration = system_time.duration_since(UNIX_EPOCH).unwrap();
+        let duration = system_time.duration_since(UNIX_EPOCH).expect("system time is always after UNIX_EPOCH");
         assert_eq!(duration.as_millis(), timestamp_ms as u128);
 
         let zero_time = timestamp_to_systemtime(0);

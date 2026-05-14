@@ -238,7 +238,7 @@ fn bench_realistic_proof_batching(c: &mut Criterion) {
             }
 
             // Sort by priority for processing
-            batch.sort_by(|a, b| b.priority.cmp(&a.priority));
+            batch.sort_by_key(|b| std::cmp::Reverse(b.priority));
 
             black_box(batch);
         });

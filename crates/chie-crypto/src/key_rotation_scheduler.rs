@@ -243,7 +243,7 @@ impl KeyRotationScheduler {
 
         // If there's a grace period, check if we're past it
         if let Some(grace_period) = self.grace_period {
-            let metadata = self.keys.get(key_id).unwrap();
+            let metadata = self.keys.get(key_id).expect("key exists: should_rotate() returning true implies key was found");
             let time_since_trigger = match &self.policy {
                 KeyRotationPolicy::TimeBased { max_age } => metadata.age().saturating_sub(*max_age),
                 KeyRotationPolicy::Hybrid { max_age, .. } => {

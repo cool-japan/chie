@@ -194,7 +194,7 @@ impl GeoZone {
         self.nodes
             .values()
             .filter(|n| n.healthy)
-            .min_by(|a, b| a.score().partial_cmp(&b.score()).unwrap())
+            .min_by(|a, b| a.score().partial_cmp(&b.score()).unwrap_or(std::cmp::Ordering::Equal))
     }
 
     /// Get available capacity
@@ -316,7 +316,7 @@ impl GeoLoadBalancer {
             .map(|zone| (zone, client_location.distance_to(&zone.location)))
             .collect();
 
-        zone_distances.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
+        zone_distances.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap_or(std::cmp::Ordering::Equal));
 
         // Try to find a node in the nearest zone
         for (zone, distance) in &zone_distances {
@@ -357,7 +357,7 @@ impl GeoLoadBalancer {
             .map(|zone| (zone, client_location.distance_to(&zone.location)))
             .collect();
 
-        zone_distances.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
+        zone_distances.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap_or(std::cmp::Ordering::Equal));
 
         // Collect nodes from zones
         let mut candidates: Vec<(&GeoNode, &str)> = Vec::new();
@@ -370,7 +370,7 @@ impl GeoLoadBalancer {
         }
 
         // Sort by score and select top N
-        candidates.sort_by(|a, b| a.0.score().partial_cmp(&b.0.score()).unwrap());
+        candidates.sort_by(|a, b| a.0.score().partial_cmp(&b.0.score()).unwrap_or(std::cmp::Ordering::Equal));
 
         for (node, _) in candidates.iter().take(count) {
             selected.push(node.id.clone());
@@ -394,7 +394,7 @@ impl GeoLoadBalancer {
         self.zones.values().min_by(|a, b| {
             let dist_a = location.distance_to(&a.location);
             let dist_b = location.distance_to(&b.location);
-            dist_a.partial_cmp(&dist_b).unwrap()
+            dist_a.partial_cmp(&dist_b).unwrap_or(std::cmp::Ordering::Equal)
         })
     }
 

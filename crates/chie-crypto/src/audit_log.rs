@@ -152,8 +152,8 @@ impl AuditEntry {
         let mut hash_input = Vec::new();
         hash_input.extend_from_slice(&id.to_le_bytes());
         hash_input.extend_from_slice(timestamp.to_rfc3339().as_bytes());
-        hash_input.extend_from_slice(&crate::codec::encode(&operation_type).unwrap());
-        hash_input.extend_from_slice(&crate::codec::encode(&severity).unwrap());
+        hash_input.extend_from_slice(&crate::codec::encode(&operation_type).expect("encoding enum to bytes is infallible"));
+        hash_input.extend_from_slice(&crate::codec::encode(&severity).expect("encoding enum to bytes is infallible"));
         hash_input.extend_from_slice(description.as_bytes());
         if let Some(ref m) = metadata {
             hash_input.extend_from_slice(m.as_bytes());
@@ -189,8 +189,8 @@ impl AuditEntry {
         let mut hash_input = Vec::new();
         hash_input.extend_from_slice(&self.id.to_le_bytes());
         hash_input.extend_from_slice(self.timestamp.to_rfc3339().as_bytes());
-        hash_input.extend_from_slice(&crate::codec::encode(&self.operation_type).unwrap());
-        hash_input.extend_from_slice(&crate::codec::encode(&self.severity).unwrap());
+        hash_input.extend_from_slice(&crate::codec::encode(&self.operation_type).expect("encoding enum to bytes is infallible"));
+        hash_input.extend_from_slice(&crate::codec::encode(&self.severity).expect("encoding enum to bytes is infallible"));
         hash_input.extend_from_slice(self.description.as_bytes());
         if let Some(ref m) = self.metadata {
             hash_input.extend_from_slice(m.as_bytes());

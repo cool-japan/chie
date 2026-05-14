@@ -430,7 +430,7 @@ impl TopologyOptimizer {
             .values()
             .filter(|m| m.reliability >= 0.9)
             .collect();
-        candidates.sort_by(|a, b| b.reliability.partial_cmp(&a.reliability).unwrap());
+        candidates.sort_by(|a, b| b.reliability.partial_cmp(&a.reliability).unwrap_or(std::cmp::Ordering::Equal));
 
         for peer in candidates.iter().take(3) {
             recommendations.push(ConnectionRecommendation::Add {
@@ -459,7 +459,7 @@ impl TopologyOptimizer {
             })
             .collect();
 
-        scored_peers.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
+        scored_peers.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
 
         for (peer, score) in scored_peers.iter().take(3) {
             recommendations.push(ConnectionRecommendation::Add {

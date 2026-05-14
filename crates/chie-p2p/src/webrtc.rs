@@ -191,14 +191,14 @@ impl WebRtcConfig {
     pub fn webrtc_listen_addr(port: u16) -> Multiaddr {
         format!("/ip4/0.0.0.0/udp/{}/webrtc-direct", port)
             .parse()
-            .unwrap()
+            .expect("formatted multiaddr is always valid")
     }
 
     /// Create a WebRTC listen address for IPv6.
     pub fn webrtc_listen_addr_v6(port: u16) -> Multiaddr {
         format!("/ip6/::/udp/{}/webrtc-direct", port)
             .parse()
-            .unwrap()
+            .expect("formatted multiaddr is always valid")
     }
 }
 

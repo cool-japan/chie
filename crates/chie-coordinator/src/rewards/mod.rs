@@ -310,7 +310,7 @@ mod inner {
             recommendations.sort_by(|a, b| {
                 b.expected_revenue_per_gb
                     .partial_cmp(&a.expected_revenue_per_gb)
-                    .unwrap()
+                    .unwrap_or(std::cmp::Ordering::Equal)
             });
 
             Ok(recommendations)

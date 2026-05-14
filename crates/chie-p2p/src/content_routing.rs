@@ -329,7 +329,7 @@ impl ContentRouter {
             .map(|(cid, record)| (cid.clone(), record.query_count))
             .collect();
 
-        content.sort_by(|a, b| b.1.cmp(&a.1));
+        content.sort_by_key(|b| std::cmp::Reverse(b.1));
         content.truncate(limit);
         content
     }

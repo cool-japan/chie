@@ -358,7 +358,7 @@ impl TieredStorageManager {
         }
 
         // Sort by priority (highest first)
-        moves.sort_by(|a, b| b.priority.cmp(&a.priority));
+        moves.sort_by_key(|b| std::cmp::Reverse(b.priority));
 
         moves
     }
