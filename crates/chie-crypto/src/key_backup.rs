@@ -435,7 +435,10 @@ pub fn backup_key_encrypted(
         .as_secs();
 
     // Convert nonce to array
-    let nonce_bytes: [u8; 12] = nonce.as_slice().try_into().expect("nonce is exactly 12 bytes from generation");
+    let nonce_bytes: [u8; 12] = nonce
+        .as_slice()
+        .try_into()
+        .expect("nonce is exactly 12 bytes from generation");
 
     Ok(EncryptedBackup {
         ciphertext,
@@ -501,7 +504,10 @@ pub fn backup_secret_encrypted(
         .as_secs();
 
     // Convert nonce to array
-    let nonce_bytes: [u8; 12] = nonce.as_slice().try_into().expect("nonce is exactly 12 bytes from generation");
+    let nonce_bytes: [u8; 12] = nonce
+        .as_slice()
+        .try_into()
+        .expect("nonce is exactly 12 bytes from generation");
 
     Ok(EncryptedBackup {
         ciphertext,

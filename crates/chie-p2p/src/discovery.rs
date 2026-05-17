@@ -314,7 +314,9 @@ impl ContentAdvertisementManager {
             ranked.sort_by(|a, b| {
                 let score_a = a.score.unwrap_or(50.0);
                 let score_b = b.score.unwrap_or(50.0);
-                score_b.partial_cmp(&score_a).unwrap_or(std::cmp::Ordering::Equal)
+                score_b
+                    .partial_cmp(&score_a)
+                    .unwrap_or(std::cmp::Ordering::Equal)
             });
             ranked
         } else {

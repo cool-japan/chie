@@ -144,7 +144,10 @@ impl PeerQualityPredictor {
 
     /// Record a quality metric for a peer
     pub fn record_metric(&self, peer_id: PeerId, metric: QualityMetric, value: f64) {
-        let mut histories = self.peer_histories.write().unwrap_or_else(|e| e.into_inner());
+        let mut histories = self
+            .peer_histories
+            .write()
+            .unwrap_or_else(|e| e.into_inner());
         let peer_metrics = histories.entry(peer_id).or_default();
         let history = peer_metrics
             .entry(metric)
@@ -154,7 +157,10 @@ impl PeerQualityPredictor {
 
     /// Predict quality for a peer
     pub fn predict(&self, peer_id: &PeerId, metric: QualityMetric) -> Option<QualityPrediction> {
-        let histories = self.peer_histories.read().unwrap_or_else(|e| e.into_inner());
+        let histories = self
+            .peer_histories
+            .read()
+            .unwrap_or_else(|e| e.into_inner());
         let peer_metrics = histories.get(peer_id)?;
         let history = peer_metrics.get(&metric)?;
 
@@ -395,7 +401,10 @@ impl PeerQualityPredictor {
 
     /// Get peers ranked by predicted quality
     pub fn get_ranked_peers(&self, metric: QualityMetric, ascending: bool) -> Vec<(PeerId, f64)> {
-        let histories = self.peer_histories.read().unwrap_or_else(|e| e.into_inner());
+        let histories = self
+            .peer_histories
+            .read()
+            .unwrap_or_else(|e| e.into_inner());
         let mut ranked: Vec<(PeerId, f64)> = histories
             .keys()
             .filter_map(|peer_id| {
@@ -415,12 +424,18 @@ impl PeerQualityPredictor {
 
     /// Clear history for a peer
     pub fn clear_peer_history(&self, peer_id: &PeerId) {
-        self.peer_histories.write().unwrap_or_else(|e| e.into_inner()).remove(peer_id);
+        self.peer_histories
+            .write()
+            .unwrap_or_else(|e| e.into_inner())
+            .remove(peer_id);
     }
 
     /// Get statistics
     pub fn get_stats(&self) -> PredictorStats {
-        let histories = self.peer_histories.read().unwrap_or_else(|e| e.into_inner());
+        let histories = self
+            .peer_histories
+            .read()
+            .unwrap_or_else(|e| e.into_inner());
         let total_peers = histories.len();
         let total_metrics: usize = histories.values().map(|m| m.len()).sum();
         let total_data_points: usize = histories

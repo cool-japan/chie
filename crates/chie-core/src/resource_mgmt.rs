@@ -303,7 +303,10 @@ impl ResourceMonitor {
 
         // Record for rate tracking
         {
-            let mut recent = self.recent_allocations.lock().unwrap_or_else(|e| e.into_inner());
+            let mut recent = self
+                .recent_allocations
+                .lock()
+                .unwrap_or_else(|e| e.into_inner());
             recent
                 .entry(resource_type)
                 .or_default()
@@ -383,7 +386,11 @@ impl ResourceMonitor {
     #[must_use]
     #[inline]
     pub fn get_stats(&self, resource_type: ResourceType) -> Option<ResourceStats> {
-        self.stats.lock().unwrap_or_else(|e| e.into_inner()).get(&resource_type).cloned()
+        self.stats
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .get(&resource_type)
+            .cloned()
     }
 
     /// Get all resource statistics.
@@ -397,7 +404,10 @@ impl ResourceMonitor {
     #[must_use]
     #[inline]
     pub fn get_allocation_rate(&self, resource_type: ResourceType, window: Duration) -> u64 {
-        let recent = self.recent_allocations.lock().unwrap_or_else(|e| e.into_inner());
+        let recent = self
+            .recent_allocations
+            .lock()
+            .unwrap_or_else(|e| e.into_inner());
         if let Some(records) = recent.get(&resource_type) {
             let cutoff = Instant::now() - window;
             let total: u64 = records
@@ -415,7 +425,10 @@ impl ResourceMonitor {
 
     /// Clean old allocation records (older than specified duration).
     pub fn cleanup_old_records(&mut self, older_than: Duration) {
-        let mut recent = self.recent_allocations.lock().unwrap_or_else(|e| e.into_inner());
+        let mut recent = self
+            .recent_allocations
+            .lock()
+            .unwrap_or_else(|e| e.into_inner());
         let cutoff = Instant::now() - older_than;
 
         for records in recent.values_mut() {
@@ -499,7 +512,10 @@ impl ResourceMonitor {
     /// based on resource pressure.
     pub fn update_degradation_level(&mut self) {
         let new_level = self.calculate_degradation_level();
-        let mut current_level = self.degradation_level.lock().unwrap_or_else(|e| e.into_inner());
+        let mut current_level = self
+            .degradation_level
+            .lock()
+            .unwrap_or_else(|e| e.into_inner());
 
         if new_level != *current_level {
             *current_level = new_level;
@@ -516,7 +532,10 @@ impl ResourceMonitor {
     #[must_use]
     #[inline]
     pub fn degradation_level(&self) -> DegradationLevel {
-        *self.degradation_level.lock().unwrap_or_else(|e| e.into_inner())
+        *self
+            .degradation_level
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
     }
 
     /// Check if the system should accept new requests based on degradation level.
@@ -639,14 +658,21 @@ impl ResourceMonitor {
     #[must_use]
     #[inline]
     pub fn total_system_memory(&self) -> u64 {
-        self.system.lock().unwrap_or_else(|e| e.into_inner()).total_memory()
+        self.system
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .total_memory()
     }
 
     /// Get number of CPU cores.
     #[must_use]
     #[inline]
     pub fn cpu_count(&self) -> usize {
-        self.system.lock().unwrap_or_else(|e| e.into_inner()).cpus().len()
+        self.system
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .cpus()
+            .len()
     }
 
     /// Predict future resource usage based on recent trends.
@@ -670,7 +696,10 @@ impl ResourceMonitor {
         window: Duration,
         forecast_duration: Duration,
     ) -> Option<u64> {
-        let recent = self.recent_allocations.lock().unwrap_or_else(|e| e.into_inner());
+        let recent = self
+            .recent_allocations
+            .lock()
+            .unwrap_or_else(|e| e.into_inner());
         let records = recent.get(&resource_type)?;
 
         if records.is_empty() {

@@ -221,7 +221,11 @@ impl CacheWarmer {
             .collect();
 
         // Sort by score (descending)
-        candidates.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap_or(std::cmp::Ordering::Equal));
+        candidates.sort_by(|a, b| {
+            b.score
+                .partial_cmp(&a.score)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
 
         // Apply constraints
         self.apply_constraints(&mut candidates);

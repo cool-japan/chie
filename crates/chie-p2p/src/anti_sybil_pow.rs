@@ -237,7 +237,10 @@ impl AntiSybilManager {
 
     /// Create a challenge for a peer
     pub fn create_challenge(&self, peer_id: &PeerId) -> Result<PoWChallenge, String> {
-        let mut verifications = self.peer_verifications.write().unwrap_or_else(|e| e.into_inner());
+        let mut verifications = self
+            .peer_verifications
+            .write()
+            .unwrap_or_else(|e| e.into_inner());
         let verification = verifications.entry(*peer_id).or_insert(PeerVerification {
             verified: false,
             verified_at: None,
@@ -275,7 +278,10 @@ impl AntiSybilManager {
 
     /// Verify a solution
     pub fn verify_solution(&self, solution: &PoWSolution, peer_id: &PeerId) -> bool {
-        let challenges = self.active_challenges.read().unwrap_or_else(|e| e.into_inner());
+        let challenges = self
+            .active_challenges
+            .read()
+            .unwrap_or_else(|e| e.into_inner());
         let Some(challenge) = challenges.get(&solution.challenge_id) else {
             return false;
         };
@@ -287,7 +293,10 @@ impl AntiSybilManager {
         drop(challenges);
 
         // Mark peer as verified
-        let mut verifications = self.peer_verifications.write().unwrap_or_else(|e| e.into_inner());
+        let mut verifications = self
+            .peer_verifications
+            .write()
+            .unwrap_or_else(|e| e.into_inner());
         if let Some(verification) = verifications.get_mut(peer_id) {
             verification.verified = true;
             verification.verified_at = Some(Instant::now());
@@ -304,7 +313,10 @@ impl AntiSybilManager {
 
     /// Check if peer is verified
     pub fn is_verified(&self, peer_id: &PeerId) -> bool {
-        let verifications = self.peer_verifications.read().unwrap_or_else(|e| e.into_inner());
+        let verifications = self
+            .peer_verifications
+            .read()
+            .unwrap_or_else(|e| e.into_inner());
         if let Some(verification) = verifications.get(peer_id) {
             if verification.verified {
                 if let Some(verified_at) = verification.verified_at {
@@ -317,7 +329,12 @@ impl AntiSybilManager {
 
     /// Revoke verification for a peer
     pub fn revoke_verification(&self, peer_id: &PeerId) {
-        if let Some(verification) = self.peer_verifications.write().unwrap_or_else(|e| e.into_inner()).get_mut(peer_id) {
+        if let Some(verification) = self
+            .peer_verifications
+            .write()
+            .unwrap_or_else(|e| e.into_inner())
+            .get_mut(peer_id)
+        {
             verification.verified = false;
             verification.verified_at = None;
         }
@@ -355,8 +372,14 @@ impl AntiSybilManager {
 
     /// Get statistics
     pub fn get_stats(&self) -> AntiSybilStats {
-        let challenges = self.active_challenges.read().unwrap_or_else(|e| e.into_inner());
-        let verifications = self.peer_verifications.read().unwrap_or_else(|e| e.into_inner());
+        let challenges = self
+            .active_challenges
+            .read()
+            .unwrap_or_else(|e| e.into_inner());
+        let verifications = self
+            .peer_verifications
+            .read()
+            .unwrap_or_else(|e| e.into_inner());
 
         let verified_peers = verifications
             .values()

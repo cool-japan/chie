@@ -291,7 +291,11 @@ impl ContentSearch {
         // Sort results
         match query.sort_by {
             SortOrder::Relevance => {
-                results.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap_or(std::cmp::Ordering::Equal));
+                results.sort_by(|a, b| {
+                    b.score
+                        .partial_cmp(&a.score)
+                        .unwrap_or(std::cmp::Ordering::Equal)
+                });
             }
             SortOrder::NewestFirst => {
                 results.sort_by_key(|b| std::cmp::Reverse(b.created_at));

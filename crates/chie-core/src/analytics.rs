@@ -389,7 +389,10 @@ impl AnalyticsCollector {
     /// Record latency sample.
     #[inline]
     pub fn record_latency(&self, latency_ms: f64) {
-        let mut samples = self.latency_samples.write().unwrap_or_else(|e| e.into_inner());
+        let mut samples = self
+            .latency_samples
+            .write()
+            .unwrap_or_else(|e| e.into_inner());
         samples.push(latency_ms);
 
         // Limit samples
@@ -563,7 +566,10 @@ impl AnalyticsCollector {
     /// Get performance analytics.
     #[must_use]
     pub fn performance_analytics(&self) -> PerformanceAnalytics {
-        let samples = self.latency_samples.read().unwrap_or_else(|e| e.into_inner());
+        let samples = self
+            .latency_samples
+            .read()
+            .unwrap_or_else(|e| e.into_inner());
 
         let (avg, p50, p95, p99) = if !samples.is_empty() {
             let mut sorted: Vec<f64> = samples.clone();

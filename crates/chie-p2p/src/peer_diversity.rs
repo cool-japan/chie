@@ -213,12 +213,18 @@ impl PeerDiversityManager {
             last_updated: Instant::now(),
         };
 
-        self.peers.write().unwrap_or_else(|e| e.into_inner()).insert(peer_id, info);
+        self.peers
+            .write()
+            .unwrap_or_else(|e| e.into_inner())
+            .insert(peer_id, info);
     }
 
     /// Remove peer
     pub fn remove_peer(&self, peer_id: &PeerId) {
-        self.peers.write().unwrap_or_else(|e| e.into_inner()).remove(peer_id);
+        self.peers
+            .write()
+            .unwrap_or_else(|e| e.into_inner())
+            .remove(peer_id);
     }
 
     /// Check diversity and get recommendations
@@ -447,7 +453,11 @@ impl PeerDiversityManager {
 
     /// Should check diversity now
     pub fn should_check(&self) -> bool {
-        self.last_check.read().unwrap_or_else(|e| e.into_inner()).elapsed() >= self.config.check_interval
+        self.last_check
+            .read()
+            .unwrap_or_else(|e| e.into_inner())
+            .elapsed()
+            >= self.config.check_interval
     }
 }
 

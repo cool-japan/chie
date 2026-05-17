@@ -391,7 +391,10 @@ impl BandwidthMarketMaker {
 
     /// Clears all history and resets statistics.
     pub fn clear(&self) {
-        self.history.lock().unwrap_or_else(|e| e.into_inner()).clear();
+        self.history
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .clear();
 
         let mut stats = self.stats.lock().unwrap_or_else(|e| e.into_inner());
         *stats = MarketMakerStats {
@@ -411,8 +414,15 @@ impl Clone for BandwidthMarketMaker {
         Self {
             config: self.config.clone(),
             strategy: self.strategy,
-            history: Arc::new(Mutex::new(self.history.lock().unwrap_or_else(|e| e.into_inner()).clone())),
-            stats: Arc::new(Mutex::new(self.stats.lock().unwrap_or_else(|e| e.into_inner()).clone())),
+            history: Arc::new(Mutex::new(
+                self.history
+                    .lock()
+                    .unwrap_or_else(|e| e.into_inner())
+                    .clone(),
+            )),
+            stats: Arc::new(Mutex::new(
+                self.stats.lock().unwrap_or_else(|e| e.into_inner()).clone(),
+            )),
         }
     }
 }

@@ -277,7 +277,10 @@ impl ErrorTracker {
 
     /// Increment total requests counter
     pub fn record_request(&self) {
-        let mut total = self.total_requests.write().unwrap_or_else(|e| e.into_inner());
+        let mut total = self
+            .total_requests
+            .write()
+            .unwrap_or_else(|e| e.into_inner());
         *total += 1;
     }
 
@@ -298,7 +301,10 @@ impl ErrorTracker {
     /// Get error rate statistics
     pub fn get_error_rate_stats(&self) -> ErrorRateStats {
         let errors = self.errors.read().unwrap_or_else(|e| e.into_inner());
-        let total_requests = *self.total_requests.read().unwrap_or_else(|e| e.into_inner());
+        let total_requests = *self
+            .total_requests
+            .read()
+            .unwrap_or_else(|e| e.into_inner());
 
         let cutoff = Utc::now() - ChronoDuration::minutes(self.config.rate_window_minutes);
         let recent_errors: Vec<_> = errors.iter().filter(|e| e.timestamp > cutoff).collect();

@@ -229,7 +229,11 @@ impl VerificationPipeline {
         // Update stats
         {
             let mut stats = self.stats.lock().unwrap_or_else(|e| e.into_inner());
-            stats.tasks_in_progress = self.in_progress.lock().unwrap_or_else(|e| e.into_inner()).len();
+            stats.tasks_in_progress = self
+                .in_progress
+                .lock()
+                .unwrap_or_else(|e| e.into_inner())
+                .len();
             stats.tasks_completed += 1;
 
             match status {
@@ -373,9 +377,18 @@ impl VerificationPipeline {
     /// Clears all queues and resets statistics.
     pub fn clear(&self) {
         self.queue.lock().unwrap_or_else(|e| e.into_inner()).clear();
-        self.in_progress.lock().unwrap_or_else(|e| e.into_inner()).clear();
-        self.results.lock().unwrap_or_else(|e| e.into_inner()).clear();
-        self.retry_count.lock().unwrap_or_else(|e| e.into_inner()).clear();
+        self.in_progress
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .clear();
+        self.results
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .clear();
+        self.retry_count
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .clear();
 
         let mut stats = self.stats.lock().unwrap_or_else(|e| e.into_inner());
         *stats = PipelineStats {
@@ -396,11 +409,30 @@ impl Clone for VerificationPipeline {
     fn clone(&self) -> Self {
         Self {
             config: self.config.clone(),
-            queue: Arc::new(Mutex::new(self.queue.lock().unwrap_or_else(|e| e.into_inner()).clone())),
-            in_progress: Arc::new(Mutex::new(self.in_progress.lock().unwrap_or_else(|e| e.into_inner()).clone())),
-            results: Arc::new(Mutex::new(self.results.lock().unwrap_or_else(|e| e.into_inner()).clone())),
-            stats: Arc::new(Mutex::new(self.stats.lock().unwrap_or_else(|e| e.into_inner()).clone())),
-            retry_count: Arc::new(Mutex::new(self.retry_count.lock().unwrap_or_else(|e| e.into_inner()).clone())),
+            queue: Arc::new(Mutex::new(
+                self.queue.lock().unwrap_or_else(|e| e.into_inner()).clone(),
+            )),
+            in_progress: Arc::new(Mutex::new(
+                self.in_progress
+                    .lock()
+                    .unwrap_or_else(|e| e.into_inner())
+                    .clone(),
+            )),
+            results: Arc::new(Mutex::new(
+                self.results
+                    .lock()
+                    .unwrap_or_else(|e| e.into_inner())
+                    .clone(),
+            )),
+            stats: Arc::new(Mutex::new(
+                self.stats.lock().unwrap_or_else(|e| e.into_inner()).clone(),
+            )),
+            retry_count: Arc::new(Mutex::new(
+                self.retry_count
+                    .lock()
+                    .unwrap_or_else(|e| e.into_inner())
+                    .clone(),
+            )),
         }
     }
 }

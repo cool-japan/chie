@@ -149,14 +149,20 @@ impl ConnectionScheduler {
         delay: Duration,
         reason: String,
     ) -> bool {
-        let mut queue = self.scheduled_queue.write().unwrap_or_else(|e| e.into_inner());
+        let mut queue = self
+            .scheduled_queue
+            .write()
+            .unwrap_or_else(|e| e.into_inner());
 
         // Check if already scheduled or connected
         if queue.iter().any(|s| s.peer_id == peer_id) {
             return false;
         }
 
-        let connections = self.active_connections.read().unwrap_or_else(|e| e.into_inner());
+        let connections = self
+            .active_connections
+            .read()
+            .unwrap_or_else(|e| e.into_inner());
         if let Some(info) = connections.get(&peer_id) {
             if info.state == ConnectionState::Connected {
                 return false;
@@ -222,7 +228,10 @@ impl ConnectionScheduler {
 
     /// Get next by priority
     fn get_next_priority(&self) -> Option<ScheduledConnection> {
-        let mut queue = self.scheduled_queue.write().unwrap_or_else(|e| e.into_inner());
+        let mut queue = self
+            .scheduled_queue
+            .write()
+            .unwrap_or_else(|e| e.into_inner());
         if let Some(conn) = queue.pop() {
             if conn.scheduled_time <= Instant::now() {
                 self.mark_connecting(conn.peer_id);
@@ -236,7 +245,10 @@ impl ConnectionScheduler {
 
     /// Get next by time
     fn get_next_time_ordered(&self) -> Option<ScheduledConnection> {
-        let mut queue = self.scheduled_queue.write().unwrap_or_else(|e| e.into_inner());
+        let mut queue = self
+            .scheduled_queue
+            .write()
+            .unwrap_or_else(|e| e.into_inner());
         let now = Instant::now();
 
         // Find earliest scheduled connection that's due
@@ -274,7 +286,10 @@ impl ConnectionScheduler {
 
     /// Get next using round-robin
     fn get_next_round_robin(&self) -> Option<ScheduledConnection> {
-        let mut queue = self.scheduled_queue.write().unwrap_or_else(|e| e.into_inner());
+        let mut queue = self
+            .scheduled_queue
+            .write()
+            .unwrap_or_else(|e| e.into_inner());
         let now = Instant::now();
 
         // Group by priority
@@ -286,7 +301,10 @@ impl ConnectionScheduler {
             ConnectionPriority::Background,
         ];
 
-        let mut index = self.round_robin_index.write().unwrap_or_else(|e| e.into_inner());
+        let mut index = self
+            .round_robin_index
+            .write()
+            .unwrap_or_else(|e| e.into_inner());
         let start_index = *index;
 
         // Try each priority in round-robin fashion
@@ -351,20 +369,28 @@ impl ConnectionScheduler {
 
     /// Mark peer as connecting
     fn mark_connecting(&self, peer_id: PeerId) {
-        self.active_connections.write().unwrap_or_else(|e| e.into_inner()).insert(
-            peer_id,
-            ConnectionInfo {
-                state: ConnectionState::Connecting,
-                last_attempt: Some(Instant::now()),
-                last_success: None,
-                retry_count: 0,
-            },
-        );
+        self.active_connections
+            .write()
+            .unwrap_or_else(|e| e.into_inner())
+            .insert(
+                peer_id,
+                ConnectionInfo {
+                    state: ConnectionState::Connecting,
+                    last_attempt: Some(Instant::now()),
+                    last_success: None,
+                    retry_count: 0,
+                },
+            );
     }
 
     /// Mark connection as successful
     pub fn mark_success(&self, peer_id: &PeerId) {
-        if let Some(info) = self.active_connections.write().unwrap_or_else(|e| e.into_inner()).get_mut(peer_id) {
+        if let Some(info) = self
+            .active_connections
+            .write()
+            .unwrap_or_else(|e| e.into_inner())
+            .get_mut(peer_id)
+        {
             info.state = ConnectionState::Connected;
             info.last_success = Some(Instant::now());
             info.retry_count = 0;
@@ -374,7 +400,10 @@ impl ConnectionScheduler {
     /// Mark connection as failed
     pub fn mark_failed(&self, peer_id: &PeerId) -> bool {
         let retry_info = {
-            let mut connections = self.active_connections.write().unwrap_or_else(|e| e.into_inner());
+            let mut connections = self
+                .active_connections
+                .write()
+                .unwrap_or_else(|e| e.into_inner());
             if let Some(info) = connections.get_mut(peer_id) {
                 info.state = ConnectionState::Failed;
                 info.retry_count += 1;
@@ -408,12 +437,18 @@ impl ConnectionScheduler {
 
     /// Disconnect peer
     pub fn disconnect(&self, peer_id: &PeerId) {
-        self.active_connections.write().unwrap_or_else(|e| e.into_inner()).remove(peer_id);
+        self.active_connections
+            .write()
+            .unwrap_or_else(|e| e.into_inner())
+            .remove(peer_id);
     }
 
     /// Cancel scheduled connection
     pub fn cancel(&self, peer_id: &PeerId) -> bool {
-        let mut queue = self.scheduled_queue.write().unwrap_or_else(|e| e.into_inner());
+        let mut queue = self
+            .scheduled_queue
+            .write()
+            .unwrap_or_else(|e| e.into_inner());
         let original_len = queue.len();
 
         let remaining: Vec<_> = queue.drain().filter(|s| s.peer_id != *peer_id).collect();
@@ -428,7 +463,10 @@ impl ConnectionScheduler {
 
     /// Get scheduled count
     pub fn scheduled_count(&self) -> usize {
-        self.scheduled_queue.read().unwrap_or_else(|e| e.into_inner()).len()
+        self.scheduled_queue
+            .read()
+            .unwrap_or_else(|e| e.into_inner())
+            .len()
     }
 
     /// Get active connection count
@@ -453,7 +491,10 @@ impl ConnectionScheduler {
 
     /// Get scheduler statistics
     pub fn get_stats(&self) -> SchedulerStats {
-        let connections = self.active_connections.read().unwrap_or_else(|e| e.into_inner());
+        let connections = self
+            .active_connections
+            .read()
+            .unwrap_or_else(|e| e.into_inner());
         let connected = connections
             .values()
             .filter(|info| info.state == ConnectionState::Connected)
@@ -480,14 +521,17 @@ impl ConnectionScheduler {
     pub fn cleanup(&self) {
         let cutoff = Instant::now() - Duration::from_secs(3600); // 1 hour
 
-        self.active_connections.write().unwrap_or_else(|e| e.into_inner()).retain(|_, info| {
-            if info.state == ConnectionState::Failed {
-                if let Some(last_attempt) = info.last_attempt {
-                    return last_attempt > cutoff;
+        self.active_connections
+            .write()
+            .unwrap_or_else(|e| e.into_inner())
+            .retain(|_, info| {
+                if info.state == ConnectionState::Failed {
+                    if let Some(last_attempt) = info.last_attempt {
+                        return last_attempt > cutoff;
+                    }
                 }
-            }
-            true
-        });
+                true
+            });
     }
 }
 

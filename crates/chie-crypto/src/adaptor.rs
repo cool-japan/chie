@@ -359,11 +359,18 @@ impl PreSignature {
 
     /// Deserialize from bytes
     pub fn from_bytes(bytes: &[u8; 64]) -> AdaptorResult<Self> {
-        let r_prime =
-            curve25519_dalek::ristretto::CompressedRistretto(bytes[..32].try_into().expect("bytes is &[u8; 64] so slices are exactly 32 bytes"))
-                .decompress()
-                .ok_or(AdaptorError::InvalidSignature)?;
-        let s_prime = Scalar::from_bytes_mod_order(bytes[32..].try_into().expect("bytes is &[u8; 64] so slices are exactly 32 bytes"));
+        let r_prime = curve25519_dalek::ristretto::CompressedRistretto(
+            bytes[..32]
+                .try_into()
+                .expect("bytes is &[u8; 64] so slices are exactly 32 bytes"),
+        )
+        .decompress()
+        .ok_or(AdaptorError::InvalidSignature)?;
+        let s_prime = Scalar::from_bytes_mod_order(
+            bytes[32..]
+                .try_into()
+                .expect("bytes is &[u8; 64] so slices are exactly 32 bytes"),
+        );
 
         Ok(Self { r_prime, s_prime })
     }
@@ -380,10 +387,18 @@ impl AdaptorSignature {
 
     /// Deserialize from bytes
     pub fn from_bytes(bytes: &[u8; 64]) -> AdaptorResult<Self> {
-        let r = curve25519_dalek::ristretto::CompressedRistretto(bytes[..32].try_into().expect("bytes is &[u8; 64] so slices are exactly 32 bytes"))
-            .decompress()
-            .ok_or(AdaptorError::InvalidSignature)?;
-        let s = Scalar::from_bytes_mod_order(bytes[32..].try_into().expect("bytes is &[u8; 64] so slices are exactly 32 bytes"));
+        let r = curve25519_dalek::ristretto::CompressedRistretto(
+            bytes[..32]
+                .try_into()
+                .expect("bytes is &[u8; 64] so slices are exactly 32 bytes"),
+        )
+        .decompress()
+        .ok_or(AdaptorError::InvalidSignature)?;
+        let s = Scalar::from_bytes_mod_order(
+            bytes[32..]
+                .try_into()
+                .expect("bytes is &[u8; 64] so slices are exactly 32 bytes"),
+        );
 
         Ok(Self { r, s })
     }

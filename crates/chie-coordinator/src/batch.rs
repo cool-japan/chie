@@ -157,7 +157,10 @@ impl BatchProcessor {
             let session_id = proof.session_id;
 
             let handle = tokio::spawn(async move {
-                let _permit = sem.acquire().await.expect("semaphore not closed while task runs");
+                let _permit = sem
+                    .acquire()
+                    .await
+                    .expect("semaphore not closed while task runs");
                 let proof_start = std::time::Instant::now();
 
                 let result = verify(proof).await;

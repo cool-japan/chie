@@ -475,7 +475,11 @@ impl AdaptiveReplicationManager {
             .collect();
 
         // Sort by capacity score (highest first)
-        candidates.sort_by(|a, b| b.capacity_score().partial_cmp(&a.capacity_score()).unwrap_or(std::cmp::Ordering::Equal));
+        candidates.sort_by(|a, b| {
+            b.capacity_score()
+                .partial_cmp(&a.capacity_score())
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
 
         candidates
             .iter()

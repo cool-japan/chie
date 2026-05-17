@@ -450,7 +450,9 @@ where
     if guard.is_none() {
         *guard = Some(Profiler::new());
     }
-    f(guard.as_mut().expect("guard is Some: initialized in if-branch above"))
+    f(guard
+        .as_mut()
+        .expect("guard is Some: initialized in if-branch above"))
 }
 
 /// Macro for easy profiling of code blocks.

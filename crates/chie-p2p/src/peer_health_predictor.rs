@@ -386,7 +386,11 @@ impl PeerHealthPredictor {
 
     /// Gets the detected pattern for a peer.
     pub fn get_pattern(&self, peer_id: &str) -> Option<BehaviorPattern> {
-        self.peer_patterns.lock().unwrap_or_else(|e| e.into_inner()).get(peer_id).copied()
+        self.peer_patterns
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .get(peer_id)
+            .copied()
     }
 
     /// Gets peers matching a specific pattern.
@@ -407,8 +411,14 @@ impl PeerHealthPredictor {
 
     /// Clears all history and resets statistics.
     pub fn clear(&self) {
-        self.peer_history.lock().unwrap_or_else(|e| e.into_inner()).clear();
-        self.peer_patterns.lock().unwrap_or_else(|e| e.into_inner()).clear();
+        self.peer_history
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .clear();
+        self.peer_patterns
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .clear();
 
         let mut stats = self.stats.lock().unwrap_or_else(|e| e.into_inner());
         *stats = PredictorStats {
@@ -425,9 +435,21 @@ impl Clone for PeerHealthPredictor {
     fn clone(&self) -> Self {
         Self {
             config: self.config.clone(),
-            peer_history: Arc::new(Mutex::new(self.peer_history.lock().unwrap_or_else(|e| e.into_inner()).clone())),
-            peer_patterns: Arc::new(Mutex::new(self.peer_patterns.lock().unwrap_or_else(|e| e.into_inner()).clone())),
-            stats: Arc::new(Mutex::new(self.stats.lock().unwrap_or_else(|e| e.into_inner()).clone())),
+            peer_history: Arc::new(Mutex::new(
+                self.peer_history
+                    .lock()
+                    .unwrap_or_else(|e| e.into_inner())
+                    .clone(),
+            )),
+            peer_patterns: Arc::new(Mutex::new(
+                self.peer_patterns
+                    .lock()
+                    .unwrap_or_else(|e| e.into_inner())
+                    .clone(),
+            )),
+            stats: Arc::new(Mutex::new(
+                self.stats.lock().unwrap_or_else(|e| e.into_inner()).clone(),
+            )),
         }
     }
 }

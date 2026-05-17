@@ -474,10 +474,7 @@ impl FederationManager {
         };
 
         // Would forward proof here via HTTP
-        debug!(
-            "Would forward proof to leader: {}",
-            leader_endpoint
-        );
+        debug!("Would forward proof to leader: {}", leader_endpoint);
 
         Ok(())
     }

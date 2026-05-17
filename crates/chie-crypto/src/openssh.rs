@@ -307,7 +307,9 @@ impl SshPrivateKey {
         result.push('\n');
 
         for chunk in encoded.as_bytes().chunks(70) {
-            result.push_str(std::str::from_utf8(chunk).expect("base64 encoded bytes are always valid UTF-8"));
+            result.push_str(
+                std::str::from_utf8(chunk).expect("base64 encoded bytes are always valid UTF-8"),
+            );
             result.push('\n');
         }
 

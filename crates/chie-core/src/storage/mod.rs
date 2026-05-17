@@ -1008,18 +1008,27 @@ impl StorageHealthMonitor {
 
     /// Record a corruption detection.
     pub fn record_corruption(&self) {
-        let mut corruptions = self.total_corruptions.lock().unwrap_or_else(|e| e.into_inner());
+        let mut corruptions = self
+            .total_corruptions
+            .lock()
+            .unwrap_or_else(|e| e.into_inner());
         *corruptions += 1;
         drop(corruptions);
 
-        let mut history = self.corruption_history.lock().unwrap_or_else(|e| e.into_inner());
+        let mut history = self
+            .corruption_history
+            .lock()
+            .unwrap_or_else(|e| e.into_inner());
         history.push((std::time::Instant::now(), 1));
         self.cleanup_old_records(&mut history);
     }
 
     /// Record an I/O operation latency (in microseconds).
     pub fn record_io_latency(&self, latency_us: u64) {
-        let mut history = self.io_latency_history.lock().unwrap_or_else(|e| e.into_inner());
+        let mut history = self
+            .io_latency_history
+            .lock()
+            .unwrap_or_else(|e| e.into_inner());
         history.push((std::time::Instant::now(), latency_us));
         self.cleanup_old_records(&mut history);
     }
@@ -1052,7 +1061,10 @@ impl StorageHealthMonitor {
     /// Get current corruption rate (corruptions per hour).
     #[must_use]
     pub fn corruption_rate(&self) -> f64 {
-        let history = self.corruption_history.lock().unwrap_or_else(|e| e.into_inner());
+        let history = self
+            .corruption_history
+            .lock()
+            .unwrap_or_else(|e| e.into_inner());
         if history.is_empty() {
             return 0.0;
         }
@@ -1071,7 +1083,10 @@ impl StorageHealthMonitor {
     /// Get average I/O latency over the last hour (in microseconds).
     #[must_use]
     pub fn avg_io_latency(&self) -> f64 {
-        let history = self.io_latency_history.lock().unwrap_or_else(|e| e.into_inner());
+        let history = self
+            .io_latency_history
+            .lock()
+            .unwrap_or_else(|e| e.into_inner());
         if history.is_empty() {
             return 0.0;
         }
@@ -1138,7 +1153,10 @@ impl StorageHealthMonitor {
         }
 
         // Reduce confidence if we have limited data
-        let history = self.io_latency_history.lock().unwrap_or_else(|e| e.into_inner());
+        let history = self
+            .io_latency_history
+            .lock()
+            .unwrap_or_else(|e| e.into_inner());
         if history.len() < 10 {
             confidence = history.len() as f64 / 10.0;
         }
@@ -1178,7 +1196,10 @@ impl StorageHealthMonitor {
     pub fn health_report(&self) -> StorageHealthPrediction {
         let (predicted_status, confidence) = self.predict_health();
         let total_errors = *self.total_errors.lock().unwrap_or_else(|e| e.into_inner());
-        let total_corruptions = *self.total_corruptions.lock().unwrap_or_else(|e| e.into_inner());
+        let total_corruptions = *self
+            .total_corruptions
+            .lock()
+            .unwrap_or_else(|e| e.into_inner());
 
         StorageHealthPrediction {
             current_status: predicted_status,
@@ -1194,11 +1215,23 @@ impl StorageHealthMonitor {
 
     /// Reset all statistics.
     pub fn reset(&self) {
-        self.error_history.lock().unwrap_or_else(|e| e.into_inner()).clear();
-        self.corruption_history.lock().unwrap_or_else(|e| e.into_inner()).clear();
-        self.io_latency_history.lock().unwrap_or_else(|e| e.into_inner()).clear();
+        self.error_history
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .clear();
+        self.corruption_history
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .clear();
+        self.io_latency_history
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .clear();
         *self.total_errors.lock().unwrap_or_else(|e| e.into_inner()) = 0;
-        *self.total_corruptions.lock().unwrap_or_else(|e| e.into_inner()) = 0;
+        *self
+            .total_corruptions
+            .lock()
+            .unwrap_or_else(|e| e.into_inner()) = 0;
     }
 }
 

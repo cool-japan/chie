@@ -169,7 +169,11 @@ impl TierMigration {
 
         let mut handles = Vec::new();
         for task in tasks.iter_mut() {
-            let permit = semaphore.clone().acquire_owned().await.expect("semaphore not closed while spawning tasks");
+            let permit = semaphore
+                .clone()
+                .acquire_owned()
+                .await
+                .expect("semaphore not closed while spawning tasks");
             let storage = self.storage.clone();
             let config = self.config.clone();
             let mut task_clone = task.clone();

@@ -141,8 +141,15 @@ impl MerkleTree {
         levels.push(leaves);
 
         // Build tree bottom-up
-        while levels.last().expect("levels always non-empty: we pushed leaves above").len() > 1 {
-            let current_level = levels.last().expect("levels always non-empty per loop condition");
+        while levels
+            .last()
+            .expect("levels always non-empty: we pushed leaves above")
+            .len()
+            > 1
+        {
+            let current_level = levels
+                .last()
+                .expect("levels always non-empty per loop condition");
             let next_level = Self::build_parent_level(current_level);
             levels.push(next_level);
         }
@@ -163,7 +170,11 @@ impl MerkleTree {
     ///
     /// The root hash serves as a cryptographic commitment to all content
     pub fn root_hash(&self) -> &Hash {
-        self.levels.last().expect("levels always non-empty after construction").first().expect("root level always has at least one element")
+        self.levels
+            .last()
+            .expect("levels always non-empty after construction")
+            .first()
+            .expect("root level always has at least one element")
     }
 
     /// Get the number of leaf nodes (chunks)
@@ -380,7 +391,9 @@ impl MerkleTreeManager {
         self.stats.trees_created += 1;
         self.stats.chunks_processed += chunks.len() as u64;
         self.trees.insert(content_id.clone(), tree);
-        self.trees.get(&content_id).expect("content_id was just inserted above")
+        self.trees
+            .get(&content_id)
+            .expect("content_id was just inserted above")
     }
 
     /// Get a cached tree

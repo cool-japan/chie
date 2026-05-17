@@ -251,7 +251,8 @@ impl GeoSelector {
             .collect();
 
         // Sort by distance
-        peers_with_distance.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap_or(std::cmp::Ordering::Equal));
+        peers_with_distance
+            .sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap_or(std::cmp::Ordering::Equal));
 
         // Take top N
         peers_with_distance

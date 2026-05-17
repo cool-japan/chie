@@ -256,7 +256,8 @@ impl HttpClientPool {
             }
         }
 
-        Err(last_error.expect("last_error is Some: loop executes at least once and always sets it on Err"))
+        Err(last_error
+            .expect("last_error is Some: loop executes at least once and always sets it on Err"))
     }
 
     /// Execute a single HTTP request.

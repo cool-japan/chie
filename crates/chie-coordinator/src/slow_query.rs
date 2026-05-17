@@ -160,7 +160,12 @@ impl SlowQueryLogger {
 
     /// Get the current slow query history
     pub fn get_history(&self) -> Vec<SlowQueryInfo> {
-        self.history.read().unwrap_or_else(|e| e.into_inner()).iter().cloned().collect()
+        self.history
+            .read()
+            .unwrap_or_else(|e| e.into_inner())
+            .iter()
+            .cloned()
+            .collect()
     }
 
     /// Get slow query statistics
@@ -181,8 +186,14 @@ impl SlowQueryLogger {
         let durations: Vec<u64> = history.iter().map(|q| q.duration_ms).collect();
         let sum: u64 = durations.iter().sum();
         let avg = sum as f64 / durations.len() as f64;
-        let max = *durations.iter().max().expect("durations non-empty: guarded by is_empty() check above");
-        let min = *durations.iter().min().expect("durations non-empty: guarded by is_empty() check above");
+        let max = *durations
+            .iter()
+            .max()
+            .expect("durations non-empty: guarded by is_empty() check above");
+        let min = *durations
+            .iter()
+            .min()
+            .expect("durations non-empty: guarded by is_empty() check above");
 
         SlowQueryStats {
             total_count,

@@ -178,7 +178,9 @@ impl FrostKeygen {
         for i in 0..self.num_participants {
             for j in 0..self.num_participants {
                 if i != j {
-                    let share = participants[j].generate_share(i).expect("DKG share generation succeeds for valid participant indices");
+                    let share = participants[j]
+                        .generate_share(i)
+                        .expect("DKG share generation succeeds for valid participant indices");
                     participants[i]
                         .receive_share(j, share, &commitments[j])
                         .expect("DKG receive_share succeeds for valid shares and commitments");
@@ -191,7 +193,9 @@ impl FrostKeygen {
             .iter()
             .enumerate()
             .map(|(i, p)| {
-                let secret = p.get_secret_share().expect("secret share exists after DKG rounds complete");
+                let secret = p
+                    .get_secret_share()
+                    .expect("secret share exists after DKG rounds complete");
                 FrostSecretShare {
                     index: i + 1,
                     secret,
@@ -201,7 +205,9 @@ impl FrostKeygen {
                             use curve25519_dalek::ristretto::CompressedRistretto;
                             let mut bytes = [0u8; 32];
                             bytes.copy_from_slice(&c.commitments[0]);
-                            CompressedRistretto(bytes).decompress().expect("DKG commitment bytes form a valid Ristretto point")
+                            CompressedRistretto(bytes)
+                                .decompress()
+                                .expect("DKG commitment bytes form a valid Ristretto point")
                         })
                         .collect(),
                 }
@@ -217,7 +223,8 @@ impl FrostKeygen {
 
     /// Get the group public key
     pub fn group_public_key(&self) -> PublicKey {
-        self.group_public_key.expect("group_public_key set via generate_shares() before calling this")
+        self.group_public_key
+            .expect("group_public_key set via generate_shares() before calling this")
     }
 }
 
@@ -290,7 +297,9 @@ impl FrostSigner {
             return Err(FrostError::NonceNotPreprocessed);
         }
 
-        let (d, e) = self.nonce_pair.expect("nonce_pair is Some: is_none() check returned early above");
+        let (d, e) = self
+            .nonce_pair
+            .expect("nonce_pair is Some: is_none() check returned early above");
 
         // Compute binding value rho = H(message, commitments)
         let rho = compute_binding_value(message, commitments);

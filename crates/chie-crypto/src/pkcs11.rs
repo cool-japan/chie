@@ -257,7 +257,10 @@ impl Pkcs11MockProvider {
 
         // Log initialization
         let entry = AuditEntry::new(AuditEventType::Authentication, "PKCS#11 Mock");
-        self.audit_log.lock().unwrap_or_else(|e| e.into_inner()).push(entry);
+        self.audit_log
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .push(entry);
 
         Ok(())
     }
@@ -265,7 +268,12 @@ impl Pkcs11MockProvider {
     /// Finalize the provider.
     pub fn finalize(&mut self) -> HsmResult<()> {
         // Close any open session
-        if let Some(mut session) = self.session.lock().unwrap_or_else(|e| e.into_inner()).take() {
+        if let Some(mut session) = self
+            .session
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .take()
+        {
             session.close()?;
         }
 
@@ -332,7 +340,10 @@ impl Pkcs11MockProvider {
 
     /// Log an audit event.
     fn log_audit(&self, entry: AuditEntry) {
-        self.audit_log.lock().unwrap_or_else(|e| e.into_inner()).push(entry);
+        self.audit_log
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .push(entry);
     }
 
     /// Get object by handle.
@@ -389,7 +400,10 @@ impl SigningProvider for Pkcs11MockProvider {
         let key_id = object.key_id();
 
         // Store object
-        self.objects.lock().unwrap_or_else(|e| e.into_inner()).insert(handle, object);
+        self.objects
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .insert(handle, object);
 
         // Log audit event
         let entry = AuditEntry::new(AuditEventType::KeyGenerated, self.name())
@@ -414,7 +428,10 @@ impl SigningProvider for Pkcs11MockProvider {
         let key_id = object.key_id();
 
         // Store object
-        self.objects.lock().unwrap_or_else(|e| e.into_inner()).insert(handle, object);
+        self.objects
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .insert(handle, object);
 
         // Log audit event
         let entry = AuditEntry::new(AuditEventType::KeyImported, self.name())
@@ -498,7 +515,10 @@ impl SigningProvider for Pkcs11MockProvider {
             return false;
         };
 
-        self.objects.lock().unwrap_or_else(|e| e.into_inner()).contains_key(&handle)
+        self.objects
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .contains_key(&handle)
     }
 
     fn health_check(&self) -> HsmResult<HealthStatus> {
@@ -506,7 +526,11 @@ impl SigningProvider for Pkcs11MockProvider {
             .with_response_time(1)
             .with_metric(
                 "objects_count",
-                self.objects.lock().unwrap_or_else(|e| e.into_inner()).len().to_string(),
+                self.objects
+                    .lock()
+                    .unwrap_or_else(|e| e.into_inner())
+                    .len()
+                    .to_string(),
             )
             .with_metric("slot_id", self.slot_id.to_string());
 

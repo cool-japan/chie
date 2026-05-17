@@ -342,7 +342,10 @@ impl EventBus {
             subscribers.retain(|tx| tx.send(event.clone()).is_ok());
 
             // Update subscriber count
-            self.stats.lock().unwrap_or_else(|e| e.into_inner()).active_subscribers = subs.values().map(|v| v.len()).sum();
+            self.stats
+                .lock()
+                .unwrap_or_else(|e| e.into_inner())
+                .active_subscribers = subs.values().map(|v| v.len()).sum();
         }
     }
 
@@ -374,8 +377,14 @@ impl EventBus {
     /// Clear all subscribers.
     #[inline]
     pub fn clear_subscribers(&self) {
-        self.subscribers.lock().unwrap_or_else(|e| e.into_inner()).clear();
-        self.stats.lock().unwrap_or_else(|e| e.into_inner()).active_subscribers = 0;
+        self.subscribers
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .clear();
+        self.stats
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .active_subscribers = 0;
     }
 }
 
@@ -748,7 +757,10 @@ impl EventStore {
             file.flush()?;
 
             // Update counter
-            let mut count = self.events_written.lock().unwrap_or_else(|e| e.into_inner());
+            let mut count = self
+                .events_written
+                .lock()
+                .unwrap_or_else(|e| e.into_inner());
             *count += 1;
 
             Ok(())
@@ -788,7 +800,10 @@ impl EventStore {
             file.flush()?;
 
             // Update counter
-            let mut total = self.events_written.lock().unwrap_or_else(|e| e.into_inner());
+            let mut total = self
+                .events_written
+                .lock()
+                .unwrap_or_else(|e| e.into_inner());
             *total += count as u64;
 
             Ok(count)
@@ -801,7 +816,10 @@ impl EventStore {
     #[must_use]
     #[inline]
     pub fn events_written(&self) -> u64 {
-        *self.events_written.lock().unwrap_or_else(|e| e.into_inner())
+        *self
+            .events_written
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
     }
 
     /// Get the file path of this event store.

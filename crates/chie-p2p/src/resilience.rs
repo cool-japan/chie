@@ -222,7 +222,8 @@ impl RetryExecutor {
                 stats.total_retries as f64 / stats.total_operations as f64;
         }
 
-        Err(last_error.expect("last_error is Some: retry loop always sets it on Err before exiting"))
+        Err(last_error
+            .expect("last_error is Some: retry loop always sets it on Err before exiting"))
     }
 
     /// Get statistics

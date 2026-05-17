@@ -336,7 +336,13 @@ impl KeepaliveManager {
 
                 // Update average RTT
                 let total_conns = connections.len() as u128;
-                if let Some(avg_nanos) = connections.values().map(|c| c.avg_rtt).sum::<Duration>().as_nanos().checked_div(total_conns) {
+                if let Some(avg_nanos) = connections
+                    .values()
+                    .map(|c| c.avg_rtt)
+                    .sum::<Duration>()
+                    .as_nanos()
+                    .checked_div(total_conns)
+                {
                     stats.avg_rtt = Duration::from_nanos(avg_nanos as u64);
                 }
 

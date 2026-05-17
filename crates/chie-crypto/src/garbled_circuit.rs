@@ -400,7 +400,10 @@ impl GarbledCircuit {
         let output_wire_idx = if self.gate_topology.is_empty() {
             0 // Direct input to output
         } else {
-            self.gate_topology.last().expect("gate_topology non-empty: in else branch of is_empty() check").output
+            self.gate_topology
+                .last()
+                .expect("gate_topology non-empty: in else branch of is_empty() check")
+                .output
         };
 
         let output_label = wire_values

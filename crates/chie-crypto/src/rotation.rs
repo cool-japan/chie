@@ -65,7 +65,7 @@ impl KeyVersion {
     pub fn new(version: u32, fingerprint: String, ttl: Option<Duration>) -> Self {
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
-                .expect("system time is always after UNIX_EPOCH")
+            .expect("system time is always after UNIX_EPOCH")
             .as_secs();
 
         Self {

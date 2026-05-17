@@ -185,24 +185,38 @@ impl CertificatePinner {
         policy: PinPolicy,
     ) -> Result<(), String> {
         let pin = Pin::new(*peer_id, cert_hash, policy);
-        self.pins.lock().unwrap_or_else(|e| e.into_inner()).insert(*peer_id, pin);
+        self.pins
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .insert(*peer_id, pin);
         Ok(())
     }
 
     /// Add a pin with custom configuration
     pub fn add_pin_custom(&self, pin: Pin) -> Result<(), String> {
-        self.pins.lock().unwrap_or_else(|e| e.into_inner()).insert(pin.peer_id, pin);
+        self.pins
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .insert(pin.peer_id, pin);
         Ok(())
     }
 
     /// Get pin for a peer
     pub fn get_pin(&self, peer_id: &PeerId) -> Option<Pin> {
-        self.pins.lock().unwrap_or_else(|e| e.into_inner()).get(peer_id).cloned()
+        self.pins
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .get(peer_id)
+            .cloned()
     }
 
     /// Remove pin for a peer
     pub fn remove_pin(&self, peer_id: &PeerId) -> bool {
-        self.pins.lock().unwrap_or_else(|e| e.into_inner()).remove(peer_id).is_some()
+        self.pins
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .remove(peer_id)
+            .is_some()
     }
 
     /// Verify a certificate against the pin
@@ -280,7 +294,10 @@ impl CertificatePinner {
 
     /// Get all violations
     pub fn get_violations(&self) -> Vec<PinViolation> {
-        self.violations.lock().unwrap_or_else(|e| e.into_inner()).clone()
+        self.violations
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .clone()
     }
 
     /// Get violations for a specific peer
@@ -296,12 +313,20 @@ impl CertificatePinner {
 
     /// Clear all violations
     pub fn clear_violations(&self) {
-        self.violations.lock().unwrap_or_else(|e| e.into_inner()).clear();
+        self.violations
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .clear();
     }
 
     /// Get all pins
     pub fn get_all_pins(&self) -> Vec<Pin> {
-        self.pins.lock().unwrap_or_else(|e| e.into_inner()).values().cloned().collect()
+        self.pins
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .values()
+            .cloned()
+            .collect()
     }
 
     /// Update pin for a peer (rotate certificate)

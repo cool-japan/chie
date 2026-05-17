@@ -218,7 +218,11 @@ impl PopularityTracker {
             })
             .collect();
 
-        items.sort_by(|a, b| b.popularity_score.partial_cmp(&a.popularity_score).unwrap_or(std::cmp::Ordering::Equal));
+        items.sort_by(|a, b| {
+            b.popularity_score
+                .partial_cmp(&a.popularity_score)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
         items.truncate(n);
         items
     }
@@ -312,11 +316,11 @@ impl PopularityTracker {
     }
 
     fn evict_least_popular(&mut self) {
-        if let Some((least_popular_id, _)) = self
-            .content_map
-            .iter()
-            .min_by(|(_, a), (_, b)| a.popularity_score.partial_cmp(&b.popularity_score).unwrap_or(std::cmp::Ordering::Equal))
-        {
+        if let Some((least_popular_id, _)) = self.content_map.iter().min_by(|(_, a), (_, b)| {
+            a.popularity_score
+                .partial_cmp(&b.popularity_score)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        }) {
             let id_to_remove = least_popular_id.clone();
             self.content_map.remove(&id_to_remove);
         }

@@ -260,22 +260,20 @@ impl ShutdownManager {
 
         // Progress through stages
         match self.stage {
-            ShutdownStage::StopAccepting
-                if self.should_advance_stage() => {
-                    self.advance_to(ShutdownStage::Draining);
-                }
-            ShutdownStage::Draining
-                if (self.is_drained() || self.is_drain_timeout()) => {
-                    self.advance_to(ShutdownStage::WaitingForRequests);
-                }
+            ShutdownStage::StopAccepting if self.should_advance_stage() => {
+                self.advance_to(ShutdownStage::Draining);
+            }
+            ShutdownStage::Draining if (self.is_drained() || self.is_drain_timeout()) => {
+                self.advance_to(ShutdownStage::WaitingForRequests);
+            }
             ShutdownStage::WaitingForRequests
-                if (self.inflight_requests.is_empty() || self.is_drain_timeout()) => {
-                    self.advance_to(ShutdownStage::Cleanup);
-                }
-            ShutdownStage::Cleanup
-                if self.should_advance_stage() => {
-                    self.advance_to(ShutdownStage::Terminating);
-                }
+                if (self.inflight_requests.is_empty() || self.is_drain_timeout()) =>
+            {
+                self.advance_to(ShutdownStage::Cleanup);
+            }
+            ShutdownStage::Cleanup if self.should_advance_stage() => {
+                self.advance_to(ShutdownStage::Terminating);
+            }
             ShutdownStage::Terminating => {
                 self.force_close_all();
                 self.advance_to(ShutdownStage::Completed);

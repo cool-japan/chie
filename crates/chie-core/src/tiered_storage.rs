@@ -221,7 +221,10 @@ impl TieredStorageManager {
         }
 
         // Record in history
-        let mut history = self.access_history.write().unwrap_or_else(|e| e.into_inner());
+        let mut history = self
+            .access_history
+            .write()
+            .unwrap_or_else(|e| e.into_inner());
         history.push_back(AccessRecord {
             timestamp: Instant::now(),
             cid: cid.to_string(),
@@ -435,7 +438,10 @@ impl TieredStorageManager {
     #[must_use]
     #[inline]
     pub fn get_pending_moves(&self) -> Vec<PendingMove> {
-        self.pending_moves.read().unwrap_or_else(|e| e.into_inner()).clone()
+        self.pending_moves
+            .read()
+            .unwrap_or_else(|e| e.into_inner())
+            .clone()
     }
 
     /// Get the storage path for a specific tier.
@@ -467,7 +473,10 @@ impl TieredStorageManager {
         let mut bytes_moved = 0u64;
         let mut moves_executed = 0;
 
-        let mut pending = self.pending_moves.write().unwrap_or_else(|e| e.into_inner());
+        let mut pending = self
+            .pending_moves
+            .write()
+            .unwrap_or_else(|e| e.into_inner());
         pending.clear();
 
         for m in moves {

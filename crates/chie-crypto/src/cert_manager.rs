@@ -435,7 +435,10 @@ impl CertificateAuthority {
 
         // Check revocation status
         if self.is_revoked(&cert.serial_number) {
-            let entry = self.crl.get(&cert.serial_number).expect("entry exists: is_revoked() confirmed it above");
+            let entry = self
+                .crl
+                .get(&cert.serial_number)
+                .expect("entry exists: is_revoked() confirmed it above");
             return Err(CertError::Revoked(format!(
                 "Certificate revoked: {}",
                 entry.reason

@@ -224,7 +224,10 @@ impl ApiKeyManager {
 
         // Store hash-to-id mapping
         {
-            let mut mapping = self.key_hash_to_id.write().unwrap_or_else(|e| e.into_inner());
+            let mut mapping = self
+                .key_hash_to_id
+                .write()
+                .unwrap_or_else(|e| e.into_inner());
             mapping.insert(key_hash, id);
         }
 
@@ -241,7 +244,10 @@ impl ApiKeyManager {
 
         // Find the key ID from hash
         let key_id = {
-            let mapping = self.key_hash_to_id.read().unwrap_or_else(|e| e.into_inner());
+            let mapping = self
+                .key_hash_to_id
+                .read()
+                .unwrap_or_else(|e| e.into_inner());
             mapping
                 .get(&key_hash)
                 .cloned()
@@ -276,7 +282,10 @@ impl ApiKeyManager {
 
         // Check rate limit
         {
-            let mut tracking = self.usage_tracking.write().unwrap_or_else(|e| e.into_inner());
+            let mut tracking = self
+                .usage_tracking
+                .write()
+                .unwrap_or_else(|e| e.into_inner());
             let usage = tracking.entry(key_id.clone()).or_default();
 
             // Clean up old entries (older than 1 minute)
@@ -325,7 +334,10 @@ impl ApiKeyManager {
         };
 
         if let Some(key) = removed {
-            let mut mapping = self.key_hash_to_id.write().unwrap_or_else(|e| e.into_inner());
+            let mut mapping = self
+                .key_hash_to_id
+                .write()
+                .unwrap_or_else(|e| e.into_inner());
             mapping.remove(&key.key_hash);
             true
         } else {

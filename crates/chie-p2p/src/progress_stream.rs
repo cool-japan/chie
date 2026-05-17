@@ -259,7 +259,10 @@ impl ProgressStreamManager {
                 average_speed: progress.average_speed,
             });
 
-            self.last_updates.write().unwrap_or_else(|e| e.into_inner()).remove(transfer_id);
+            self.last_updates
+                .write()
+                .unwrap_or_else(|e| e.into_inner())
+                .remove(transfer_id);
         }
     }
 
@@ -275,7 +278,10 @@ impl ProgressStreamManager {
                 bytes_downloaded: progress.downloaded_bytes,
             });
 
-            self.last_updates.write().unwrap_or_else(|e| e.into_inner()).remove(transfer_id);
+            self.last_updates
+                .write()
+                .unwrap_or_else(|e| e.into_inner())
+                .remove(transfer_id);
         }
     }
 
@@ -305,17 +311,29 @@ impl ProgressStreamManager {
 
     /// Get current progress for a transfer
     pub fn get_progress(&self, transfer_id: &str) -> Option<TransferProgress> {
-        self.transfers.read().unwrap_or_else(|e| e.into_inner()).get(transfer_id).cloned()
+        self.transfers
+            .read()
+            .unwrap_or_else(|e| e.into_inner())
+            .get(transfer_id)
+            .cloned()
     }
 
     /// Get all active transfers
     pub fn get_active_transfers(&self) -> Vec<TransferProgress> {
-        self.transfers.read().unwrap_or_else(|e| e.into_inner()).values().cloned().collect()
+        self.transfers
+            .read()
+            .unwrap_or_else(|e| e.into_inner())
+            .values()
+            .cloned()
+            .collect()
     }
 
     /// Get number of active transfers
     pub fn active_count(&self) -> usize {
-        self.transfers.read().unwrap_or_else(|e| e.into_inner()).len()
+        self.transfers
+            .read()
+            .unwrap_or_else(|e| e.into_inner())
+            .len()
     }
 
     /// Get total bytes being transferred across all active transfers

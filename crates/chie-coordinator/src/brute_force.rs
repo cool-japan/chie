@@ -145,7 +145,10 @@ impl BruteForceProtection {
     ) -> Result<(), BruteForceError> {
         // Check if account is locked
         {
-            let lockouts = self.account_lockouts.read().unwrap_or_else(|e| e.into_inner());
+            let lockouts = self
+                .account_lockouts
+                .read()
+                .unwrap_or_else(|e| e.into_inner());
             if let Some(lockout) = lockouts.get(identifier) {
                 if Utc::now() < lockout.locked_until {
                     let remaining_secs = (lockout.locked_until - Utc::now()).num_seconds();
@@ -174,7 +177,10 @@ impl BruteForceProtection {
 
         // Check if CAPTCHA is required
         {
-            let captcha = self.captcha_required.read().unwrap_or_else(|e| e.into_inner());
+            let captcha = self
+                .captcha_required
+                .read()
+                .unwrap_or_else(|e| e.into_inner());
             if captcha.contains_key(identifier) {
                 return Err(BruteForceError::CaptchaRequired);
             }
@@ -182,7 +188,10 @@ impl BruteForceProtection {
 
         // Check exponential backoff
         if self.config.use_exponential_backoff {
-            let attempts = self.failed_attempts.read().unwrap_or_else(|e| e.into_inner());
+            let attempts = self
+                .failed_attempts
+                .read()
+                .unwrap_or_else(|e| e.into_inner());
             if let Some(attempt_list) = attempts.get(identifier) {
                 if let Some(last_attempt) = attempt_list.back() {
                     let attempts_count = attempt_list.len() as u32;
@@ -220,12 +229,18 @@ impl BruteForceProtection {
 
         // Update total attempts counter
         {
-            let mut total = self.total_attempts.write().unwrap_or_else(|e| e.into_inner());
+            let mut total = self
+                .total_attempts
+                .write()
+                .unwrap_or_else(|e| e.into_inner());
             *total += 1;
         }
 
         // Add to failed attempts list
-        let mut attempts = self.failed_attempts.write().unwrap_or_else(|e| e.into_inner());
+        let mut attempts = self
+            .failed_attempts
+            .write()
+            .unwrap_or_else(|e| e.into_inner());
         let attempt_list = attempts.entry(identifier.to_string()).or_default();
 
         // Clean up old attempts outside the time window
@@ -240,7 +255,10 @@ impl BruteForceProtection {
         if current_attempts >= self.config.captcha_threshold
             && current_attempts < self.config.max_failed_attempts
         {
-            let mut captcha = self.captcha_required.write().unwrap_or_else(|e| e.into_inner());
+            let mut captcha = self
+                .captcha_required
+                .write()
+                .unwrap_or_else(|e| e.into_inner());
             captcha.insert(identifier.to_string(), now);
             warn!(
                 identifier = identifier,
@@ -259,7 +277,10 @@ impl BruteForceProtection {
                 failed_attempts: current_attempts,
             };
 
-            let mut lockouts = self.account_lockouts.write().unwrap_or_else(|e| e.into_inner());
+            let mut lockouts = self
+                .account_lockouts
+                .write()
+                .unwrap_or_else(|e| e.into_inner());
             lockouts.insert(identifier.to_string(), lockout);
 
             warn!(
@@ -328,13 +349,19 @@ impl BruteForceProtection {
     pub fn record_success(&self, identifier: &str) {
         // Clear failed attempts
         {
-            let mut attempts = self.failed_attempts.write().unwrap_or_else(|e| e.into_inner());
+            let mut attempts = self
+                .failed_attempts
+                .write()
+                .unwrap_or_else(|e| e.into_inner());
             attempts.remove(identifier);
         }
 
         // Clear CAPTCHA requirement
         {
-            let mut captcha = self.captcha_required.write().unwrap_or_else(|e| e.into_inner());
+            let mut captcha = self
+                .captcha_required
+                .write()
+                .unwrap_or_else(|e| e.into_inner());
             captcha.remove(identifier);
         }
 
@@ -349,7 +376,10 @@ impl BruteForceProtection {
 
     /// Clear CAPTCHA requirement for an identifier (after successful CAPTCHA)
     pub fn clear_captcha(&self, identifier: &str) {
-        let mut captcha = self.captcha_required.write().unwrap_or_else(|e| e.into_inner());
+        let mut captcha = self
+            .captcha_required
+            .write()
+            .unwrap_or_else(|e| e.into_inner());
         captcha.remove(identifier);
         debug!(identifier = identifier, "CAPTCHA requirement cleared");
     }
@@ -358,16 +388,25 @@ impl BruteForceProtection {
     pub fn unlock_account(&self, identifier: &str) -> bool {
         // Remove the lockout
         let result = {
-            let mut lockouts = self.account_lockouts.write().unwrap_or_else(|e| e.into_inner());
+            let mut lockouts = self
+                .account_lockouts
+                .write()
+                .unwrap_or_else(|e| e.into_inner());
             lockouts.remove(identifier).is_some()
         };
 
         // Also clear failed attempts and CAPTCHA requirement to allow immediate access
         if result {
-            let mut attempts = self.failed_attempts.write().unwrap_or_else(|e| e.into_inner());
+            let mut attempts = self
+                .failed_attempts
+                .write()
+                .unwrap_or_else(|e| e.into_inner());
             attempts.remove(identifier);
 
-            let mut captcha = self.captcha_required.write().unwrap_or_else(|e| e.into_inner());
+            let mut captcha = self
+                .captcha_required
+                .write()
+                .unwrap_or_else(|e| e.into_inner());
             captcha.remove(identifier);
         }
 
@@ -382,10 +421,19 @@ impl BruteForceProtection {
 
     /// Get statistics
     pub fn get_stats(&self) -> BruteForceStats {
-        let lockouts = self.account_lockouts.read().unwrap_or_else(|e| e.into_inner());
+        let lockouts = self
+            .account_lockouts
+            .read()
+            .unwrap_or_else(|e| e.into_inner());
         let blocks = self.ip_blocks.read().unwrap_or_else(|e| e.into_inner());
-        let captcha = self.captcha_required.read().unwrap_or_else(|e| e.into_inner());
-        let total = *self.total_attempts.read().unwrap_or_else(|e| e.into_inner());
+        let captcha = self
+            .captcha_required
+            .read()
+            .unwrap_or_else(|e| e.into_inner());
+        let total = *self
+            .total_attempts
+            .read()
+            .unwrap_or_else(|e| e.into_inner());
 
         // Clean up expired entries
         let now = Utc::now();

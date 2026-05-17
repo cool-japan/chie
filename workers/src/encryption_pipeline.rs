@@ -1,10 +1,10 @@
 //! Content encryption pipeline worker.
 
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use chie_crypto::{encrypt, generate_key, generate_nonce};
 use std::collections::HashMap;
-use std::sync::Mutex;
 use std::sync::Arc;
+use std::sync::Mutex;
 
 use crate::ipfs::IpfsClient;
 use crate::s3::S3Client;
@@ -64,12 +64,7 @@ impl EncryptionPipeline {
     /// Attach an S3 client, IPFS client, and database pool.
     ///
     /// Returns `self` for method-chaining convenience.
-    pub fn with_clients(
-        mut self,
-        s3: S3Client,
-        ipfs: IpfsClient,
-        db: sqlx::PgPool,
-    ) -> Self {
+    pub fn with_clients(mut self, s3: S3Client, ipfs: IpfsClient, db: sqlx::PgPool) -> Self {
         self.s3 = Some(s3);
         self.ipfs = Some(ipfs);
         self.db = Some(db);
@@ -146,7 +141,10 @@ impl EncryptionPipeline {
             None => {
                 let hash = blake3::hash(data);
                 let cid = format!("Qm{}", hex::encode(&hash.as_bytes()[..16]));
-                tracing::debug!("No IPFS client configured, returning placeholder CID: {}", cid);
+                tracing::debug!(
+                    "No IPFS client configured, returning placeholder CID: {}",
+                    cid
+                );
                 Ok(cid)
             }
         }
@@ -156,28 +154,22 @@ impl EncryptionPipeline {
     ///
     /// Writes to the `content` table's `encryption_key` column when a DB pool
     /// is available, otherwise stores in the in-memory fallback map.
-    async fn store_encryption_key(
-        &self,
-        content_id: uuid::Uuid,
-        key: &[u8; 32],
-    ) -> Result<()> {
+    async fn store_encryption_key(&self, content_id: uuid::Uuid, key: &[u8; 32]) -> Result<()> {
         match &self.db {
             Some(db) => {
                 tracing::debug!("Storing encryption key to DB for content_id={}", content_id);
-                sqlx::query(
-                    "UPDATE content SET encryption_key = $1 WHERE id = $2",
-                )
-                .bind(key.as_slice())
-                .bind(content_id)
-                .execute(db)
-                .await
-                .map_err(|e| {
-                    anyhow!(
-                        "Failed to store encryption key for content_id={}: {}",
-                        content_id,
-                        e
-                    )
-                })?;
+                sqlx::query("UPDATE content SET encryption_key = $1 WHERE id = $2")
+                    .bind(key.as_slice())
+                    .bind(content_id)
+                    .execute(db)
+                    .await
+                    .map_err(|e| {
+                        anyhow!(
+                            "Failed to store encryption key for content_id={}: {}",
+                            content_id,
+                            e
+                        )
+                    })?;
                 Ok(())
             }
             None => {
@@ -185,9 +177,10 @@ impl EncryptionPipeline {
                     "No DB pool configured, storing encryption key in-memory for content_id={}",
                     content_id
                 );
-                let mut store = self.key_store.lock().map_err(|e| {
-                    anyhow!("Key store mutex poisoned: {}", e)
-                })?;
+                let mut store = self
+                    .key_store
+                    .lock()
+                    .map_err(|e| anyhow!("Key store mutex poisoned: {}", e))?;
                 store.insert(content_id, key.to_vec());
                 Ok(())
             }

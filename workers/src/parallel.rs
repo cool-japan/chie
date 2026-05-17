@@ -225,7 +225,11 @@ where
                 break;
             }
 
-            let permit = semaphore.clone().acquire_owned().await.expect("semaphore not closed while worker loop runs");
+            let permit = semaphore
+                .clone()
+                .acquire_owned()
+                .await
+                .expect("semaphore not closed while worker loop runs");
             let handler = self.handler.clone();
             let stats = Arc::clone(&self.stats);
             let redis_url = self.redis_url.clone();

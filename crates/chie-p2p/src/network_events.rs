@@ -387,7 +387,10 @@ impl NetworkEventManager {
         // Check for duplicate
         if self.config.enable_deduplication {
             let event_hash = format!("{:?}", event);
-            let mut recent = self.recent_events.write().unwrap_or_else(|e| e.into_inner());
+            let mut recent = self
+                .recent_events
+                .write()
+                .unwrap_or_else(|e| e.into_inner());
 
             if let Some(last_time) = recent.get(&event_hash) {
                 if last_time.elapsed() < self.config.dedup_window {
@@ -399,7 +402,10 @@ impl NetworkEventManager {
         }
 
         // Create timestamped event
-        let mut next_id = self.next_event_id.write().unwrap_or_else(|e| e.into_inner());
+        let mut next_id = self
+            .next_event_id
+            .write()
+            .unwrap_or_else(|e| e.into_inner());
         let timestamped = TimestampedEvent {
             event: event.clone(),
             timestamp: Instant::now(),
@@ -445,7 +451,10 @@ impl NetworkEventManager {
     where
         F: Fn(&TimestampedEvent) + Send + Sync + 'static,
     {
-        let mut next_id = self.next_subscription_id.write().unwrap_or_else(|e| e.into_inner());
+        let mut next_id = self
+            .next_subscription_id
+            .write()
+            .unwrap_or_else(|e| e.into_inner());
         let id = *next_id;
         *next_id += 1;
         drop(next_id);
@@ -456,7 +465,10 @@ impl NetworkEventManager {
             callback: Arc::new(callback),
         };
 
-        let mut subscriptions = self.subscriptions.write().unwrap_or_else(|e| e.into_inner());
+        let mut subscriptions = self
+            .subscriptions
+            .write()
+            .unwrap_or_else(|e| e.into_inner());
         subscriptions.push(subscription);
 
         let mut stats = self.stats.write().unwrap_or_else(|e| e.into_inner());
@@ -467,7 +479,10 @@ impl NetworkEventManager {
 
     /// Unsubscribe from events
     pub fn unsubscribe(&self, subscription_id: SubscriptionId) {
-        let mut subscriptions = self.subscriptions.write().unwrap_or_else(|e| e.into_inner());
+        let mut subscriptions = self
+            .subscriptions
+            .write()
+            .unwrap_or_else(|e| e.into_inner());
         subscriptions.retain(|s| s.id != subscription_id);
 
         let mut stats = self.stats.write().unwrap_or_else(|e| e.into_inner());
@@ -512,7 +527,10 @@ impl NetworkEventManager {
         history.retain(|e| now.duration_since(e.timestamp) <= self.config.max_event_age);
 
         // Clean up old deduplication entries
-        let mut recent = self.recent_events.write().unwrap_or_else(|e| e.into_inner());
+        let mut recent = self
+            .recent_events
+            .write()
+            .unwrap_or_else(|e| e.into_inner());
         recent.retain(|_, time| now.duration_since(*time) <= self.config.dedup_window);
     }
 }

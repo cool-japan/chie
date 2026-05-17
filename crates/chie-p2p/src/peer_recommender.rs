@@ -227,7 +227,11 @@ impl PeerRecommender {
         };
 
         // Sort by score and limit
-        recommendations.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap_or(std::cmp::Ordering::Equal));
+        recommendations.sort_by(|a, b| {
+            b.score
+                .partial_cmp(&a.score)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
         recommendations.truncate(self.config.max_recommendations);
 
         // Update stats
@@ -602,7 +606,11 @@ impl PeerRecommender {
             });
         }
 
-        similarities.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap_or(std::cmp::Ordering::Equal));
+        similarities.sort_by(|a, b| {
+            b.score
+                .partial_cmp(&a.score)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
         similarities.truncate(limit);
 
         similarities

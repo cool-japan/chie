@@ -357,10 +357,16 @@ impl TrafficObfuscator {
 
         loop {
             // Check if we're below max concurrent
-            let active = *self.active_dummy_connections.lock().unwrap_or_else(|e| e.into_inner());
+            let active = *self
+                .active_dummy_connections
+                .lock()
+                .unwrap_or_else(|e| e.into_inner());
             if active < self.config.dummy_traffic.max_concurrent {
                 let dummy = self.generate_dummy_message();
-                self.dummy_queue.lock().unwrap_or_else(|e| e.into_inner()).push(dummy);
+                self.dummy_queue
+                    .lock()
+                    .unwrap_or_else(|e| e.into_inner())
+                    .push(dummy);
             }
 
             sleep(interval).await;
@@ -387,12 +393,18 @@ impl TrafficObfuscator {
 
     /// Increment active dummy connections
     pub fn increment_dummy_connections(&self) {
-        *self.active_dummy_connections.lock().unwrap_or_else(|e| e.into_inner()) += 1;
+        *self
+            .active_dummy_connections
+            .lock()
+            .unwrap_or_else(|e| e.into_inner()) += 1;
     }
 
     /// Decrement active dummy connections
     pub fn decrement_dummy_connections(&self) {
-        let mut active = self.active_dummy_connections.lock().unwrap_or_else(|e| e.into_inner());
+        let mut active = self
+            .active_dummy_connections
+            .lock()
+            .unwrap_or_else(|e| e.into_inner());
         if *active > 0 {
             *active -= 1;
         }
@@ -586,10 +598,22 @@ mod tests {
 
         obfuscator.increment_dummy_connections();
         obfuscator.increment_dummy_connections();
-        assert_eq!(*obfuscator.active_dummy_connections.lock().unwrap_or_else(|e| e.into_inner()), 2);
+        assert_eq!(
+            *obfuscator
+                .active_dummy_connections
+                .lock()
+                .unwrap_or_else(|e| e.into_inner()),
+            2
+        );
 
         obfuscator.decrement_dummy_connections();
-        assert_eq!(*obfuscator.active_dummy_connections.lock().unwrap_or_else(|e| e.into_inner()), 1);
+        assert_eq!(
+            *obfuscator
+                .active_dummy_connections
+                .lock()
+                .unwrap_or_else(|e| e.into_inner()),
+            1
+        );
     }
 
     #[test]

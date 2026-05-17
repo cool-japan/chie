@@ -684,7 +684,10 @@ impl HybridController {
 
     /// Returns decision history (last 1000 decisions).
     pub fn decision_history(&self) -> Vec<DeliveryDecision> {
-        self.decision_history.read().unwrap_or_else(|e| e.into_inner()).clone()
+        self.decision_history
+            .read()
+            .unwrap_or_else(|e| e.into_inner())
+            .clone()
     }
 
     /// Returns current configuration.
@@ -699,7 +702,10 @@ impl HybridController {
 
     /// Returns availability metrics.
     pub fn availability_metrics(&self) -> (f64, f64) {
-        let tracker = self.availability_tracker.read().unwrap_or_else(|e| e.into_inner());
+        let tracker = self
+            .availability_tracker
+            .read()
+            .unwrap_or_else(|e| e.into_inner());
         (tracker.cdn_uptime, tracker.p2p_uptime)
     }
 

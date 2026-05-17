@@ -103,7 +103,7 @@ impl TransportConfig {
             webrtc_listen_addrs: vec![
                 format!("/ip4/0.0.0.0/udp/{}/webrtc-direct", port)
                     .parse()
-        .expect("formatted multiaddr is always valid"),
+                    .expect("formatted multiaddr is always valid"),
             ],
             ..Default::default()
         }
@@ -116,7 +116,7 @@ impl TransportConfig {
             webrtc_listen_addrs: vec![
                 format!("/ip4/0.0.0.0/udp/{}/webrtc-direct", webrtc_port)
                     .parse()
-        .expect("formatted multiaddr is always valid"),
+                    .expect("formatted multiaddr is always valid"),
             ],
             ..Default::default()
         }

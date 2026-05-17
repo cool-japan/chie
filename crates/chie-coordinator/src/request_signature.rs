@@ -122,7 +122,10 @@ impl SignatureVerifier {
             active: true,
         };
 
-        let mut keys = self.registered_keys.write().unwrap_or_else(|e| e.into_inner());
+        let mut keys = self
+            .registered_keys
+            .write()
+            .unwrap_or_else(|e| e.into_inner());
         keys.insert(public_key, key_info);
 
         Ok(())
@@ -130,7 +133,10 @@ impl SignatureVerifier {
 
     /// Revoke a public key
     pub fn revoke_key(&self, public_key: &str) -> bool {
-        let mut keys = self.registered_keys.write().unwrap_or_else(|e| e.into_inner());
+        let mut keys = self
+            .registered_keys
+            .write()
+            .unwrap_or_else(|e| e.into_inner());
         if let Some(key_info) = keys.get_mut(public_key) {
             key_info.active = false;
             true
@@ -150,7 +156,10 @@ impl SignatureVerifier {
     ) -> Result<(), SignatureError> {
         // Check if public key is registered (if required)
         if self.config.require_registration {
-            let keys = self.registered_keys.read().unwrap_or_else(|e| e.into_inner());
+            let keys = self
+                .registered_keys
+                .read()
+                .unwrap_or_else(|e| e.into_inner());
             match keys.get(public_key) {
                 Some(key_info) if key_info.active => {}
                 Some(_) => return Err(SignatureError::UnknownPublicKey),
@@ -236,7 +245,10 @@ impl SignatureVerifier {
 
     /// Get registered keys
     pub fn get_registered_keys(&self) -> Vec<RegisteredKey> {
-        let keys = self.registered_keys.read().unwrap_or_else(|e| e.into_inner());
+        let keys = self
+            .registered_keys
+            .read()
+            .unwrap_or_else(|e| e.into_inner());
         keys.values().cloned().collect()
     }
 

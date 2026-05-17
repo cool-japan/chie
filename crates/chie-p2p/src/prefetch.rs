@@ -234,7 +234,11 @@ impl PrefetchManager {
         recommendations.retain(|rec| rec.confidence >= self.config.min_confidence);
 
         // Sort by priority
-        recommendations.sort_by(|a, b| b.priority.partial_cmp(&a.priority).unwrap_or(std::cmp::Ordering::Equal));
+        recommendations.sort_by(|a, b| {
+            b.priority
+                .partial_cmp(&a.priority)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
 
         // Limit by count and size
         self.apply_size_limits(recommendations, max_items)

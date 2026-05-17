@@ -259,7 +259,10 @@ fn calculate_min_entropy(data: &[u8]) -> f64 {
         counts[byte as usize] += 1;
     }
 
-    let max_count = *counts.iter().max().expect("counts is [0; 256] and always non-empty");
+    let max_count = *counts
+        .iter()
+        .max()
+        .expect("counts is [0; 256] and always non-empty");
     let max_probability = max_count as f64 / data.len() as f64;
 
     -max_probability.log2()

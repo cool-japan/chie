@@ -240,8 +240,16 @@ impl RequestOrchestrator {
         // Check cache first
         if self.config.enable_caching {
             let cid_owned = cid.to_string();
-            if let Some(cached) = self.result_cache.lock().unwrap_or_else(|e| e.into_inner()).get(&cid_owned) {
-                self.stats.lock().unwrap_or_else(|e| e.into_inner()).cache_hits += 1;
+            if let Some(cached) = self
+                .result_cache
+                .lock()
+                .unwrap_or_else(|e| e.into_inner())
+                .get(&cid_owned)
+            {
+                self.stats
+                    .lock()
+                    .unwrap_or_else(|e| e.into_inner())
+                    .cache_hits += 1;
                 return Ok(cached.clone());
             }
         }
@@ -453,7 +461,10 @@ impl RequestOrchestrator {
 
     /// Select peers for content based on routing and reputation.
     fn select_peers_for_content(&self, cid: &str) -> Result<Vec<String>, OrchestratorError> {
-        let mut router = self.content_router.lock().unwrap_or_else(|e| e.into_inner());
+        let mut router = self
+            .content_router
+            .lock()
+            .unwrap_or_else(|e| e.into_inner());
         let peers = router.find_peers(cid, 10);
 
         if peers.is_empty() {
@@ -461,7 +472,10 @@ impl RequestOrchestrator {
         }
 
         // Filter by reputation and return qualified peer IDs
-        let mut reputation = self.reputation_tracker.lock().unwrap_or_else(|e| e.into_inner());
+        let mut reputation = self
+            .reputation_tracker
+            .lock()
+            .unwrap_or_else(|e| e.into_inner());
         let qualified: Vec<String> = peers
             .into_iter()
             .filter(|p| reputation.get_reputation(p) >= self.config.min_reputation)
@@ -486,7 +500,10 @@ impl RequestOrchestrator {
     /// Check rate limit for peer.
     #[inline]
     fn check_rate_limit(&self, peer_id: &str) -> bool {
-        let mut reputation = self.reputation_tracker.lock().unwrap_or_else(|e| e.into_inner());
+        let mut reputation = self
+            .reputation_tracker
+            .lock()
+            .unwrap_or_else(|e| e.into_inner());
         let score = reputation.get_reputation(peer_id);
 
         let mut limiter = self.rate_limiter.lock().unwrap_or_else(|e| e.into_inner());
@@ -509,7 +526,10 @@ impl RequestOrchestrator {
             .record_latency(peer_id.to_string(), latency_ms);
 
         // Clear failure count
-        self.failed_peers.lock().unwrap_or_else(|e| e.into_inner()).remove(peer_id);
+        self.failed_peers
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .remove(peer_id);
     }
 
     /// Record peer failure.
@@ -572,7 +592,10 @@ impl RequestOrchestrator {
     /// Clear result cache.
     #[inline]
     pub fn clear_cache(&self) {
-        self.result_cache.lock().unwrap_or_else(|e| e.into_inner()).clear();
+        self.result_cache
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .clear();
     }
 }
 
@@ -700,7 +723,14 @@ mod tests {
         let orchestrator = RequestOrchestrator::new(config);
 
         orchestrator.clear_cache();
-        assert_eq!(orchestrator.result_cache.lock().unwrap_or_else(|e| e.into_inner()).len(), 0);
+        assert_eq!(
+            orchestrator
+                .result_cache
+                .lock()
+                .unwrap_or_else(|e| e.into_inner())
+                .len(),
+            0
+        );
     }
 
     #[test]

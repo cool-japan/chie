@@ -315,7 +315,11 @@ impl LifecycleEventManager {
 
     /// Trigger webhooks for an event (async).
     async fn trigger_webhooks(&self, event: &ContentEvent) {
-        let webhooks = self.webhooks.lock().unwrap_or_else(|e| e.into_inner()).clone();
+        let webhooks = self
+            .webhooks
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .clone();
 
         for webhook in webhooks {
             // Check if this webhook should be triggered for this event type
@@ -397,7 +401,11 @@ impl LifecycleEventManager {
     #[must_use]
     #[inline]
     pub fn get_total_event_count(&self) -> u64 {
-        self.stats.lock().unwrap_or_else(|e| e.into_inner()).values().sum()
+        self.stats
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .values()
+            .sum()
     }
 
     /// Get all event statistics.
@@ -409,7 +417,10 @@ impl LifecycleEventManager {
 
     /// Clear event history.
     pub fn clear_history(&mut self) {
-        self.history.lock().unwrap_or_else(|e| e.into_inner()).clear();
+        self.history
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .clear();
     }
 
     /// Reset event statistics.
@@ -419,12 +430,18 @@ impl LifecycleEventManager {
 
     /// Remove all handlers for an event type.
     pub fn clear_handlers(&mut self, event_type: LifecycleEventType) {
-        self.handlers.lock().unwrap_or_else(|e| e.into_inner()).remove(&event_type);
+        self.handlers
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .remove(&event_type);
     }
 
     /// Remove all webhooks.
     pub fn clear_webhooks(&mut self) {
-        self.webhooks.lock().unwrap_or_else(|e| e.into_inner()).clear();
+        self.webhooks
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .clear();
     }
 }
 

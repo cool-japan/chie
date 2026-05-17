@@ -191,10 +191,11 @@ impl GeoZone {
 
     /// Select best node in this zone
     pub fn select_node(&self) -> Option<&GeoNode> {
-        self.nodes
-            .values()
-            .filter(|n| n.healthy)
-            .min_by(|a, b| a.score().partial_cmp(&b.score()).unwrap_or(std::cmp::Ordering::Equal))
+        self.nodes.values().filter(|n| n.healthy).min_by(|a, b| {
+            a.score()
+                .partial_cmp(&b.score())
+                .unwrap_or(std::cmp::Ordering::Equal)
+        })
     }
 
     /// Get available capacity
@@ -370,7 +371,11 @@ impl GeoLoadBalancer {
         }
 
         // Sort by score and select top N
-        candidates.sort_by(|a, b| a.0.score().partial_cmp(&b.0.score()).unwrap_or(std::cmp::Ordering::Equal));
+        candidates.sort_by(|a, b| {
+            a.0.score()
+                .partial_cmp(&b.0.score())
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
 
         for (node, _) in candidates.iter().take(count) {
             selected.push(node.id.clone());
@@ -394,7 +399,9 @@ impl GeoLoadBalancer {
         self.zones.values().min_by(|a, b| {
             let dist_a = location.distance_to(&a.location);
             let dist_b = location.distance_to(&b.location);
-            dist_a.partial_cmp(&dist_b).unwrap_or(std::cmp::Ordering::Equal)
+            dist_a
+                .partial_cmp(&dist_b)
+                .unwrap_or(std::cmp::Ordering::Equal)
         })
     }
 

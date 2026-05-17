@@ -303,7 +303,10 @@ impl AutoTuner {
         if !self.config.enabled {
             return false;
         }
-        let last_adjustment = self.last_adjustment.read().unwrap_or_else(|e| e.into_inner());
+        let last_adjustment = self
+            .last_adjustment
+            .read()
+            .unwrap_or_else(|e| e.into_inner());
         last_adjustment.elapsed() >= self.config.adjustment_interval
     }
 
@@ -341,15 +344,27 @@ impl AutoTuner {
 
     /// Apply tuning (marks that tuning was applied).
     pub fn mark_tuned(&self) {
-        *self.last_adjustment.write().unwrap_or_else(|e| e.into_inner()) = Instant::now();
-        *self.adjustments_made.write().unwrap_or_else(|e| e.into_inner()) += 1;
+        *self
+            .last_adjustment
+            .write()
+            .unwrap_or_else(|e| e.into_inner()) = Instant::now();
+        *self
+            .adjustments_made
+            .write()
+            .unwrap_or_else(|e| e.into_inner()) += 1;
     }
 
     /// Get auto-tuning statistics.
     pub fn stats(&self) -> AutoTuningStats {
         let measurements = self.measurements.read().unwrap_or_else(|e| e.into_inner());
-        let last_adjustment = self.last_adjustment.read().unwrap_or_else(|e| e.into_inner());
-        let adjustments_made = *self.adjustments_made.read().unwrap_or_else(|e| e.into_inner());
+        let last_adjustment = self
+            .last_adjustment
+            .read()
+            .unwrap_or_else(|e| e.into_inner());
+        let adjustments_made = *self
+            .adjustments_made
+            .read()
+            .unwrap_or_else(|e| e.into_inner());
 
         AutoTuningStats {
             adjustments_made,
@@ -364,8 +379,14 @@ impl AutoTuner {
     /// Reset auto-tuning state.
     pub fn reset(&self) {
         *self.measurements.write().unwrap_or_else(|e| e.into_inner()) = NetworkMeasurements::new();
-        *self.last_adjustment.write().unwrap_or_else(|e| e.into_inner()) = Instant::now();
-        *self.adjustments_made.write().unwrap_or_else(|e| e.into_inner()) = 0;
+        *self
+            .last_adjustment
+            .write()
+            .unwrap_or_else(|e| e.into_inner()) = Instant::now();
+        *self
+            .adjustments_made
+            .write()
+            .unwrap_or_else(|e| e.into_inner()) = 0;
     }
 }
 

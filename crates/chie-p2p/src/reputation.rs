@@ -172,7 +172,9 @@ impl ReputationManager {
             self.peers
                 .insert(*peer, PeerStats::new(self.config.initial_score));
         }
-        self.peers.get_mut(peer).expect("peer exists: just inserted if missing above")
+        self.peers
+            .get_mut(peer)
+            .expect("peer exists: just inserted if missing above")
     }
 
     /// Apply time-based decay to a peer's score.

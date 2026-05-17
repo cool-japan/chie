@@ -415,21 +415,33 @@ impl QosManager {
     #[must_use]
     #[inline]
     pub fn total_queue_depth(&self) -> usize {
-        self.queues.lock().unwrap_or_else(|e| e.into_inner()).values().map(|q| q.len()).sum()
+        self.queues
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .values()
+            .map(|q| q.len())
+            .sum()
     }
 
     /// Get SLA metrics for a priority level.
     #[must_use]
     #[inline]
     pub fn get_sla_metrics(&self, priority: Priority) -> Option<SlaMetrics> {
-        self.metrics.lock().unwrap_or_else(|e| e.into_inner()).get(&priority).cloned()
+        self.metrics
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .get(&priority)
+            .cloned()
     }
 
     /// Get SLA metrics for all priority levels.
     #[must_use]
     #[inline]
     pub fn get_all_sla_metrics(&self) -> HashMap<Priority, SlaMetrics> {
-        self.metrics.lock().unwrap_or_else(|e| e.into_inner()).clone()
+        self.metrics
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .clone()
     }
 
     /// Reset all SLA metrics.
@@ -472,14 +484,20 @@ impl QosManager {
     ///
     /// This allows QoS to adapt behavior based on system resource availability.
     pub fn update_resource_pressure(&mut self, pressure: ResourcePressure) {
-        let mut current = self.resource_pressure.lock().unwrap_or_else(|e| e.into_inner());
+        let mut current = self
+            .resource_pressure
+            .lock()
+            .unwrap_or_else(|e| e.into_inner());
         *current = pressure;
     }
 
     /// Get current resource pressure.
     #[must_use]
     pub fn get_resource_pressure(&self) -> ResourcePressure {
-        *self.resource_pressure.lock().unwrap_or_else(|e| e.into_inner())
+        *self
+            .resource_pressure
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
     }
 
     /// Check if system is under high resource pressure.
@@ -488,7 +506,10 @@ impl QosManager {
     #[must_use]
     #[inline]
     pub fn is_under_high_pressure(&self) -> bool {
-        let pressure = self.resource_pressure.lock().unwrap_or_else(|e| e.into_inner());
+        let pressure = self
+            .resource_pressure
+            .lock()
+            .unwrap_or_else(|e| e.into_inner());
         pressure.overall_score() > 0.80
     }
 
@@ -498,7 +519,10 @@ impl QosManager {
     #[must_use]
     #[inline]
     pub fn adaptive_queue_limit(&self) -> usize {
-        let pressure = self.resource_pressure.lock().unwrap_or_else(|e| e.into_inner());
+        let pressure = self
+            .resource_pressure
+            .lock()
+            .unwrap_or_else(|e| e.into_inner());
         let pressure_score = pressure.overall_score();
 
         if pressure_score > 0.90 {
@@ -522,7 +546,10 @@ impl QosManager {
     #[must_use]
     #[inline]
     pub fn should_throttle_priority(&self, priority: Priority) -> bool {
-        let pressure = self.resource_pressure.lock().unwrap_or_else(|e| e.into_inner());
+        let pressure = self
+            .resource_pressure
+            .lock()
+            .unwrap_or_else(|e| e.into_inner());
         let pressure_score = pressure.overall_score();
 
         match priority {

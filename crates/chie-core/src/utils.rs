@@ -727,7 +727,8 @@ pub mod async_utils {
             }
         }
 
-        Err(last_error.expect("last_error is Some: loop executes at least once and always sets it on Err"))
+        Err(last_error
+            .expect("last_error is Some: loop executes at least once and always sets it on Err"))
     }
 
     /// Sleep for a specified duration (async).
@@ -1640,7 +1641,9 @@ mod tests {
         let timestamp_ms = 1609459200000i64; // 2021-01-01 00:00:00 UTC
         let system_time = timestamp_to_systemtime(timestamp_ms);
 
-        let duration = system_time.duration_since(UNIX_EPOCH).expect("system time is always after UNIX_EPOCH");
+        let duration = system_time
+            .duration_since(UNIX_EPOCH)
+            .expect("system time is always after UNIX_EPOCH");
         assert_eq!(duration.as_millis(), timestamp_ms as u128);
 
         let zero_time = timestamp_to_systemtime(0);

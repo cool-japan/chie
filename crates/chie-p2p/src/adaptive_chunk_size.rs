@@ -392,7 +392,8 @@ impl AdaptiveChunkSize {
     /// Get statistics
     pub fn stats(&self) -> ChunkSizeStats {
         let total_peers = self.peer_states.len();
-        let avg_chunk_size = self.peer_states
+        let avg_chunk_size = self
+            .peer_states
             .values()
             .map(|s| s.current_chunk_size)
             .sum::<usize>()

@@ -211,7 +211,10 @@ impl BandwidthFairnessController {
 
     /// Recalculates bandwidth allocations for all peers
     pub fn recalculate_allocations(&self) {
-        let mut last_recalc = self.last_recalculation.write().unwrap_or_else(|e| e.into_inner());
+        let mut last_recalc = self
+            .last_recalculation
+            .write()
+            .unwrap_or_else(|e| e.into_inner());
         *last_recalc = Instant::now();
 
         let mut peers = self.peers.write().unwrap_or_else(|e| e.into_inner());
@@ -373,7 +376,10 @@ impl BandwidthFairnessController {
 
     /// Checks if automatic recalculation is needed
     pub fn should_recalculate(&self) -> bool {
-        let last = self.last_recalculation.read().unwrap_or_else(|e| e.into_inner());
+        let last = self
+            .last_recalculation
+            .read()
+            .unwrap_or_else(|e| e.into_inner());
         let interval = Duration::from_millis(self.config.adjustment_interval_ms);
         last.elapsed() >= interval
     }
