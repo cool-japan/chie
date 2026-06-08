@@ -122,7 +122,7 @@ impl TempDir {
     /// Get the path as a string.
     #[inline]
     pub fn path_str(&self) -> &str {
-        self.path.to_str().unwrap()
+        self.path.to_str().expect("invariant: temp dir path is valid UTF-8")
     }
 }
 
