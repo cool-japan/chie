@@ -72,7 +72,7 @@ impl StreamEncryptor {
         let nonce = self.derive_chunk_nonce(self.chunk_index);
         let ciphertext = self
             .cipher
-            .encrypt(Nonce::from_slice(&nonce), plaintext)
+            .encrypt(<&Nonce>::from(&nonce), plaintext)
             .map_err(|e| StreamError::EncryptionFailed(e.to_string()))?;
 
         self.chunk_index += 1;
@@ -94,7 +94,7 @@ impl StreamEncryptor {
 
         let nonce = self.derive_chunk_nonce(chunk_index);
         self.cipher
-            .encrypt(Nonce::from_slice(&nonce), plaintext)
+            .encrypt(<&Nonce>::from(&nonce), plaintext)
             .map_err(|e| StreamError::EncryptionFailed(e.to_string()))
     }
 
@@ -143,7 +143,7 @@ impl StreamDecryptor {
         let nonce = self.derive_chunk_nonce(self.chunk_index);
         let plaintext = self
             .cipher
-            .decrypt(Nonce::from_slice(&nonce), ciphertext)
+            .decrypt(<&Nonce>::from(&nonce), ciphertext)
             .map_err(|e| StreamError::DecryptionFailed(e.to_string()))?;
 
         self.chunk_index += 1;
@@ -158,7 +158,7 @@ impl StreamDecryptor {
     ) -> Result<Vec<u8>, StreamError> {
         let nonce = self.derive_chunk_nonce(chunk_index);
         self.cipher
-            .decrypt(Nonce::from_slice(&nonce), ciphertext)
+            .decrypt(<&Nonce>::from(&nonce), ciphertext)
             .map_err(|e| StreamError::DecryptionFailed(e.to_string()))
     }
 

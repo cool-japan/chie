@@ -475,7 +475,13 @@ impl AnalyticsManager {
             time_filter, content_filter, limit, offset
         );
 
-        let results = sqlx::query_as::<_, ContentPerformanceRow>(&query)
+        // Safety: `time_filter`/`content_filter` are built from a closed set
+        // of hardcoded interval strings (`TimeRange::duration_secs`) and a
+        // `Uuid`, whose `Display` output is a fixed hyphenated-hex format
+        // that cannot contain a quote or other SQL metacharacter;
+        // `limit`/`offset` are plain integers. No free-form user text is
+        // interpolated.
+        let results = sqlx::query_as::<_, ContentPerformanceRow>(sqlx::AssertSqlSafe(query))
             .fetch_all(&self.db)
             .await
             .context("Failed to fetch content performance")?;
@@ -582,7 +588,12 @@ impl AnalyticsManager {
             time_filter, sort_column, order_direction, sort_column, order_direction, limit, offset
         );
 
-        let results = sqlx::query_as::<_, NodePerformanceRow>(&query)
+        // Safety: `time_filter` is a closed set of hardcoded interval strings
+        // (`TimeRange::duration_secs`); `sort_column`/`order_direction` are
+        // selected from an exhaustive `match` over a fixed allow-list (with a
+        // safe default), never passed through verbatim; `limit`/`offset` are
+        // plain integers. No free-form user text is interpolated.
+        let results = sqlx::query_as::<_, NodePerformanceRow>(sqlx::AssertSqlSafe(query))
             .fetch_all(&self.db)
             .await
             .context("Failed to fetch node leaderboard")?;
@@ -697,7 +708,10 @@ impl AnalyticsManager {
             agg_func, time_filter
         );
 
-        let result = sqlx::query(&sql)
+        // Safety: `time_filter` is a closed set of hardcoded interval strings
+        // and `agg_func` is selected from an exhaustive `match` over the
+        // `AggregationType` enum; neither can carry free-form user text.
+        let result = sqlx::query(sqlx::AssertSqlSafe(sql))
             .fetch_one(&self.db)
             .await
             .context("Failed to execute bandwidth query")?;
@@ -737,7 +751,10 @@ impl AnalyticsManager {
             agg_func, time_filter
         );
 
-        let result = sqlx::query(&sql)
+        // Safety: `time_filter` is a closed set of hardcoded interval strings
+        // and `agg_func` is selected from an exhaustive `match` over the
+        // `AggregationType` enum; neither can carry free-form user text.
+        let result = sqlx::query(sqlx::AssertSqlSafe(sql))
             .fetch_one(&self.db)
             .await
             .context("Failed to execute points query")?;

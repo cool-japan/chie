@@ -403,41 +403,76 @@ impl AuditLogger {
              FROM audit_log WHERE 1=1",
         );
 
-        let mut params: Vec<String> = Vec::new();
+        // Build the filter clauses using bind placeholders only. Every dynamic
+        // value is supplied via `.bind()` below (in the same order the
+        // placeholders are appended here), so the query text itself only ever
+        // contains static SQL and `$N` markers.
+        //
+        // NOTE: previously this built a `params: Vec<String>` of pre-formatted
+        // (and in the case of `actor`/`action`, entirely unescaped) fragments
+        // that were never actually bound to the query, so any request with a
+        // filter set would have failed at the database with "$1 not provided".
+        // Wiring up real `.bind()` calls both fixes that and is what makes the
+        // dynamically-built query text provably injection-safe.
+        let mut param_num = 0;
 
-        if let Some(start) = filter.start_time {
-            params.push(format!("timestamp >= '{}'", start.to_rfc3339()));
-            query.push_str(&format!(" AND timestamp >= ${}", params.len()));
+        if filter.start_time.is_some() {
+            param_num += 1;
+            query.push_str(&format!(" AND timestamp >= ${param_num}"));
         }
 
-        if let Some(end) = filter.end_time {
-            params.push(format!("timestamp <= '{}'", end.to_rfc3339()));
-            query.push_str(&format!(" AND timestamp <= ${}", params.len()));
+        if filter.end_time.is_some() {
+            param_num += 1;
+            query.push_str(&format!(" AND timestamp <= ${param_num}"));
         }
 
-        if let Some(category) = filter.category {
-            params.push(category.as_str().to_string());
-            query.push_str(&format!(" AND category = ${}", params.len()));
+        if filter.category.is_some() {
+            param_num += 1;
+            query.push_str(&format!(" AND category = ${param_num}"));
         }
 
-        if let Some(severity) = filter.severity {
-            params.push(severity.as_str().to_string());
-            query.push_str(&format!(" AND severity = ${}", params.len()));
+        if filter.severity.is_some() {
+            param_num += 1;
+            query.push_str(&format!(" AND severity = ${param_num}"));
         }
 
-        if let Some(actor) = filter.actor {
-            params.push(actor);
-            query.push_str(&format!(" AND actor = ${}", params.len()));
+        if filter.actor.is_some() {
+            param_num += 1;
+            query.push_str(&format!(" AND actor = ${param_num}"));
         }
 
-        if let Some(action) = filter.action {
-            params.push(action);
-            query.push_str(&format!(" AND action = ${}", params.len()));
+        if filter.action.is_some() {
+            param_num += 1;
+            query.push_str(&format!(" AND action = ${param_num}"));
         }
 
         query.push_str(&format!(" ORDER BY timestamp DESC LIMIT {}", filter.limit));
 
-        let rows = sqlx::query(&query).fetch_all(&self.db).await?;
+        // Safety: `query` is assembled solely from static SQL fragments and
+        // `$N` bind placeholders; all caller-supplied values are bound below,
+        // never interpolated into the SQL text.
+        let mut sql_query = sqlx::query(sqlx::AssertSqlSafe(query));
+
+        if let Some(start) = filter.start_time {
+            sql_query = sql_query.bind(start);
+        }
+        if let Some(end) = filter.end_time {
+            sql_query = sql_query.bind(end);
+        }
+        if let Some(category) = filter.category {
+            sql_query = sql_query.bind(category.as_str());
+        }
+        if let Some(severity) = filter.severity {
+            sql_query = sql_query.bind(severity.as_str());
+        }
+        if let Some(actor) = filter.actor {
+            sql_query = sql_query.bind(actor);
+        }
+        if let Some(action) = filter.action {
+            sql_query = sql_query.bind(action);
+        }
+
+        let rows = sql_query.fetch_all(&self.db).await?;
 
         let entries = rows
             .iter()

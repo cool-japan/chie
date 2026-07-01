@@ -383,7 +383,12 @@ async fn get_email_history(
 
     query.push_str(&format!(" LIMIT ${} OFFSET ${}", param_num, param_num + 1));
 
-    // Execute query with bound parameters
+    // Execute query with bound parameters.
+    //
+    // Safety: `query` only ever grows by appending static SQL keywords/column
+    // names and `$N` bind-placeholder markers computed from local counters;
+    // every actual filter value is supplied via `.bind()` below, never
+    // interpolated into the SQL text.
     let mut sql_query = sqlx::query_as::<
         _,
         (
@@ -400,7 +405,7 @@ async fn get_email_history(
             Option<chrono::DateTime<chrono::Utc>>,
             chrono::DateTime<chrono::Utc>,
         ),
-    >(&query);
+    >(sqlx::AssertSqlSafe(query));
 
     if let Some(status) = &params.status {
         sql_query = sql_query.bind(status);

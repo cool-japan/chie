@@ -233,7 +233,7 @@ pub fn encrypt(pk: &ProxyRePublicKey, plaintext: &[u8]) -> ProxyReResult<ProxyRe
     // Generate nonce
     let mut nonce_bytes = [0u8; 12];
     rng.fill(&mut nonce_bytes);
-    let nonce = Nonce::from_slice(&nonce_bytes);
+    let nonce = <&Nonce>::from(&nonce_bytes);
 
     // Encrypt plaintext with symmetric encryption
     let cipher = ChaCha20Poly1305::new(&sym_key.into());
@@ -264,7 +264,7 @@ pub fn decrypt(sk: &ProxyReSecretKey, ciphertext: &ProxyReCiphertext) -> ProxyRe
 
     // Decrypt ciphertext
     let cipher = ChaCha20Poly1305::new(&sym_key.into());
-    let nonce = Nonce::from_slice(&ciphertext.nonce);
+    let nonce = <&Nonce>::from(&ciphertext.nonce);
 
     cipher
         .decrypt(nonce, ciphertext.ciphertext.as_ref())
@@ -321,7 +321,7 @@ pub fn re_encrypt(
     // Re-encrypt the ciphertext data
     let mut nonce_bytes = [0u8; 12];
     rng.fill(&mut nonce_bytes);
-    let nonce = Nonce::from_slice(&nonce_bytes);
+    let nonce = <&Nonce>::from(&nonce_bytes);
 
     let cipher = ChaCha20Poly1305::new(&new_sym_key.into());
 

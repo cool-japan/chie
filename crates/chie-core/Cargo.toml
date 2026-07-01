@@ -25,7 +25,7 @@ rand = { workspace = true }
 hex = { workspace = true }
 oxicode = { workspace = true }
 oxiarc-deflate = { workspace = true }
-sysinfo = "0.38"
+sysinfo = "0.39"
 chie-shared = { workspace = true }
 chie-crypto = { workspace = true }
 chie-p2p = { workspace = true }

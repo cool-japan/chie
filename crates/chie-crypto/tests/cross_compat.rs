@@ -24,7 +24,7 @@ fn test_chacha20_poly1305_compat_with_reference() {
 
     // Decrypt with reference implementation
     let cipher = ChaCha20Poly1305::new(&key_bytes.into());
-    let nonce = Nonce::from_slice(&nonce_bytes);
+    let nonce = <&Nonce>::from(&nonce_bytes);
     let ref_plaintext = cipher.decrypt(nonce, our_ciphertext.as_ref()).unwrap();
 
     assert_eq!(&ref_plaintext[..], plaintext);
@@ -269,7 +269,7 @@ fn test_encryption_compat_various_sizes() {
     ];
 
     let cipher = ChaCha20Poly1305::new(&key_bytes.into());
-    let nonce = Nonce::from_slice(&nonce_bytes);
+    let nonce = <&Nonce>::from(&nonce_bytes);
 
     for plaintext in plaintexts {
         // Encrypt with our implementation

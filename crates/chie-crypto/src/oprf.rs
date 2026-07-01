@@ -40,7 +40,7 @@ use curve25519_dalek::{
 };
 use rand::RngExt;
 use serde::{Deserialize, Serialize};
-use sha2::Sha512;
+use sha2::{Digest, Sha512};
 
 /// OPRF error types.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -260,8 +260,17 @@ impl OprfOutput {
 
 /// Hash arbitrary input to a Ristretto point.
 fn hash_to_point(input: &[u8]) -> RistrettoPoint {
-    // Hash input using SHA-512 and convert to scalar
-    let scalar = Scalar::hash_from_bytes::<Sha512>(input);
+    // Hash input using SHA-512. We compute the digest ourselves (via our own
+    // `sha2::Digest`) rather than using `Scalar::hash_from_bytes::<Sha512>`,
+    // because that generic helper requires `Sha512` to implement
+    // `curve25519_dalek::digest::Digest`, which is tied to whatever `digest`
+    // major version `curve25519-dalek` itself depends on. Since our workspace
+    // `sha2` has moved ahead of that version, the trait bound no longer
+    // resolves. Reducing the wide 64-byte hash via `from_bytes_mod_order_wide`
+    // is exactly what `hash_from_bytes` does internally, so behavior (and the
+    // resulting scalar for a given input) is unchanged.
+    let hash: [u8; 64] = Sha512::digest(input).into();
+    let scalar = Scalar::from_bytes_mod_order_wide(&hash);
     // Multiply base point to get deterministic point
     &scalar * RISTRETTO_BASEPOINT_TABLE
 }

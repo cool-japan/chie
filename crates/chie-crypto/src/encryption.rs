@@ -43,7 +43,7 @@ pub fn encrypt(
     nonce: &EncryptionNonce,
 ) -> Result<Vec<u8>, EncryptionError> {
     let cipher = ChaCha20Poly1305::new(key.into());
-    let nonce = Nonce::from_slice(nonce);
+    let nonce = <&Nonce>::from(nonce);
 
     cipher
         .encrypt(nonce, data)
@@ -57,7 +57,7 @@ pub fn decrypt(
     nonce: &EncryptionNonce,
 ) -> Result<Vec<u8>, EncryptionError> {
     let cipher = ChaCha20Poly1305::new(key.into());
-    let nonce = Nonce::from_slice(nonce);
+    let nonce = <&Nonce>::from(nonce);
 
     cipher
         .decrypt(nonce, ciphertext)

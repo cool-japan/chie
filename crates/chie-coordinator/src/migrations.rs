@@ -142,8 +142,13 @@ impl MigrationRunner {
         // Start a transaction
         let mut tx = self.pool.begin().await?;
 
-        // Execute the migration SQL
-        sqlx::query(&migration.sql)
+        // Execute the migration SQL.
+        //
+        // Safety: migration SQL is loaded from `.sql` files bundled in the
+        // trusted `migrations_dir` on disk (see `load_migration_files`); it
+        // is developer-authored deployment content, never derived from
+        // runtime user input.
+        sqlx::query(sqlx::AssertSqlSafe(migration.sql.as_str()))
             .execute(&mut *tx)
             .await
             .context(format!("Failed to execute migration {}", migration.version))?;

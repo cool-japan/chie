@@ -208,7 +208,7 @@ impl OTReceiver {
 
         // Decrypt
         let cipher = ChaCha20Poly1305::new(&sym_key.into());
-        let nonce = Nonce::from_slice(&item.nonce);
+        let nonce = <&Nonce>::from(&item.nonce);
 
         cipher
             .decrypt(nonce, item.ciphertext.as_ref())
@@ -273,7 +273,7 @@ impl OTSender {
             // Generate nonce
             let mut nonce_bytes = [0u8; 12];
             rng.fill(&mut nonce_bytes);
-            let nonce = Nonce::from_slice(&nonce_bytes);
+            let nonce = <&Nonce>::from(&nonce_bytes);
 
             // Encrypt item
             let cipher = ChaCha20Poly1305::new(&sym_key.into());

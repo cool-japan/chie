@@ -153,24 +153,38 @@ impl DataExporter {
              FROM audit_log WHERE 1=1",
         );
 
-        if let Some(start) = filter.start_date {
-            query.push_str(&format!(" AND timestamp >= '{}'", start.to_rfc3339()));
+        // `severity`/`category`/`actor` are caller-supplied free text (this is
+        // an export filter, not a closed enum), so they must never be
+        // interpolated into the SQL text directly -- doing so previously was
+        // a genuine SQL injection vulnerability (no escaping was applied to
+        // the quoted literals at all). Every dynamic value is instead
+        // supplied via `.bind()` below; the query text itself only ever
+        // grows by static SQL and `$N` placeholders.
+        let mut param_num = 0;
+
+        if filter.start_date.is_some() {
+            param_num += 1;
+            query.push_str(&format!(" AND timestamp >= ${param_num}"));
         }
 
-        if let Some(end) = filter.end_date {
-            query.push_str(&format!(" AND timestamp <= '{}'", end.to_rfc3339()));
+        if filter.end_date.is_some() {
+            param_num += 1;
+            query.push_str(&format!(" AND timestamp <= ${param_num}"));
         }
 
-        if let Some(severity) = filter.severity {
-            query.push_str(&format!(" AND severity = '{}'", severity));
+        if filter.severity.is_some() {
+            param_num += 1;
+            query.push_str(&format!(" AND severity = ${param_num}"));
         }
 
-        if let Some(category) = filter.category {
-            query.push_str(&format!(" AND category = '{}'", category));
+        if filter.category.is_some() {
+            param_num += 1;
+            query.push_str(&format!(" AND category = ${param_num}"));
         }
 
-        if let Some(actor) = filter.actor {
-            query.push_str(&format!(" AND actor = '{}'", actor));
+        if filter.actor.is_some() {
+            param_num += 1;
+            query.push_str(&format!(" AND actor = ${param_num}"));
         }
 
         query.push_str(&format!(
@@ -178,7 +192,25 @@ impl DataExporter {
             self.config.max_records
         ));
 
-        let rows = sqlx::query(&query)
+        let mut sql_query = sqlx::query(sqlx::AssertSqlSafe(query));
+
+        if let Some(start) = filter.start_date {
+            sql_query = sql_query.bind(start);
+        }
+        if let Some(end) = filter.end_date {
+            sql_query = sql_query.bind(end);
+        }
+        if let Some(severity) = filter.severity {
+            sql_query = sql_query.bind(severity);
+        }
+        if let Some(category) = filter.category {
+            sql_query = sql_query.bind(category);
+        }
+        if let Some(actor) = filter.actor {
+            sql_query = sql_query.bind(actor);
+        }
+
+        let rows = sql_query
             .fetch_all(&self.db)
             .await
             .map_err(|e| format!("Database query failed: {}", e))?;
@@ -315,20 +347,32 @@ impl DataExporter {
              FROM transactions WHERE 1=1",
         );
 
-        if let Some(start) = filter.start_date {
-            query.push_str(&format!(" AND created_at >= '{}'", start.to_rfc3339()));
+        // `transaction_type` is caller-supplied free text, so it must never
+        // be interpolated into the SQL text directly -- doing so previously
+        // was a genuine SQL injection vulnerability. Every dynamic value
+        // (including the otherwise-numeric `user_id`, for consistency) is
+        // instead supplied via `.bind()` below; the query text itself only
+        // ever grows by static SQL and `$N` placeholders.
+        let mut param_num = 0;
+
+        if filter.start_date.is_some() {
+            param_num += 1;
+            query.push_str(&format!(" AND created_at >= ${param_num}"));
         }
 
-        if let Some(end) = filter.end_date {
-            query.push_str(&format!(" AND created_at <= '{}'", end.to_rfc3339()));
+        if filter.end_date.is_some() {
+            param_num += 1;
+            query.push_str(&format!(" AND created_at <= ${param_num}"));
         }
 
-        if let Some(user_id) = filter.user_id {
-            query.push_str(&format!(" AND user_id = {}", user_id));
+        if filter.user_id.is_some() {
+            param_num += 1;
+            query.push_str(&format!(" AND user_id = ${param_num}"));
         }
 
-        if let Some(tx_type) = filter.transaction_type {
-            query.push_str(&format!(" AND transaction_type = '{}'", tx_type));
+        if filter.transaction_type.is_some() {
+            param_num += 1;
+            query.push_str(&format!(" AND transaction_type = ${param_num}"));
         }
 
         query.push_str(&format!(
@@ -336,7 +380,22 @@ impl DataExporter {
             self.config.max_records
         ));
 
-        let rows = sqlx::query(&query)
+        let mut sql_query = sqlx::query(sqlx::AssertSqlSafe(query));
+
+        if let Some(start) = filter.start_date {
+            sql_query = sql_query.bind(start);
+        }
+        if let Some(end) = filter.end_date {
+            sql_query = sql_query.bind(end);
+        }
+        if let Some(user_id) = filter.user_id {
+            sql_query = sql_query.bind(user_id);
+        }
+        if let Some(tx_type) = filter.transaction_type {
+            sql_query = sql_query.bind(tx_type);
+        }
+
+        let rows = sql_query
             .fetch_all(&self.db)
             .await
             .map_err(|e| format!("Database query failed: {}", e))?;
@@ -444,20 +503,31 @@ impl DataExporter {
              FROM bandwidth_proofs WHERE 1=1",
         );
 
-        if let Some(start) = filter.start_date {
-            query.push_str(&format!(" AND verified_at >= '{}'", start.to_rfc3339()));
+        // `status`/`provider_peer_id` are caller-supplied free text, so they
+        // must never be interpolated into the SQL text directly -- doing so
+        // previously was a genuine SQL injection vulnerability. Every dynamic
+        // value is instead supplied via `.bind()` below; the query text
+        // itself only ever grows by static SQL and `$N` placeholders.
+        let mut param_num = 0;
+
+        if filter.start_date.is_some() {
+            param_num += 1;
+            query.push_str(&format!(" AND verified_at >= ${param_num}"));
         }
 
-        if let Some(end) = filter.end_date {
-            query.push_str(&format!(" AND verified_at <= '{}'", end.to_rfc3339()));
+        if filter.end_date.is_some() {
+            param_num += 1;
+            query.push_str(&format!(" AND verified_at <= ${param_num}"));
         }
 
-        if let Some(status) = filter.status {
-            query.push_str(&format!(" AND status = '{}'", status));
+        if filter.status.is_some() {
+            param_num += 1;
+            query.push_str(&format!(" AND status = ${param_num}"));
         }
 
-        if let Some(provider) = filter.provider_peer_id {
-            query.push_str(&format!(" AND provider_peer_id = '{}'", provider));
+        if filter.provider_peer_id.is_some() {
+            param_num += 1;
+            query.push_str(&format!(" AND provider_peer_id = ${param_num}"));
         }
 
         query.push_str(&format!(
@@ -465,7 +535,22 @@ impl DataExporter {
             self.config.max_records
         ));
 
-        let rows = sqlx::query(&query)
+        let mut sql_query = sqlx::query(sqlx::AssertSqlSafe(query));
+
+        if let Some(start) = filter.start_date {
+            sql_query = sql_query.bind(start);
+        }
+        if let Some(end) = filter.end_date {
+            sql_query = sql_query.bind(end);
+        }
+        if let Some(status) = filter.status {
+            sql_query = sql_query.bind(status);
+        }
+        if let Some(provider) = filter.provider_peer_id {
+            sql_query = sql_query.bind(provider);
+        }
+
+        let rows = sql_query
             .fetch_all(&self.db)
             .await
             .map_err(|e| format!("Database query failed: {}", e))?;
