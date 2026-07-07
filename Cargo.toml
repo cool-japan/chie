@@ -85,11 +85,11 @@ async-graphql = { version = "7.2", features = ["uuid", "chrono"] }
 async-graphql-axum = "7.2"
 
 # Compression (COOLJAPAN Pure Rust Policy)
-oxiarc-deflate = "0.3.4"
-oxiarc-lz4 = "0.3.4"
-oxiarc-zstd = "0.3.4"
-oxiarc-brotli = "0.3.4"
-oxiarc-snappy = "0.3.4"
+oxiarc-deflate = "0.3.5"
+oxiarc-lz4 = "0.3.5"
+oxiarc-zstd = "0.3.5"
+oxiarc-brotli = "0.3.5"
+oxiarc-snappy = "0.3.5"
 
 # HTTP client
 reqwest = { version = "0.13", features = ["json", "multipart"] }
