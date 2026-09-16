@@ -1,6 +1,8 @@
 [package]
 name = "chie-workers"
 description = "Background job workers for CHIE Protocol"
+categories = ["asynchronous", "concurrency", "network-programming"]
+keywords = ["chie", "workers", "background-jobs", "async", "p2p"]
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
