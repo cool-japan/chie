@@ -356,7 +356,7 @@ npm run tauri dev
 
 ## Sponsorship
 
-Chie is developed and maintained by **COOLJAPAN OU (Team Kitasan)**.
+Chie is developed and maintained by **COOLJAPAN OU (Team KitaSan)**.
 
 If you find Chie useful, please consider sponsoring the project to support continued development of the Pure Rust ecosystem.
 
